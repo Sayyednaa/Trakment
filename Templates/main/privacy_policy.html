@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Privacy Policy - Trakment{% endblock title %}
+{% block content %}
+<div class="py-5 px-3 text-start" style="max-width: 800px; margin: 0 auto; background: var(--canvas); padding: 3rem; border-radius: var(--radius-lg); border: 2px solid var(--border);">
+    <div class="text-center mb-5">
+        <i class="far fa-file-alt mb-3" style="font-size: 3rem; color: var(--secondary);"></i>
+        <h1 style="font-weight: 900; color: var(--ink);">Privacy Policy</h1>
+        <p class="text-muted">Last updated: July 2026</p>
+    </div>
+    
+    <div style="color: var(--ink-muted); font-size: 1rem; line-height: 1.8;">
+        <h4 style="color: var(--ink); font-weight: 800; margin-top: 2rem;">1. Information We Collect</h4>
+        <p>We collect information you provide directly to us, such as your name, email address, profile photo, and study performance data (including test marks, daily study hours, and completed tasks).</p>
+        
+        <h4 style="color: var(--ink); font-weight: 800; margin-top: 2rem;">2. How We Use Your Information</h4>
+        <p>The data we collect is used exclusively to provide and improve the Trakment app experience. Your study data, test scores, and goals are used to generate personalized analytics and dashboards.</p>
+        
+        <h4 style="color: var(--ink); font-weight: 800; margin-top: 2rem;">3. Data Security</h4>
+        <p>We implement appropriate security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. We do not sell your personal data to third parties.</p>
+        
+        <h4 style="color: var(--ink); font-weight: 800; margin-top: 2rem;">4. Your Rights</h4>
+        <p>You have the right to access, update, or delete your personal information at any time. You can manage your data directly from your Account Settings on your profile page.</p>
+    </div>
+
+    <div class="text-center mt-5">
+        <a href="/profile" class="btn-duo btn-duo-primary py-2 px-4 d-inline-block text-decoration-none">
+            <i class="fas fa-arrow-left me-2"></i> Back to Profile
+        </a>
+    </div>
+</div>
+{% endblock content %}

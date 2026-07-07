@@ -1,0 +1,1075 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Practice{% endblock %}
+
+{% block content %}
+<style>
+    /* Premium OMR Redesign CSS */
+    .omr-layout {
+        display: grid;
+        grid-template-columns: 350px 1fr;
+        gap: 2rem;
+        padding: 2rem 0;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    @media (max-width: 992px) {
+        .omr-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .omr-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .omr-sidebar-sticky {
+        position: sticky;
+        top: 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .glass-card {
+        background: var(--canvas);
+        border: 2px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 1.5rem;
+        box-shadow: var(--shadow-card);
+    }
+    
+    .panel-title {
+        font-weight: 900;
+        font-size: 1.2rem;
+        color: var(--ink);
+        margin-bottom: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-bottom: 1.2rem;
+    }
+
+    .input-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .input-label {
+        font-weight: 800;
+        color: var(--ink-muted);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Modern Timer */
+    .timer-display {
+        font-size: 2.5rem;
+        font-weight: 900;
+        font-family: 'Inter', monospace;
+        color: var(--primary);
+        text-align: center;
+        letter-spacing: 2px;
+        background: var(--surface-1);
+        padding: 1rem;
+        border-radius: var(--radius-md);
+        border: 2px solid var(--border);
+        margin-bottom: 1rem;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .timer-controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    /* Stats Grid Dashboard */
+    .mini-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .stat-box {
+        background: var(--surface-1);
+        border: 2px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 1rem;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .stat-box.highlight {
+        background: rgba(168, 21, 236, 0.05); /* subtle primary */
+        border-color: var(--primary);
+    }
+
+    .stat-box.success {
+        background: rgba(33, 150, 243, 0.05);
+        border-color: #2196f3;
+    }
+
+    .stat-box.danger {
+        background: rgba(247, 37, 133, 0.05);
+        border-color: var(--accent-red);
+    }
+
+    .stat-box-value {
+        font-size: 1.5rem;
+        font-weight: 900;
+        color: var(--ink);
+        margin-bottom: 0.2rem;
+    }
+
+    .stat-box-label {
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--ink-muted);
+        letter-spacing: 0.5px;
+    }
+
+    /* Right Side: OMR Grid */
+    .omr-sheet-area {
+        background: var(--canvas);
+        border: 2px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 2rem;
+        box-shadow: var(--shadow-card);
+        min-height: 600px;
+    }
+
+    .omr-sheet-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px dashed var(--border);
+    }
+
+    .chapter-badge {
+        background: var(--primary);
+        color: white;
+        padding: 0.5rem 1.2rem;
+        border-radius: var(--radius-pill);
+        font-weight: 800;
+        font-size: 1rem;
+        display: inline-block;
+    }
+
+    .omr-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 1.5rem;
+    }
+
+    /* Question Bubble Cards */
+    .question-card {
+        background: var(--surface-1);
+        border: 2px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 1.2rem;
+        position: relative;
+        transition: all 0.2s ease;
+    }
+
+    .question-card.incorrect {
+        border-color: var(--accent-red);
+        background: rgba(247, 37, 133, 0.03);
+    }
+
+    .question-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.2rem;
+    }
+
+    .question-number {
+        font-size: 1.1rem;
+        font-weight: 900;
+        color: var(--ink);
+        background: var(--canvas);
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        border: 2px solid var(--border);
+    }
+
+    /* Toggle Switch for Incorrect */
+    .incorrect-toggle {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+    }
+    
+    .incorrect-label {
+        font-size: 0.8rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--ink-muted);
+        transition: color 0.2s;
+    }
+
+    .is-incorrect {
+        appearance: none;
+        width: 36px;
+        height: 20px;
+        background: var(--border);
+        border-radius: 20px;
+        position: relative;
+        outline: none;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+    .is-incorrect::after {
+        content: '';
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 16px;
+        height: 16px;
+        background: white;
+        border-radius: 50%;
+        transition: 0.3s;
+    }
+    .is-incorrect:checked {
+        background: var(--accent-red);
+    }
+    .is-incorrect:checked::after {
+        transform: translateX(16px);
+    }
+    .is-incorrect:checked ~ .incorrect-label {
+        color: var(--accent-red);
+    }
+
+    /* OMR Bubbles */
+    .options-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.5rem;
+    }
+
+    .option-btn {
+        position: relative;
+        flex: 1;
+        display: flex;
+        justify-content: center;
+    }
+
+    .option-btn input {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+        width: 100%;
+        height: 100%;
+        z-index: 2;
+    }
+
+    .option-mark {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        font-weight: 800;
+        font-size: 0.9rem;
+        color: var(--ink-muted);
+        background: var(--canvas);
+        border: 2px solid var(--border);
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .option-btn:hover .option-mark {
+        border-color: var(--ink);
+        color: var(--ink);
+        transform: scale(1.05);
+    }
+
+    /* The selected state */
+    .option-btn input:checked + .option-mark {
+        background: var(--ink) !important;
+        border-color: var(--ink) !important;
+        color: transparent !important;
+        box-shadow: 0 0 0 4px rgba(0,0,0,0.1);
+        transform: scale(1.1);
+    }
+
+    /* Toast styling */
+    .toast {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        padding: 1rem 1.5rem;
+        background: var(--surface-1);
+        color: var(--ink);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-elevated);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        z-index: 10000;
+        transform: translateX(120%);
+        opacity: 0;
+        transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        font-weight: 800;
+        border: 2px solid var(--border);
+        border-left: 6px solid var(--primary);
+    }
+
+    .toast.show {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    .toast.error {
+        border-left-color: var(--accent-red);
+    }
+
+    .loading {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s linear infinite;
+        margin-right: 0.5rem;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+
+<div class="omr-layout">
+    
+    <!-- Left Sidebar: Controls & Stats -->
+    <div class="omr-sidebar">
+        <div class="omr-sidebar-sticky">
+            
+            <!-- Setup Card -->
+            <div class="glass-card">
+                <div class="panel-title" style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                    <span><i class="fas fa-sliders-h text-primary"></i> Setup Sheet</span>
+                    <i class="fas fa-info-circle text-muted" style="cursor:pointer;" data-bs-toggle="modal" data-bs-target="#omrInfoModal"></i>
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label" for="subjectSelect">Subject</label>
+                    <select id="subjectSelect" class="duo-input" required>
+                        <option value="">Select Subject</option>
+                        {% for subject in subjects %}
+                            <option value="{{ subject }}">{{ subject }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label" for="chapterSelect">Chapter</label>
+                    <select id="chapterSelect" class="duo-input" required disabled>
+                        <option value="">Select Subject First</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label" for="totalQuestions">Number of Questions</label>
+                    <input type="number" id="totalQuestions" class="duo-input" min="1" max="180" value="10">
+                </div>
+
+                <!-- Hidden fields -->
+                <input type="hidden" id="chapterId" name="chapter_id">
+                <input type="hidden" id="chapterName" name="chapter_name">
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 1rem;">
+                    <button onclick="generateOMR()" class="btn-duo btn-duo-primary py-2" style="font-size: 0.9rem;">
+                        <i class="fas fa-magic"></i> Generate
+                    </button>
+                    <button onclick="resetOMR()" class="btn-duo btn-duo-danger py-2" style="font-size: 0.9rem;">
+                        <i class="fas fa-trash"></i> Reset
+                    </button>
+                </div>
+            </div>
+
+            <!-- Timer Card -->
+            <div class="glass-card">
+                <div class="panel-title"><i class="fas fa-stopwatch text-warning"></i> Timer</div>
+                <div id="elapsed" class="timer-display">00:00:00</div>
+                <div class="timer-controls">
+                    <button onclick="stopTimer()" class="btn-duo btn-duo-secondary">
+                        <i class="fas fa-pause"></i> Pause
+                    </button>
+                    <button onclick="resumeTimer()" class="btn-duo btn-duo-primary">
+                        <i class="fas fa-play"></i> Resume
+                    </button>
+                </div>
+            </div>
+
+            <!-- Performance Dashboard -->
+            <div class="glass-card">
+                <div class="panel-title"><i class="fas fa-chart-pie text-success"></i> Performance</div>
+                
+                <div class="mini-stats">
+                    <div class="stat-box">
+                        <div id="attempted" class="stat-box-value">0</div>
+                        <div class="stat-box-label">Attempted</div>
+                    </div>
+                    <div class="stat-box highlight">
+                        <div id="percent" class="stat-box-value">0%</div>
+                        <div class="stat-box-label">Accuracy</div>
+                    </div>
+                    
+                    <div class="stat-box success">
+                        <div id="correct" class="stat-box-value">0</div>
+                        <div class="stat-box-label">Correct (+4)</div>
+                    </div>
+                    <div class="stat-box danger">
+                        <div id="incorrect" class="stat-box-value">0</div>
+                        <div class="stat-box-label">Incorrect (-1)</div>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 2px dashed var(--border);">
+                    <div>
+                        <div class="stat-box-label">Final Score</div>
+                        <div style="display: flex; gap: 0.5rem; font-size: 0.8rem; color: var(--ink-muted); font-weight: 700;">
+                            <span class="text-success" id="plus">+0</span> / 
+                            <span class="text-danger" id="minus">-0</span>
+                        </div>
+                    </div>
+                    <div id="total" style="font-size: 2.2rem; font-weight: 900; color: var(--ink);">0</div>
+                </div>
+
+                <button onclick="saveResults()" class="btn-duo btn-duo-success w-100 mt-4 py-3" id="saveBtn" style="font-size: 1.05rem;">
+                    <i class="fas fa-cloud-upload-alt me-2"></i> Save Results
+                </button>
+                <a href="/test/self-tests/" class="btn-duo btn-duo-secondary w-100 mt-2 py-2" style="text-decoration: none;">
+                    <i class="fas fa-history me-2"></i> View Past Tests
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Right Area: OMR Sheet -->
+    <div class="omr-sheet-area">
+        <div class="omr-sheet-header">
+            <h2 style="font-weight: 900; margin: 0; color: var(--ink);"><i class="fas fa-list-ol text-primary me-2"></i> Answer Sheet</h2>
+            <div id="chapterDisplay">
+                <!-- Chapter badge injected here -->
+                <span style="color: var(--ink-muted); font-weight: 700;">No chapter selected</span>
+            </div>
+        </div>
+
+        <div id="questionsContainer" class="omr-grid">
+            <!-- Questions injected here by JS -->
+            <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 0; color: var(--ink-muted);">
+                <i class="fas fa-magic" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                <h3 style="font-weight: 800;">Ready to practice</h3>
+                <p style="font-weight: 600;">Configure your test on the left and click Generate.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Info Modal -->
+<div class="modal fade" id="omrInfoModal" tabindex="-1" aria-hidden="true" style="z-index: 1055;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-duo p-2" style="background: var(--canvas); border: 2px solid var(--border);">
+            <div class="modal-header border-0 pb-0">
+                <h4 class="modal-title fw-bold" style="color: var(--primary);">How to Use Self Test</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex mb-4 align-items-start">
+                    <div class="me-3 mt-1" style="color: var(--primary); font-size: 1.2rem; background: rgba(0,200,150,0.1); width: 40px; height: 40px; display:flex; align-items:center; justify-content:center; border-radius: 50%;">
+                        <i class="fas fa-book-open"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-1" style="color: var(--ink);">1. Select Subject & Chapter</h6>
+                        <p class="text-muted mb-0" style="font-size: 0.9rem;">Choose the specific topic you are practicing to keep your analytics organized.</p>
+                    </div>
+                </div>
+
+                <div class="d-flex mb-4 align-items-start">
+                    <div class="me-3 mt-1" style="color: var(--primary); font-size: 1.2rem; background: rgba(0,200,150,0.1); width: 40px; height: 40px; display:flex; align-items:center; justify-content:center; border-radius: 50%;">
+                        <i class="fas fa-list-ol"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-1" style="color: var(--ink);">2. Set Question Count</h6>
+                        <p class="text-muted mb-0" style="font-size: 0.9rem;">Enter the number of questions in your set (max 180 questions per session).</p>
+                    </div>
+                </div>
+
+                <div class="d-flex mb-4 align-items-start">
+                    <div class="me-3 mt-1" style="color: var(--primary); font-size: 1.2rem; background: rgba(0,200,150,0.1); width: 40px; height: 40px; display:flex; align-items:center; justify-content:center; border-radius: 50%;">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-1" style="color: var(--ink);">3. Generate & Start</h6>
+                        <p class="text-muted mb-0" style="font-size: 0.9rem;">Tap 'Generate OMR' to create the sheet and automatically start the session timer.</p>
+                    </div>
+                </div>
+
+                <div class="d-flex mb-4 align-items-start">
+                    <div class="me-3 mt-1" style="color: var(--primary); font-size: 1.2rem; background: rgba(0,200,150,0.1); width: 40px; height: 40px; display:flex; align-items:center; justify-content:center; border-radius: 50%;">
+                        <i class="fas fa-edit"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-1" style="color: var(--ink);">4. Real-life Practice</h6>
+                        <p class="text-muted mb-0" style="font-size: 0.9rem;">Solve questions in your actual book/paper, then tap the corresponding option (A-D) on your screen.</p>
+                    </div>
+                </div>
+
+                <div class="d-flex mb-4 align-items-start">
+                    <div class="me-3 mt-1" style="color: var(--primary); font-size: 1.2rem; background: rgba(0,200,150,0.1); width: 40px; height: 40px; display:flex; align-items:center; justify-content:center; border-radius: 50%;">
+                        <i class="fas fa-check-square"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-1" style="color: var(--ink);">5. Track Errors</h6>
+                        <p class="text-muted mb-0" style="font-size: 0.9rem;">Check the 'Incorrect' box if you get a question wrong. The app will auto-calculate your marks.</p>
+                    </div>
+                </div>
+
+                <div class="d-flex mb-4 align-items-start">
+                    <div class="me-3 mt-1" style="color: var(--primary); font-size: 1.2rem; background: rgba(0,200,150,0.1); width: 40px; height: 40px; display:flex; align-items:center; justify-content:center; border-radius: 50%;">
+                        <i class="fas fa-save"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-1" style="color: var(--ink);">6. Save Progress</h6>
+                        <p class="text-muted mb-0" style="font-size: 0.9rem;">Review your summary performance and save to track your growth over time.</p>
+                    </div>
+                </div>
+
+                <button type="button" class="btn-duo btn-duo-primary w-100 py-3 mt-2" data-bs-dismiss="modal" style="border-radius: 12px; font-weight: bold;">Got it!</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="toast" class="toast">
+    <div id="toast-icon"><i class="fas fa-check-circle text-primary"></i></div>
+    <span id="toast-message" style="flex: 1;">Results saved successfully!</span>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+    let startTime, timerInterval, autoSaveInterval, pausedDuration = 0, pausedAt = null;
+    let totalQuestions = 0;
+    // Chapters data from backend
+const chaptersBySubject = {{ chapters_by_subject|safe }};
+
+// Subject dropdown change handler
+document.getElementById('subjectSelect').addEventListener('change', function() {
+    const subject = this.value;
+    const chapterSelect = document.getElementById('chapterSelect');
+
+    // Clear and reset chapter dropdown
+    chapterSelect.innerHTML = '<option value="">Select Chapter</option>';
+    chapterSelect.disabled = false;
+
+    // Clear hidden fields
+    document.getElementById('chapterId').value = '';
+    document.getElementById('chapterName').value = '';
+
+    // Populate chapters for selected subject
+    if (subject && chaptersBySubject[subject]) {
+        chaptersBySubject[subject].forEach(chapter => {
+            const option = document.createElement('option');
+            option.value = chapter.id;
+            option.textContent = chapter.Cname;
+            chapterSelect.appendChild(option);
+        });
+    } else {
+        chapterSelect.disabled = true;
+    }
+});
+
+// Chapter dropdown change handler
+document.getElementById('chapterSelect').addEventListener('change', function() {
+    const chapterId = this.value;
+    const chapterName = this.options[this.selectedIndex].text;
+
+    // Update hidden fields
+    document.getElementById('chapterId').value = chapterId;
+    document.getElementById('chapterName').value = chapterName;
+});
+
+
+    function startTimer(isRestoring = false) {
+        if (!isRestoring) {
+            startTime = new Date();
+            pausedDuration = 0;
+            pausedAt = null;
+        }
+
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(updateTimerDisplay, 1000);
+    }
+
+    function stopTimer() {
+        clearInterval(timerInterval);
+        pausedAt = new Date();
+    }
+
+    function resumeTimer() {
+        if (pausedAt) {
+            pausedDuration += new Date() - pausedAt;
+            pausedAt = null;
+            timerInterval = setInterval(updateTimerDisplay, 1000);
+        }
+    }
+
+    function updateTimerDisplay() {
+        const now = new Date();
+        const elapsed = new Date(now - startTime - pausedDuration);
+        const h = String(elapsed.getUTCHours()).padStart(2, '0');
+        const m = String(elapsed.getUTCMinutes()).padStart(2, '0');
+        const s = String(elapsed.getUTCSeconds()).padStart(2, '0');
+        document.getElementById("elapsed").textContent = `${h}:${m}:${s}`;
+    }
+
+    function getElapsedSeconds() {
+        if (!startTime) return 0;
+        const now = pausedAt ? pausedAt : new Date();
+        return Math.floor((now - startTime - pausedDuration) / 1000);
+    }
+
+    function setElapsedSeconds(seconds) {
+        startTime = new Date();
+        pausedDuration = 0;
+        startTime.setSeconds(startTime.getSeconds() - seconds);
+        if (pausedAt) pausedAt = new Date(); // adjust pause time if it was paused
+        updateTimerDisplay();
+    }
+
+    function autoSaveSession() {
+        if (!totalQuestions) return; // Don't save if sheet not generated
+
+        const answers = {};
+        const incorrect = [];
+
+        for (let i = 1; i <= totalQuestions; i++) {
+            const selected = document.querySelector(`input[name="q${i}"]:checked`);
+            if (selected) {
+                answers[i] = selected.value;
+            }
+            const incorrectCheckbox = document.querySelector(`.is-incorrect[data-question="${i}"]`);
+            if (incorrectCheckbox && incorrectCheckbox.checked) {
+                incorrect.push(i);
+            }
+        }
+
+        const sessionData = {
+            subject: document.getElementById('subjectSelect').value,
+            chapterId: document.getElementById('chapterId').value,
+            chapterName: document.getElementById('chapterName').value,
+            totalQuestions: totalQuestions,
+            elapsedSeconds: getElapsedSeconds(),
+            isPaused: pausedAt !== null,
+            answers: answers,
+            incorrect: incorrect
+        };
+
+        localStorage.setItem('omr_backup_session', JSON.stringify(sessionData));
+    }
+
+    function clearSession() {
+        localStorage.removeItem('omr_backup_session');
+    }
+
+    function restoreSessionPrompt() {
+        const savedData = localStorage.getItem('omr_backup_session');
+        if (savedData) {
+            const session = JSON.parse(savedData);
+            if (confirm(`You have an unfinished OMR session for ${session.chapterName || 'a chapter'}. Would you like to restore it?`)) {
+                restoreSessionData(session);
+            } else {
+                clearSession();
+            }
+        }
+    }
+
+    function restoreSessionData(session) {
+        // Restore dropdowns
+        const subjectSelect = document.getElementById('subjectSelect');
+        subjectSelect.value = session.subject;
+        subjectSelect.dispatchEvent(new Event('change')); // Trigger populate chapters
+
+        setTimeout(() => {
+            const chapterSelect = document.getElementById('chapterSelect');
+            chapterSelect.value = session.chapterId;
+            chapterSelect.dispatchEvent(new Event('change'));
+
+            document.getElementById('totalQuestions').value = session.totalQuestions;
+
+            // Generate OMR
+            generateOMR(true); // pass true to avoid resetting timer internally
+
+            // Restore answers
+            for (const [qNum, val] of Object.entries(session.answers)) {
+                const radio = document.querySelector(`input[name="q${qNum}"][value="${val}"]`);
+                if (radio) radio.checked = true;
+            }
+
+            // Restore incorrect
+            session.incorrect.forEach(qNum => {
+                const checkbox = document.querySelector(`.is-incorrect[data-question="${qNum}"]`);
+                if (checkbox) {
+                    checkbox.checked = true;
+                    checkbox.dispatchEvent(new Event('change'));
+                }
+            });
+
+            // Restore timer
+            setElapsedSeconds(session.elapsedSeconds);
+            if (session.isPaused) {
+                stopTimer();
+            } else {
+                startTimer(true);
+            }
+
+            calculateStats();
+            showToast("Session restored successfully!");
+        }, 100);
+    }
+
+    function exportPDF() {
+        window.print();
+    }
+
+    function createQuestionBlock(qNum) {
+        const div = document.createElement("div");
+        div.className = "question-card fade-in";
+        div.innerHTML = `
+            <div class="question-header">
+                <span class="question-number">${qNum}</span>
+                <label class="incorrect-toggle">
+                    <input type="checkbox" class="is-incorrect" data-question="${qNum}">
+                    <span class="incorrect-label">Incorrect</span>
+                </label>
+            </div>
+            <div class="options-row">
+                ${["A", "B", "C", "D"].map(opt => `
+                    <label class="option-btn">
+                        <input type="radio" name="q${qNum}" value="${opt}" id="q${qNum}_${opt}">
+                        <span class="option-mark">${opt}</span>
+                    </label>
+                `).join('')}
+            </div>
+        `;
+
+        // Add click event to handle radio selection/deselection
+        const radioInputs = div.querySelectorAll('input[type="radio"]');
+        radioInputs.forEach(input => {
+            let isChecked = false;
+
+            input.addEventListener('click', function(e) {
+                if (isChecked) {
+                    this.checked = false;
+                    isChecked = false;
+                } else {
+                    isChecked = true;
+                }
+                calculateStats();
+            });
+        });
+
+        // Add change event for incorrect checkbox
+        const incorrectCheckbox = div.querySelector('.is-incorrect');
+        incorrectCheckbox.addEventListener('change', function() {
+            const questionCard = this.closest('.question-card');
+            if (this.checked) {
+                questionCard.classList.add('incorrect');
+            } else {
+                questionCard.classList.remove('incorrect');
+            }
+            calculateStats();
+        });
+
+        return div;
+    }
+
+    function generateOMR(isRestoring = false) {
+        if (!isRestoring) {
+            stopTimer();
+            startTimer();
+        }
+
+      // Get chapter name from select dropdown
+const chapterSelect = document.getElementById("chapterSelect");
+let chapterName = "";
+
+if (chapterSelect && chapterSelect.value) {
+    chapterName = chapterSelect.options[chapterSelect.selectedIndex].text;
+    // Update hidden field
+    document.getElementById("chapterName").value = chapterName;
+}
+
+if (!chapterName) {
+    showToast("Please select a chapter first.", true);
+    return;
+}
+
+document.getElementById("chapterDisplay").innerHTML = `
+    <div class="chapter-badge">${chapterName}</div>
+`;
+
+        totalQuestions = parseInt(document.getElementById("totalQuestions").value);
+        if (!totalQuestions || totalQuestions < 1) {
+            showToast("Please enter a valid number of questions.", true);
+            return;
+        }
+        if (totalQuestions > 180) {
+            showToast("Maximum limit is 180 questions.", true);
+            return;
+        }
+
+        const container = document.getElementById("questionsContainer");
+        container.innerHTML = "";
+
+        for (let qNum = 1; qNum <= totalQuestions; qNum++) {
+            container.appendChild(createQuestionBlock(qNum));
+        }
+
+        // Add global change listener
+        container.addEventListener('change', function(e) {
+            if (e.target.type === 'checkbox' || e.target.type === 'radio') {
+                calculateStats();
+                autoSaveSession();
+            }
+        });
+
+        calculateStats();
+        if (!isRestoring) {
+            showToast("OMR sheet generated successfully!");
+            autoSaveSession();
+            
+            if (autoSaveInterval) clearInterval(autoSaveInterval);
+            autoSaveInterval = setInterval(autoSaveSession, 5000); // Save every 5 seconds as well
+        }
+    }
+
+    function resetOMR() {
+        stopTimer();
+        if (autoSaveInterval) clearInterval(autoSaveInterval);
+        clearSession();
+        
+        document.getElementById("elapsed").textContent = "00:00:00";
+        document.getElementById("chapterDisplay").innerHTML = "";
+        document.getElementById("questionsContainer").innerHTML = "";
+        document.getElementById("chapterName").value = "Biomolecules";
+        document.getElementById("totalQuestions").value = "10";
+
+        // Reset stats
+        document.getElementById("attempted").innerText = "0";
+        document.getElementById("correct").innerText = "0";
+        document.getElementById("incorrect").innerText = "0";
+        document.getElementById("plus").innerText = "0";
+        document.getElementById("minus").innerText = "0";
+        document.getElementById("total").innerText = "0";
+        document.getElementById("percent").innerText = "0%";
+
+        showToast("OMR sheet has been reset.");
+    }
+
+    function calculateStats() {
+        let attempted = 0, incorrect = 0;
+
+        for (let i = 1; i <= totalQuestions; i++) {
+            const selected = document.querySelector(`input[name="q${i}"]:checked`);
+            if (selected) {
+                attempted++;
+                const incorrectCheckbox = document.querySelector(`.is-incorrect[data-question="${i}"]`);
+                if (incorrectCheckbox && incorrectCheckbox.checked) {
+                    incorrect++;
+                }
+            }
+        }
+
+        const correct = attempted - incorrect;
+        const plus = correct * 4;
+        const minus = incorrect * 1;
+        const total = plus - minus;
+        const percent = totalQuestions ? ((total / (totalQuestions * 4)) * 100).toFixed(2) : 0;
+
+        // Update the display
+        document.getElementById("attempted").innerText = attempted;
+        document.getElementById("correct").innerText = correct;
+        document.getElementById("incorrect").innerText = incorrect;
+        document.getElementById("plus").innerText = plus;
+        document.getElementById("minus").innerText = minus;
+        document.getElementById("total").innerText = total;
+        document.getElementById("percent").innerText = `${percent}%`;
+
+        // Stop timer automatically if all questions are answered
+        if (totalQuestions > 0 && attempted === totalQuestions) {
+            stopTimer();
+            showToast("All questions answered. Timer stopped.");
+        }
+    }
+
+   async function saveResults() {
+    // Get chapter name - try multiple sources
+    let chapterName = document.getElementById("chapterName").value.trim();
+
+    // If hidden field is empty, try getting from select dropdown
+    if (!chapterName) {
+        const chapterSelect = document.getElementById("chapterSelect");
+        if (chapterSelect && chapterSelect.value) {
+            chapterName = chapterSelect.options[chapterSelect.selectedIndex].text;
+        }
+    }
+
+    // Validate chapter name
+    if (!chapterName || chapterName === "Select Chapter") {
+        showToast("Please select a chapter before saving.", true);
+        return;
+    }
+
+    if (totalQuestions === 0) {
+        showToast("Please generate OMR sheet first.", true);
+        return;
+    }
+
+    const chapterId = document.getElementById("chapterId").value;
+    const attempted = parseInt(document.getElementById("attempted").innerText) || 0;
+    const correct = parseInt(document.getElementById("correct").innerText) || 0;
+    const incorrect = parseInt(document.getElementById("incorrect").innerText) || 0;
+    const plus_marks = parseInt(document.getElementById("plus").innerText) || 0;
+    const minus_marks = parseInt(document.getElementById("minus").innerText) || 0;
+    const total_marks = parseInt(document.getElementById("total").innerText) || 0;
+    const percentage = parseFloat(document.getElementById("percent").innerText) || 0;
+    const time = document.getElementById("elapsed").textContent;
+
+    const timeParts = time.split(':');
+    const timeTaken = `${timeParts[0].padStart(2, '0')}:${timeParts[1].padStart(2, '0')}:${timeParts[2].padStart(2, '0')}`;
+
+    const formData = new FormData();
+    formData.append('chapter', chapterName);
+    formData.append('chapter_id', chapterId);
+    formData.append('questions', totalQuestions.toString());
+    formData.append('attempted', attempted.toString());
+    formData.append('correct', correct.toString());
+    formData.append('incorrect', incorrect.toString());
+    formData.append('plus_marks', plus_marks.toString());
+    formData.append('minus_marks', minus_marks.toString());
+    formData.append('total_marks', total_marks.toString());
+    formData.append('percentage', percentage.toString());
+    formData.append('time', timeTaken);
+
+    const saveBtn = document.getElementById('saveBtn');
+    const originalText = saveBtn.innerHTML;
+    saveBtn.innerHTML = '<div class="loading"></div> Saving...';
+    saveBtn.disabled = true;
+
+    try {
+        const response = await fetch('/test/save-test/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+            },
+            body: formData
+        });
+
+        if (response.ok) {
+            clearSession();
+            showToast("Results saved successfully!");
+            setTimeout(() => {
+                window.location.href = '/test/self-tests/';
+            }, 1500);
+        } else {
+            const errorData = await response.json();
+            console.error('Server error:', errorData);
+            showToast(errorData.message || "Error saving results. Please try again.", true);
+        }
+    } catch (error) {
+        console.error('Network error:', error);
+        showToast("Network error. Please check your connection.", true);
+    } finally {
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
+    }
+}
+
+
+    function getCSRFToken() {
+        const name = 'csrftoken';
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+
+        if (!cookieValue) {
+            const csrfTokenMeta = document.querySelector('meta[name="csrf-token"]');
+            if (csrfTokenMeta) {
+                cookieValue = csrfTokenMeta.getAttribute('content');
+            }
+        }
+
+        if (!cookieValue) {
+            const csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
+            if (csrfInput) {
+                cookieValue = csrfInput.value;
+            }
+        }
+
+        return cookieValue;
+    }
+
+    function showToast(message, isError = false) {
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+
+        toastMessage.textContent = message;
+
+        if (isError) {
+            toast.classList.add('error');
+            toast.innerHTML = '<i class="fas fa-exclamation-circle"></i><span id="toast-message">' + message + '</span>';
+        } else {
+            toast.classList.remove('error');
+            toast.innerHTML = '<i class="fas fa-check-circle"></i><span id="toast-message">' + message + '</span>';
+        }
+
+        toast.classList.add('show');
+
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+
+    // Initialize with sample data
+    document.addEventListener('DOMContentLoaded', function() {
+        restoreSessionPrompt();
+    });
+</script>
+{% endblock %}

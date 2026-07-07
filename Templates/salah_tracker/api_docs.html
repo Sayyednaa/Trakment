@@ -1,0 +1,348 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}API Documentation - Salah Tracker{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary-color: #2d6a4f;
+    --secondary-color: #40916c;
+    --accent-color: #74c69d;
+    --light-color: #d8f3dc;
+    --dark-color: #1b4332;
+    --text-color: #333;
+    --background-color: #f8f9fa;
+    --card-bg: #ffffff;
+    --border-radius: 12px;
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--background-color);
+  }
+
+  .container {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 0 20px;
+  }
+
+  .header {
+    margin-bottom: 40px;
+    border-bottom: 2px solid var(--light-color);
+    padding-bottom: 20px;
+  }
+
+  .header h1 {
+    color: var(--primary-color);
+    font-weight: 700;
+  }
+
+  .endpoint-card {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 25px;
+    overflow: hidden;
+  }
+
+  .endpoint-header {
+    background-color: var(--dark-color);
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .method {
+    font-weight: bold;
+    padding: 5px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+
+  .method.get { background-color: #4CAF50; }
+  .method.post { background-color: #2196F3; }
+
+  .url {
+    font-family: monospace;
+    font-size: 16px;
+  }
+
+  .endpoint-body {
+    padding: 20px;
+  }
+
+  .section-title {
+    font-size: 14px;
+    text-transform: uppercase;
+    color: var(--secondary-color);
+    font-weight: 600;
+    margin-bottom: 10px;
+    margin-top: 15px;
+  }
+
+  pre {
+    background: #f4f4f4;
+    padding: 15px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-family: monospace;
+    font-size: 13px;
+    border: 1px solid #ddd;
+    color: #333;
+  }
+
+  code {
+    font-family: monospace;
+    color: #d63384;
+    background: #f8f9fa;
+    padding: 2px 4px;
+    border-radius: 4px;
+  }
+
+  .important-note {
+    background-color: #fff3cd;
+    border-left: 4px solid #ffecb5;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 30px;
+  }
+</style>
+
+<div class="container">
+  <div class="header">
+    <h1><i class="fas fa-server"></i> React Native API Documentation</h1>
+    <p>Complete guide to integrate the Django Backend with your Expo Application. Base URL: <code>http://&lt;YOUR_IP&gt;:8000</code></p>
+  </div>
+
+  <div class="important-note">
+    <strong><i class="fas fa-exclamation-triangle"></i> Note on Authentication:</strong> 
+    There is currently no strict token authentication implemented. Every request expects a <code>username</code> field to be passed identifying the current logged-in user in your Expo app.
+  </div>
+
+  <!-- Endpoint 1 -->
+  <div class="endpoint-card">
+    <div class="endpoint-header">
+      <span class="method get">GET</span>
+      <span class="url">/api/daily-prayers/?username={username}</span>
+    </div>
+    <div class="endpoint-body">
+      <p>Fetches today's Fard and Sunnah prayers along with their completion status for the specific user.</p>
+      
+      <div class="section-title">Query Parameters</div>
+      <ul>
+        <li><code>username</code> (string, required): The username of the logged-in user.</li>
+      </ul>
+
+      <div class="section-title">Success Response Example</div>
+      <pre>
+{
+  "status": "success",
+  "date": "2026-04-13",
+  "fards": [
+    { "id": 1, "name": "Fajr", "completed": false, "completed_time": null }
+  ],
+  "sunnahs": [
+    { "id": 1, "name": "2 Rakat Before Fajr", "fard_link": "Fajr", "completed": false, "completed_time": null }
+  ]
+}</pre>
+    </div>
+  </div>
+
+  <!-- Endpoint 2 -->
+  <div class="endpoint-card">
+    <div class="endpoint-header">
+      <span class="method post">POST</span>
+      <span class="url">/api/toggle-fard/</span>
+    </div>
+    <div class="endpoint-body">
+      <p>Toggles the completion status (True/False) of a specific Fard prayer.</p>
+      
+      <div class="section-title">JSON Body</div>
+      <pre>
+{
+  "username": "johndoe",
+  "id": 1
+}</pre>
+
+      <div class="section-title">Success Response Example</div>
+      <pre>
+{
+  "status": "success",
+  "completed": true
+}</pre>
+    </div>
+  </div>
+  
+  <!-- Endpoint 3 -->
+  <div class="endpoint-card">
+    <div class="endpoint-header">
+      <span class="method post">POST</span>
+      <span class="url">/api/toggle-sunnah/</span>
+    </div>
+    <div class="endpoint-body">
+      <p>Toggles the completion status (True/False) of a specific Sunnah prayer.</p>
+      
+      <div class="section-title">JSON Body</div>
+      <pre>
+{
+  "username": "johndoe",
+  "id": 1
+}</pre>
+
+      <div class="section-title">Success Response Example</div>
+      <pre>
+{
+  "status": "success",
+  "completed": true
+}</pre>
+    </div>
+  </div>
+
+  <!-- Endpoint 4 -->
+  <div class="endpoint-card">
+    <div class="endpoint-header">
+      <span class="method post">POST</span>
+      <span class="url">/api/add-azkaar/</span>
+    </div>
+    <div class="endpoint-body">
+      <p>Logs a new Zikr count.</p>
+      
+      <div class="section-title">JSON Body</div>
+      <pre>
+{
+  "username": "johndoe",
+  "name": "Subhanallah",
+  "count": 33
+}</pre>
+
+      <div class="section-title">Success Response Example</div>
+      <pre>
+{
+  "status": "success",
+  "id": 5,
+  "name": "Subhanallah"
+}</pre>
+    </div>
+  </div>
+
+  <!-- Endpoint 5 -->
+  <div class="endpoint-card">
+    <div class="endpoint-header">
+      <span class="method post">POST</span>
+      <span class="url">/api/add-quran/</span>
+    </div>
+    <div class="endpoint-body">
+      <p>Logs new Quran tracking stats.</p>
+      
+      <div class="section-title">JSON Body</div>
+      <pre>
+{
+  "username": "johndoe",
+  "surah": "Al-Baqarah",
+  "start_ayah": 1,
+  "end_ayah": 5,
+  "notes": "Beautiful recitation"
+}</pre>
+
+      <div class="section-title">Success Response Example</div>
+      <pre>
+{
+  "status": "success",
+  "id": 2,
+  "surah": "Al-Baqarah"
+}</pre>
+    </div>
+  </div>
+
+  <!-- Endpoint 6 -->
+  <div class="endpoint-card">
+    <div class="endpoint-header">
+      <span class="method post">POST</span>
+      <span class="url">/api/add-nafl/</span>
+    </div>
+    <div class="endpoint-body">
+      <p>Adds a recorded Nafl prayer timestamp automatically.</p>
+      
+      <div class="section-title">JSON Body</div>
+      <pre>
+{
+  "username": "johndoe",
+  "name": "Tahajjud"
+}</pre>
+
+      <div class="section-title">Success Response Example</div>
+      <pre>
+{
+  "status": "success",
+  "id": 3,
+  "name": "Tahajjud"
+}</pre>
+    </div>
+  </div>
+  
+  <!-- Endpoint 7 -->
+  <div class="endpoint-card">
+    <div class="endpoint-header">
+      <span class="method get">GET</span>
+      <span class="url">/api/stats/?username={username}&days={days}</span>
+    </div>
+    <div class="endpoint-body">
+      <p>Fetches extreme detailed analytics correctly serialized.</p>
+      
+      <div class="section-title">Query Parameters</div>
+      <ul>
+        <li><code>username</code> (string, required): The username of the logged-in user.</li>
+        <li><code>days</code> (int, optional): The number of days to analyze (e.g. 30). Defaults to 30.</li>
+      </ul>
+
+      <div class="section-title">Success Response Example</div>
+      <pre>
+{
+  "status": "success",
+  "summary": {
+    "fard_completed_today": 3,
+    "fard_total_today": 5
+  },
+  "detailed_stats": {
+    "prayer_stats": { ... },
+    "quran_stats": { ... },
+    "azkaar_stats": { ... },
+    "nafl_stats": { ... }
+  }
+}</pre>
+    </div>
+  </div>
+
+  <!-- Endpoint 8 -->
+  <div class="endpoint-card">
+    <div class="endpoint-header">
+      <span class="method get">GET</span>
+      <span class="url">/api/next-prayer/?username={username}</span>
+    </div>
+    <div class="endpoint-body">
+      <p>Fetches the next upcoming prayer based on current time and the user's saved prayer times.</p>
+      
+      <div class="section-title">Query Parameters</div>
+      <ul>
+        <li><code>username</code> (string, required): The username of the logged-in user.</li>
+      </ul>
+
+      <div class="section-title">Success Response Example</div>
+      <pre>
+{
+  "status": "success",
+  "next_prayer": "Asr",
+  "time": "15:30:00",
+  "is_tomorrow": false
+}</pre>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

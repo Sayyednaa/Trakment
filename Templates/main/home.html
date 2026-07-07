@@ -1,108 +1,707 @@
 {% extends 'base.html' %}
 
+{% block title %}Study Dashboard{% endblock %}
+
 {% block content %}
-<div class="content">
-    <!-- Hamburger Menu for Mobile -->
-   
+{% if is_authenticated %}
+<style>
+  .dashboard-container {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
 
-    <div class="navbar">
-        <span id="countdown"></span>
-        <div class="progress" style="width: 200px;">
-            <div id="progressBar" class="progress-bar bg-success"></div>
+  .welcome-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, rgba(88,204,2,0.1) 0%, rgba(28,176,246,0.1) 100%);
+    border: 2px solid var(--primary);
+    border-radius: var(--radius-lg);
+    margin-bottom: 2rem;
+  }
+  
+  .welcome-text h1 {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+  }
+
+  .welcome-text p {
+    font-size: 1.1rem;
+    color: var(--ink-muted);
+    margin: 0;
+    font-weight: 600;
+  }
+
+  .countdown-badge {
+    background: var(--canvas);
+    border: 2px solid var(--accent-yellow);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.5rem;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  }
+  .countdown-badge .days {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--accent-yellow);
+    line-height: 1;
+  }
+  .countdown-badge .label {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    margin-top: 0.5rem;
+  }
+
+  /* Grid Layouts */
+  .grid-layout {
+    display: grid;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .grid-2 { grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); }
+  .grid-3 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .grid-4 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+
+  /* Stat Card */
+  .stat-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .stat-card .title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--ink-muted);
+    margin-bottom: 0.5rem;
+  }
+  .stat-card .value {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--ink);
+  }
+  .stat-card .trend {
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  .trend.positive { color: var(--primary); }
+  .trend.negative { color: var(--danger); }
+  .trend.neutral { color: var(--ink-muted); }
+
+  /* Task / Prayer List */
+  .list-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 2px solid var(--border);
+    transition: background 0.2s;
+  }
+  .list-item:last-child {
+    border-bottom: none;
+  }
+  .list-item input[type="checkbox"] {
+    width: 24px;
+    height: 24px;
+    margin-right: 1rem;
+    accent-color: var(--primary);
+  }
+  .list-item-text {
+    flex-grow: 1;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--ink);
+  }
+  .list-item.completed .list-item-text {
+    text-decoration: line-through;
+    opacity: 0.5;
+  }
+  
+  .badge-tag {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    background: var(--surface-2);
+    color: var(--ink-muted);
+    margin-right: 10px;
+  }
+
+  .chart-container {
+    min-height: 300px;
+    width: 100%;
+  }
+
+  @media (max-width: 768px) {
+    .welcome-banner {
+      flex-direction: column;
+      text-align: center;
+      gap: 1.5rem;
+    }
+    .grid-2, .grid-3, .grid-4 {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<div class="dashboard-container">
+  <!-- Welcome Banner -->
+  <div class="welcome-banner">
+    <div class="welcome-text">
+      <h1>Welcome back{% if user.first_name %}, {{ user.first_name }}{% elif user.username %}, {{ user.username }}{% endif %}! 🚀</h1>
+      <p>Here is your study progress overview.</p>
+    </div>
+    <div class="countdown-badge">
+      <div class="days" id="hero-countdown">0</div>
+      <div class="label">Days until Target</div>
+    </div>
+  </div>
+
+  <!-- Key Stats Row -->
+  <div class="grid-layout grid-4">
+    <!-- Study Time -->
+    <div class="card-duo stat-card" style="border-bottom: 5px solid var(--accent-purple);">
+      <div class="title">Weekly Study Time</div>
+      <div class="value">{{ total_study_time|default:'0' }}h</div>
+      <div class="trend {% if change > 0 %}positive{% elif change < 0 %}negative{% else %}neutral{% endif %}">
+        {% if change > 0 %}<i class="fas fa-arrow-up"></i> +{{ change }}%
+        {% elif change < 0 %}<i class="fas fa-arrow-down"></i> {{ change }}%
+        {% else %}<i class="fas fa-minus"></i> 0%{% endif %}
+      </div>
+    </div>
+    
+    <!-- Tasks -->
+    <div class="card-duo stat-card" style="border-bottom: 5px solid var(--primary);">
+      <div class="title">Tasks Completed</div>
+      <div class="value">{{ completedTask|default:'0' }}/{{ totalTask|default:'0' }}</div>
+      <div class="trend {% if task_percent_change > 0 %}positive{% elif task_percent_change < 0 %}negative{% else %}neutral{% endif %}">
+        {% if task_percent_change > 0 %}<i class="fas fa-arrow-up"></i> +{{ task_percent_change }}%
+        {% elif task_percent_change < 0 %}<i class="fas fa-arrow-down"></i> {{ task_abs_percent_change }}%
+        {% else %}<i class="fas fa-minus"></i> 0%{% endif %}
+      </div>
+    </div>
+
+    <!-- Syllabus -->
+    <div class="card-duo stat-card" style="border-bottom: 5px solid var(--accent-yellow);">
+      <div class="title">Syllabus Covered</div>
+      <div class="value">{{ completedC|default:'0' }}/{{ Tc|default:'0' }}</div>
+      <div class="trend neutral"><i class="fas fa-book"></i> Chapters</div>
+    </div>
+
+    <!-- Avg Test Score -->
+    <div class="card-duo stat-card" style="border-bottom: 5px solid var(--accent-red);">
+      <div class="title">Avg Test Score</div>
+      <div class="value">{{ average_percentage|default:'0' }}%</div>
+      <div class="trend {% if percentage_change > 0 %}positive{% elif percentage_change < 0 %}negative{% else %}neutral{% endif %}">
+        {% if percentage_change > 0 %}<i class="fas fa-arrow-up"></i> +{{ percentage_change }}%
+        {% elif percentage_change < 0 %}<i class="fas fa-arrow-down"></i> {{ percentage_change_abs }}%
+        {% else %}<i class="fas fa-minus"></i> 0%{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Focus Session Card -->
+  <div class="card-duo focus-session-card" style="background: linear-gradient(135deg, rgba(206,130,255,0.05) 0%, rgba(28,176,246,0.05) 100%); margin-bottom: 2rem; position: relative; padding: 2rem; border-radius: var(--radius-lg); border: 2px solid var(--border); display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 350px;">
+    
+    <!-- Header: Title and Secondary Controls -->
+    <div style="width: 100%; display: flex; justify-content: space-between; align-items: flex-start; position: absolute; top: 2rem; left: 0; padding: 0 2rem;">
+        <div>
+            <h2 style="font-size: 1.5rem; font-weight: 900; color: var(--ink); margin-bottom: 0.2rem;"><i class="fas fa-brain text-primary"></i> Deep Focus Session</h2>
+            <p id="focus-status-text" style="color: var(--ink-muted); font-weight: 700; font-size: 0.9rem;">Eliminate distractions and track your deep work.</p>
+        </div>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <div class="dropdown">
+              <button class="btn-duo btn-duo-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" style="padding: 0.4rem 0.8rem;">
+                <i class="fas fa-music"></i>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><h6 class="dropdown-header">Ambient Sound</h6></li>
+                <li><a class="dropdown-item" href="javascript:void(0)" onclick="playAmbient('none')">None</a></li>
+                <li><a class="dropdown-item" href="javascript:void(0)" onclick="playAmbient('rain')">Rain</a></li>
+                <li><a class="dropdown-item" href="javascript:void(0)" onclick="playAmbient('thunder')">Thunder</a></li>
+                <li><a class="dropdown-item" href="javascript:void(0)" onclick="playAmbient('jungle')">Jungle</a></li>
+              </ul>
+            </div>
+            <button id="btn-fullscreen" class="btn-duo btn-duo-secondary btn-sm" onclick="toggleFullScreen()" style="padding: 0.4rem 0.8rem; display: none;">
+              <i class="fas fa-expand"></i>
+            </button>
         </div>
     </div>
 
-    <div class="container mt-4">
-        <div class="row">
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-header">Task Statistics</div>
-                    <div class="card-body">
-                        <div id="taskChart" class="chart-container"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-header">Syllabus Statistics</div>
-                    <div class="card-body">
-                        <div id="syllabusChart" class="chart-container"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-header">Today's Goals</div>
-                    <div class="card-body">
-                        <ul>
-                            {% for i in task %}
-                            <li>{{i.title}} {% if i.completed == True %}<input type="checkbox" checked> {% else %}<input type="checkbox" > {% endif %}</li>
-                           {% endfor %}
-                          
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-header">Syllabus Progress</div>
-                    <div class="card-body">
-                        <h4>Total Chapters: {{Tc}}</h4>
-                        <h4>Completed: {{CompletedC}}</h4>
-                        <h4>Remaining: {{Rc}}</h4>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <!-- Center: Timer and Subject Label -->
+    <div style="text-align: center; margin-top: 3rem;">
+        <div id="focus-timer-display" style="font-size: 5.5rem; font-weight: 900; color: var(--primary); font-family: 'Inter', monospace; line-height: 1; letter-spacing: -2px;">00:00:00</div>
+        <div id="focus-subject-label" style="font-size: 1.2rem; font-weight: 800; color: var(--ink-muted); margin-top: 0.5rem; text-transform: uppercase; letter-spacing: 2px;">Not Started</div>
     </div>
+
+    <!-- Bottom: Primary Controls -->
+    <div class="focus-controls" style="margin-top: 2.5rem; display: flex; gap: 1rem; align-items: center; justify-content: center;">
+        <button id="btn-start-focus" class="btn-duo btn-duo-primary" data-bs-toggle="modal" data-bs-target="#focusSubjectModal" style="padding: 1rem 2.5rem; font-size: 1.1rem; border-radius: 50px;">
+          <i class="fas fa-play me-2"></i> Start Focus
+        </button>
+        
+        <button id="btn-pause-focus" class="btn-duo btn-duo-secondary" style="display: none; padding: 1rem 2rem; font-size: 1.1rem; border-radius: 50px;">
+          <i class="fas fa-pause me-2"></i> Pause
+        </button>
+        
+        <button id="btn-resume-focus" class="btn-duo btn-duo-primary" style="display: none; padding: 1rem 2rem; font-size: 1.1rem; border-radius: 50px;">
+          <i class="fas fa-play me-2"></i> Resume
+        </button>
+        
+        <button id="btn-stop-focus" class="btn-duo btn-duo-danger" style="display: none; padding: 1rem 2rem; font-size: 1.1rem; border-radius: 50px;" data-bs-toggle="modal" data-bs-target="#focusSaveModal">
+          <i class="fas fa-stop me-2"></i> End Session
+        </button>
+    </div>
+  </div>
+  
+  <!-- Audio element for ambient sound -->
+  <audio id="ambient-audio" loop></audio>
+
+  <!-- Focus Subject Selection Modal -->
+  <div class="modal fade" id="focusSubjectModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content card-duo p-4">
+              <div class="modal-header border-0 pb-0">
+                  <h4 class="modal-title fw-bold" style="color: var(--primary);">Select Subject</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                  <select id="focus-subject-select" class="duo-input mb-3" required>
+                      <option value="">Choose a subject...</option>
+                      {% for sub in subjects %}
+                      <option value="{{ sub.id }}">{{ sub.name }}</option>
+                      {% endfor %}
+                  </select>
+                  <button type="button" class="btn-duo btn-duo-primary w-100 py-3 mt-2" onclick="startFocusSession()" data-bs-dismiss="modal">Start Focusing</button>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <!-- Focus Save/Discard Modal -->
+  <div class="modal fade" id="focusSaveModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content card-duo p-4">
+              <div class="modal-header border-0 pb-0">
+                  <h4 class="modal-title fw-bold" style="color: var(--primary);">End Session</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                  <p>Great job! You focused for <strong id="focus-final-time">0</strong> minutes.</p>
+                  <form id="focus-save-form" method="POST" action="/time/add/">
+                      <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                      <!-- Hidden inputs to submit to time add -->
+                      <input type="hidden" name="date" id="focus-save-date">
+                      <input type="hidden" name="duration" id="focus-save-duration">
+                      <input type="hidden" name="subject" id="focus-save-subject">
+                      
+                      <div class="d-flex gap-2 mt-4">
+                          <button type="button" class="btn-duo btn-duo-danger w-100 py-2" data-bs-dismiss="modal" onclick="discardFocusSession()">Discard</button>
+                          <button type="submit" class="btn-duo btn-duo-success w-100 py-2">Save Time</button>
+                      </div>
+                  </form>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <script>
+
+
+
+  let focusInterval;
+  let focusStartTime;
+  let focusPausedAt;
+  let focusPausedDuration = 0;
+  let isFocusRunning = false;
+  let focusSubjectId = '';
+  let focusSubjectName = '';
+  let currentAmbientSound = 'none';
+  
+  const audioSources = {
+    'rain': 'https://actions.google.com/sounds/v1/weather/rain_on_roof.ogg',
+    'thunder': 'https://actions.google.com/sounds/v1/weather/thunderstorm.ogg',
+    'jungle': 'https://actions.google.com/sounds/v1/nature/jungle_atmosphere_late_night.ogg'
+  };
+
+  function playAmbient(sound) {
+    currentAmbientSound = sound;
+    const audio = document.getElementById('ambient-audio');
+    
+    if (sound === 'none') {
+      audio.pause();
+    } else if (audioSources[sound]) {
+      audio.src = audioSources[sound];
+      if (isFocusRunning) {
+          audio.play().catch(e => console.log('Audio play blocked:', e));
+      }
+    }
+  }
+
+  function startFocusSession() {
+
+
+    const select = document.getElementById('focus-subject-select');
+    if (!select.value) {
+      alert("Please select a subject first!");
+      return;
+    }
+    focusSubjectId = select.value;
+    focusSubjectName = select.options[select.selectedIndex].text;
+    
+    document.getElementById('focus-subject-label').innerText = focusSubjectName;
+    document.getElementById('focus-status-text').innerText = "In a deep focus session...";
+    
+    document.getElementById('btn-start-focus').style.display = 'none';
+    document.getElementById('btn-pause-focus').style.display = 'block';
+    document.getElementById('btn-resume-focus').style.display = 'none';
+    document.getElementById('btn-stop-focus').style.display = 'block';
+    document.getElementById('btn-fullscreen').style.display = 'inline-block';
+    
+    focusStartTime = new Date();
+    focusPausedDuration = 0;
+    focusPausedAt = null;
+    isFocusRunning = true;
+    
+    const audio = document.getElementById('ambient-audio');
+    if (currentAmbientSound !== 'none' && audioSources[currentAmbientSound]) {
+        audio.play().catch(e => console.log('Audio play blocked:', e));
+    }
+    
+    if (focusInterval) clearInterval(focusInterval);
+    focusInterval = setInterval(updateFocusDisplay, 1000);
+  }
+
+  document.getElementById('btn-pause-focus').addEventListener('click', function() {
+    if (isFocusRunning) {
+      clearInterval(focusInterval);
+      focusPausedAt = new Date();
+      isFocusRunning = false;
+      this.style.display = 'none';
+      document.getElementById('btn-resume-focus').style.display = 'block';
+      document.getElementById('focus-status-text').innerText = "Focus session paused.";
+      
+      const audio = document.getElementById('ambient-audio');
+      if (!audio.paused) {
+          audio.pause();
+      }
+    }
+  });
+
+  document.getElementById('btn-resume-focus').addEventListener('click', function() {
+    if (!isFocusRunning) {
+      focusPausedDuration += new Date() - focusPausedAt;
+      focusPausedAt = null;
+      isFocusRunning = true;
+      this.style.display = 'none';
+      document.getElementById('btn-pause-focus').style.display = 'block';
+      document.getElementById('focus-status-text').innerText = "In a deep focus session...";
+      focusInterval = setInterval(updateFocusDisplay, 1000);
+      
+      const audio = document.getElementById('ambient-audio');
+      if (currentAmbientSound !== 'none') {
+          audio.play().catch(e => console.log('Audio play blocked:', e));
+      }
+    }
+  });
+
+  function getFocusElapsedSeconds() {
+    if (!focusStartTime) return 0;
+    const now = focusPausedAt ? focusPausedAt : new Date();
+    return Math.floor((now - focusStartTime - focusPausedDuration) / 1000);
+  }
+
+  function updateFocusDisplay() {
+    const elapsedSeconds = getFocusElapsedSeconds();
+    const h = String(Math.floor(elapsedSeconds / 3600)).padStart(2, '0');
+    const m = String(Math.floor((elapsedSeconds % 3600) / 60)).padStart(2, '0');
+    const s = String(elapsedSeconds % 60).padStart(2, '0');
+    document.getElementById('focus-timer-display').innerText = `${h}:${m}:${s}`;
+  }
+  
+  document.getElementById('btn-stop-focus').addEventListener('click', function() {
+    if (isFocusRunning) {
+      document.getElementById('btn-pause-focus').click(); 
+    }
+    const totalMinutes = Math.max(1, Math.round(getFocusElapsedSeconds() / 60)); 
+    document.getElementById('focus-final-time').innerText = totalMinutes;
+    document.getElementById('focus-save-duration').value = totalMinutes;
+    document.getElementById('focus-save-subject').value = focusSubjectId;
+    
+    const d = new Date();
+    document.getElementById('focus-save-date').value = d.toISOString().split('T')[0];
+  });
+
+  function discardFocusSession() {
+    clearInterval(focusInterval);
+    focusStartTime = null;
+    focusPausedAt = null;
+    focusPausedDuration = 0;
+    isFocusRunning = false;
+    
+    document.getElementById('focus-timer-display').innerText = "00:00:00";
+    document.getElementById('focus-subject-label').innerText = "Not Started";
+    document.getElementById('focus-status-text').innerText = "Eliminate distractions and track your deep work.";
+    
+    document.getElementById('btn-start-focus').style.display = 'block';
+    document.getElementById('btn-pause-focus').style.display = 'none';
+    document.getElementById('btn-resume-focus').style.display = 'none';
+    document.getElementById('btn-stop-focus').style.display = 'none';
+    document.getElementById('btn-fullscreen').style.display = 'none';
+    
+    currentAmbientSound = 'none';
+    playAmbient('none');
+    
+    if (document.fullscreenElement) {
+        if (document.exitFullscreen) { document.exitFullscreen(); }
+        else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
+        else if (document.msExitFullscreen) { document.msExitFullscreen(); }
+    }
+  }
+
+  function toggleFullScreen() {
+
+    const card = document.querySelector('.focus-session-card');
+    
+    if (!document.fullscreenElement) {
+      if (card.requestFullscreen) {
+        card.requestFullscreen();
+      } else if (card.webkitRequestFullscreen) {
+        card.webkitRequestFullscreen();
+      } else if (card.msRequestFullscreen) {
+        card.msRequestFullscreen();
+      }
+      card.style.height = "100vh";
+      card.style.justifyContent = "center";
+      card.style.flexDirection = "column";
+      card.style.alignItems = "center";
+      card.querySelector('.welcome-text').style.textAlign = 'center';
+      card.querySelector('.focus-controls').style.justifyContent = 'center';
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      } else if (document.msExitFullscreen) {
+        document.msExitFullscreen();
+      }
+    }
+  }
+  
+  document.addEventListener('fullscreenchange', (event) => {
+    const card = document.querySelector('.focus-session-card');
+    if (!document.fullscreenElement) {
+        card.style.height = "auto";
+        card.style.justifyContent = "space-between";
+        card.style.flexDirection = "row";
+        card.querySelector('.welcome-text').style.textAlign = 'left';
+        card.querySelector('.focus-controls').style.justifyContent = 'flex-start';
+    }
+  });
+  </script>
+
+  <!-- Charts Row -->
+  <div class="grid-layout grid-2">
+    <div class="card-duo">
+      <h3 style="font-weight: 800; margin-bottom: 1rem; color: var(--ink);"><i class="fas fa-chart-area"></i> Daily Study Hours</h3>
+      <div id="studyAreaChart" class="chart-container"></div>
+    </div>
+    <div class="card-duo">
+      <h3 style="font-weight: 800; margin-bottom: 1rem; color: var(--ink);"><i class="fas fa-chart-line"></i> Last 5 Test Scores</h3>
+      <div id="testScoresChart" class="chart-container"></div>
+    </div>
+  </div>
+
+  <!-- Action Row -->
+  <div class="grid-layout grid-3">
+    
+    <!-- Tasks & Revision -->
+    <div class="card-duo">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h3 style="font-weight: 800; color: var(--ink); margin: 0;"><i class="fas fa-tasks"></i> Today's Action</h3>
+        <a href="/todo/" class="btn-duo" style="padding: 0.5rem 1rem; font-size: 0.9rem;">Add Task</a>
+      </div>
+      
+      <!-- Revision -->
+      {% if revision_topics %}
+      <div style="background: var(--surface-1); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.5rem;">
+        <h4 style="font-weight: 800; font-size: 1rem; margin-top: 0; color: var(--accent-purple);"><i class="fas fa-sync"></i> Revision</h4>
+        {% for topic in revision_topics %}
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
+            <span style="font-weight: 700; font-size: 0.95rem; color: var(--ink);"><span class="badge-tag">{{ topic.lecture.subject.name }}</span> {{ topic.lecture.topic }}</span>
+            {% if topic.completed %}
+              <a href="/revision/mark-done/{{topic.id}}/" class="btn-duo" style="padding: 0.3rem 0.8rem; font-size: 0.8rem; border-color: var(--primary); color: var(--primary); background: transparent;"><i class="fas fa-check"></i></a>
+            {% else %}
+              <a href="/revision/mark-done/{{topic.id}}/" class="btn-duo btn-duo-secondary" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;"><i class="fas fa-times"></i></a>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Tasks -->
+      <div>
+        {% for t in task %}
+        <div class="list-item {% if t.completed %}completed{% endif %}">
+          <input type="checkbox" class="task-checkbox" data-id="{{ t.id }}" {% if t.completed %}checked{% endif %}>
+          <div class="list-item-text">{{ t.title }}</div>
+        </div>
+        {% empty %}
+        <p style="text-align: center; color: var(--ink-muted); font-weight: 700;">No tasks due today</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Prayers (Fard) -->
+    {% if request.user.is_staff %}
+    <div class="card-duo">
+      <h3 style="font-weight: 800; color: var(--ink); margin-bottom: 1rem;"><i class="fas fa-pray text-primary"></i> Fard Prayers</h3>
+      {% if fard_with_times %}
+        {% for f, f_time in fard_with_times %}
+          <div class="list-item {% if f.completed %}completed{% endif %}">
+            <input type="checkbox" class="toggle-completed" data-id="{{ f.id }}" {% if f.completed %}checked{% endif %}>
+            <div class="list-item-text">
+              {{ f.fard.name }} <span style="color: var(--primary); margin-left: 0.5rem;">{{ f_time|time:"H:i" }}</span>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div style="text-align: center; color: var(--ink-muted); padding: 2rem 0;">
+          <i class="fas fa-praying-hands" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+          <p style="font-weight: 700; margin: 0;">No Fard prayers recorded.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Prayers (Sunnah) -->
+    <div class="card-duo">
+      <h3 style="font-weight: 800; color: var(--ink); margin-bottom: 1rem;"><i class="fas fa-sun text-warning"></i> Sunnah Prayers</h3>
+      {% if sunnah_with_times %}
+        {% for s, s_time in sunnah_with_times %}
+          <div class="list-item {% if s.completed %}completed{% endif %}">
+            <input type="checkbox" class="toggle-completed1" data-id="{{ s.id }}" {% if s.completed %}checked{% endif %}>
+            <div class="list-item-text">
+              {{ s.sunnah.name }} <span style="color: var(--warning); margin-left: 0.5rem;">{{ s_time|time:"H:i" }}</span>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div style="text-align: center; color: var(--ink-muted); padding: 2rem 0;">
+          <i class="fas fa-hands" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+          <p style="font-weight: 700; margin: 0;">No Sunnah prayers recorded.</p>
+        </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+  </div>
 </div>
 
 <script>
-    function updateCountdown() {
-        const now = new Date();
-        const startOfYear = new Date(now.getFullYear(), 0, 0);
-        const diff = now - startOfYear;
-        const oneDay = 1000 * 60 * 60 * 24;
-        const daysGone = Math.floor(diff / oneDay);
-        const daysRemaining = 365 - daysGone;
-        const progressPercentage = (daysGone / 365) * 100;
+// Toggle Prayers
+$(document).on("change", ".toggle-completed", function() {
+  let cb = $(this);
+  let id = cb.data("id");
+  let item = cb.closest('.list-item');
+  $.post("{% url 'toggle_fard' %}", { 'id': id, 'csrfmiddlewaretoken': '{{ csrf_token }}' }, function(res) {
+    if(res.status) item.addClass("completed"); else item.removeClass("completed");
+  });
+});
+$(document).on("change", ".toggle-completed1", function() {
+  let cb = $(this);
+  let id = cb.data("id");
+  let item = cb.closest('.list-item');
+  $.post("{% url 'toggle_sunnah' %}", { 'id': id, 'csrfmiddlewaretoken': '{{ csrf_token }}' }, function(res) {
+    if(res.status) item.addClass("completed"); else item.removeClass("completed");
+  });
+});
 
-        document.getElementById('countdown').innerText = `${daysGone} Days Gone | ${daysRemaining} Days Remaining`;
-        document.getElementById('progressBar').style.width = `${progressPercentage}%`;
+$(document).on("change", ".task-checkbox", function() {
+  let cb = $(this);
+  let id = cb.data("id");
+  let item = cb.closest('.list-item');
+  $.post("/todo/toggle/" + id + "/", { 'csrfmiddlewaretoken': '{{ csrf_token }}' }, function(res) {
+    if(res.status === 'success') {
+      if(res.completed) item.addClass("completed"); 
+      else item.removeClass("completed");
     }
-    setInterval(updateCountdown, 1000);
-    updateCountdown();
+  });
+});
 
-    google.charts.load('current', { 'packages': ['corechart'] });
-    google.charts.setOnLoadCallback(drawCharts);
+document.addEventListener('DOMContentLoaded', function() {
+  // Theme check for ApexCharts
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const textColor = isDark ? '#ffffff' : '#777777';
+  
+  // 1. Study Time Area Chart
+  const studyLabels = [{% for entry in daily_durations %}'{{ entry.date }}',{% endfor %}];
+  const studyData = [{% for entry in daily_durations %}{{ entry.duration|floatformat:1 }},{% endfor %}];
+  
+  if (document.getElementById('studyAreaChart') && studyLabels.length > 0) {
+    new ApexCharts(document.querySelector("#studyAreaChart"), {
+      series: [{ name: 'Study Hours', data: studyData }],
+      chart: { type: 'area', height: 300, toolbar: { show: false }, background: 'transparent' },
+      colors: ['#a815ec'], // accent-purple
+      fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.05, stops: [0, 90, 100] } },
+      dataLabels: { enabled: false },
+      stroke: { curve: 'smooth', width: 3 },
+      xaxis: { categories: studyLabels, labels: { style: { colors: textColor } }, axisBorder: { show: false } },
+      yaxis: { labels: { style: { colors: textColor } } },
+      theme: { mode: isDark ? 'dark' : 'light' },
+      tooltip: { theme: isDark ? 'dark' : 'light' }
+    }).render();
+  }
 
-    function drawCharts() {
-        const taskData = google.visualization.arrayToDataTable([
-            ['Status', 'Count'],
-            ['Completed', {{completedTask}}],
-            ['Pending', {{pendingTask}}]
-        ]);
-        const taskOptions = { title: 'Total Tasks: {{Tc}}' };
-        const taskChart = new google.visualization.PieChart(document.getElementById('taskChart'));
-        taskChart.draw(taskData, taskOptions);
+  // 2. Test Scores Line Chart
+  const testDates = {{ test_dates|default:'[]'|safe }};
+  const testScores = {{ test_percentages|default:'[]'|safe }};
+  
+  if (document.getElementById('testScoresChart') && testDates.length > 0) {
+    new ApexCharts(document.querySelector("#testScoresChart"), {
+      series: [{ name: 'Score %', data: testScores }],
+      chart: { type: 'line', height: 300, toolbar: { show: false }, background: 'transparent' },
+      colors: ['#f72585'], // accent-red
+      stroke: { curve: 'smooth', width: 3, lineCap: 'round' },
+      markers: { size: 5, colors: ['#f72585'], strokeColors: '#fff', strokeWidth: 2, hover: { size: 7 } },
+      xaxis: { categories: testDates, labels: { style: { colors: textColor } }, axisBorder: { show: false } },
+      yaxis: { min: 0, labels: { style: { colors: textColor } } },
+      theme: { mode: isDark ? 'dark' : 'light' },
+      tooltip: { theme: isDark ? 'dark' : 'light' }
+    }).render();
+  }
 
-        const syllabusData = google.visualization.arrayToDataTable([
-            ['Status', 'Count'],
-            ['Completed', {{Tc}}],
-            ['Pending', {{Rc}}]
-        ]);
-        const syllabusOptions = { title: 'Total Chapters: {{Tc}}' };
-        const syllabusChart = new google.visualization.PieChart(document.getElementById('syllabusChart'));
-        syllabusChart.draw(syllabusData, syllabusOptions);
+  // Countdown Hero
+  const targetDate = new Date('{{ user.userprofile.target_date|date:"Y-m-d" }}T00:00:00').getTime();
+  setInterval(() => {
+    const diff = targetDate - new Date().getTime();
+    if(diff > 0) {
+      document.getElementById('hero-countdown').innerText = Math.floor(diff / (1000 * 60 * 60 * 24));
+    } else {
+      document.getElementById('hero-countdown').innerText = "0";
     }
-
-    // Hamburger Menu Toggle
-    document.getElementById('hamburgerMenu').addEventListener('click', function() {
-        document.querySelector('.sidebar').classList.toggle('open');
-    });
+  }, 1000);
+});
 </script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+{% else %}
+<div class="container-fluid d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card-duo p-5 text-center" style="max-width: 500px; width: 100%;">
+        <h2 class="mb-4 text-primary" style="font-weight: 900;">Welcome to Trakment</h2>
+        <p class="mb-5 text-muted" style="font-weight: 700;">Access all your study tools, tasks, and progress by logging into your account.</p>
+        <a href="/login" class="btn-duo btn-duo-primary w-100"><i class="fas fa-sign-in-alt me-2"></i> Log In</a>
+    </div>
+</div>
+{% endif %}
 {% endblock %}

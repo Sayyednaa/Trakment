@@ -1,0 +1,368 @@
+{% extends "base.html" %}
+{% block title %}Add Syllabus{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3f37c9;
+        --danger-color: #f72585;
+        --danger-dark: #b5179e;
+        --light-color: #f8f9fa;
+        --dark-color: #212529;
+        --shadow-color: rgba(0, 0, 0, 0.2);
+        --transition-speed: 0.3s;
+    }
+
+    .py-4 {
+        width: 100%;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        perspective: 1000px;
+
+        padding: 20px;
+    }
+
+    
+
+    
+
+    
+
+    .form-header {
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .form-header h2 {
+        color: var(--dark-color);
+        font-size: 28px;
+        font-weight: 600;
+        margin: 0;
+        position: relative;
+        display: inline-block;
+    }
+
+    .form-header h2::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 50px;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary-color), var(--danger-color));
+        border-radius: 2px;
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+        position: relative;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: var(--dark-color);
+        font-size: 14px;
+        transition: all var(--transition-speed);
+    }
+
+    .input-3d {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: all var(--transition-speed);
+        background-color: #f8f9fa;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .input-3d:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        background-color: white;
+        box-shadow:
+            0 0 0 3px rgba(67, 97, 238, 0.2),
+            inset 0 2px 4px rgba(0, 0, 0, 0.05);
+        transform: translateY(-2px);
+    }
+
+.checkbox-group {
+    margin-bottom: 25px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    position: relative;
+    padding-left: 30px;
+    cursor: pointer;
+    user-select: none;
+    color: var(--dark-color);
+    font-weight: 500;
+}
+
+.checkbox-label input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.checkmark {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 20px;
+    width: 20px;
+    background-color: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 4px;
+    transition: all var(--transition-speed);
+}
+
+.checkbox-label:hover input ~ .checkmark {
+    background-color: #e9ecef;
+}
+
+.checkbox-label input:checked ~ .checkmark {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+    left: 6px;
+    top: 2px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.checkbox-label input:checked ~ .checkmark:after {
+    display: block;
+}
+    .button-group {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 30px;
+    }
+
+    .btn-3d {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all var(--transition-speed);
+        position: relative;
+        overflow: hidden;
+        transform-style: preserve-3d;
+    }
+
+    .btn-3d::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateZ(-1px);
+        transition: all var(--transition-speed);
+        opacity: 0;
+    }
+
+    .btn-3d:hover::before {
+        opacity: 1;
+    }
+
+    .btn-3d:hover {
+        transform: translateY(-3px) translateZ(5px);
+    }
+
+    .btn-3d:active {
+        transform: translateY(1px) translateZ(0);
+    }
+
+    .submit-3d {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        box-shadow: 0 4px 6px rgba(67, 97, 238, 0.2);
+    }
+
+    .submit-3d:hover {
+        box-shadow: 0 7px 14px rgba(67, 97, 238, 0.3);
+    }
+
+    .delete-3d {
+        background: linear-gradient(135deg, var(--danger-color), var(--danger-dark));
+        color: white;
+        box-shadow: 0 4px 6px rgba(247, 37, 133, 0.2);
+        text-decoration: none;
+    }
+
+    .delete-3d:hover {
+        box-shadow: 0 7px 14px rgba(247, 37, 133, 0.3);
+    }
+
+    .btn-text {
+        margin-right: 8px;
+    }
+
+    .btn-icon {
+        font-size: 18px;
+    }
+
+    @media (max-width: 576px) {
+        
+
+        .button-group {
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .btn-3d {
+            width: 100%;
+        }
+    }
+    .submit-btn-3d {
+    width: 100%;
+    padding: 15px;
+   background: linear-gradient(45deg, #ff00fd, #4361ee);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
+    position: relative;
+    overflow: hidden;
+    margin-top: 1rem;
+</style>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<div class="py-4 animate__animated animate__fadeIn">
+  <div class="card-duo">
+    <div class="form-header">
+      <h2>Add New Chapter</h2>
+      <p>Fill in the details to add to your syllabus</p>
+    </div>
+
+    <form action="" method="post">
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label for="Chapter">Chapter Name</label>
+        <input type="text" name="Chapter" id="Chapter" placeholder="Enter chapter name" class="input-3d" required>
+      </div>
+
+     <!-- Add this just inside your <form>, for Subject dropdown and conditional input -->
+<div class="form-group">
+  <label for="Subject">Subject</label>
+  <select name="Subject" id="Subject" class="input-3d subject-select" required>
+    <option value="" disabled selected>Select subject</option>
+    <option value="Biology">Biology</option>
+    <option value="Chemistry">Chemistry</option>
+    <option value="Physics">Physics</option>
+    <option value="English">English</option>
+    <option value="Maths">Maths</option>
+    <option value="Hindi">Hindi</option>
+    <option value="Other">Other</option>
+  </select>
+</div>
+<div class="form-group" id="other-subject-group" style="display:none;">
+  <label for="OtherSubject">Enter Subject Name</label>
+  <input type="text" name="OtherSubject" id="OtherSubject" placeholder="Enter subject name" class="input-3d">
+</div>
+
+
+
+      <button type="submit" class="submit-btn-3d">
+        <span class="btn-text">Add Chapter</span>
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+ const subjectSelect = document.getElementById('Subject');
+  const otherSubjectGroup = document.getElementById('other-subject-group');
+  subjectSelect.addEventListener('change', function() {
+      if (this.value === "Other") {
+          otherSubjectGroup.style.display = "block";
+          document.getElementById('OtherSubject').required = true;
+      } else {
+          otherSubjectGroup.style.display = "none";
+          document.getElementById('OtherSubject').required = false;
+      }
+  });
+
+  const subjectSelect = document.getElementById('Subject');
+  const otherSubjectGroup = document.getElementById('other-subject-group');
+  const otherSubjectInput = document.getElementById('OtherSubject');
+  const form = document.querySelector('form');
+
+  subjectSelect.addEventListener('change', function() {
+      if (this.value === "Other") {
+          otherSubjectGroup.style.display = "block";
+          otherSubjectInput.required = true;
+      } else {
+          otherSubjectGroup.style.display = "none";
+          otherSubjectInput.required = false;
+      }
+  });
+
+  // On submit, if Other is selected, set the select's value to the input
+  form.addEventListener('submit', function(e) {
+      if (subjectSelect.value === "Other") {
+          // Simple: add a new option with the entered value and make it selected
+          let inputVal = otherSubjectInput.value.trim();
+          if (inputVal) {
+              let newOption = document.createElement('option');
+              newOption.value = inputVal;
+              newOption.text = inputVal;
+              newOption.selected = true;
+              subjectSelect.add(newOption);
+          }
+      }
+  });
+
+
+
+
+  // Input focus effects
+  const inputs = document.querySelectorAll('.input-3d');
+  inputs.forEach(input => {
+    input.addEventListener('focus', () => {
+      input.parentNode.querySelector('label').style.color = 'var(--primary)';
+      input.parentNode.querySelector('label').style.transform = 'translateY(-5px)';
+    });
+
+    input.addEventListener('blur', () => {
+      if (!input.value) {
+        input.parentNode.querySelector('label').style.color = 'var(--dark)';
+        input.parentNode.querySelector('label').style.transform = 'translateY(0)';
+      }
+    });
+  });
+</script>
+
+{% endblock content %}

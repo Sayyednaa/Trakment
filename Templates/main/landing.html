@@ -1,0 +1,661 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Trakment - Your All-in-One Student Companion{% endblock %}
+
+{% block content %}
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+<style>
+    footer {
+        display: none !important;
+    }
+
+    /* Override base.html sidebar layout for landing page */
+    .main-content {
+        margin-left: 0 !important;
+        padding: 0 !important;
+    }
+    .main-content > .container-fluid {
+        padding: 0 !important;
+    }
+
+    /* Section spacing */
+    section {
+        margin-bottom: 4rem;
+        padding: 0 1rem;
+    }
+
+    /* Header & Navigation */
+    header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        background: #fff;
+    }
+    
+    .logo {
+        font-size: 2rem;
+        font-weight: 900;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        color: var(--ink);
+    }
+    
+    .logo i {
+        color: var(--primary);
+        font-size: 2.2rem;
+    }
+    
+    .nav-links {
+        display: flex;
+        gap: 2rem;
+        align-items: center;
+    }
+    
+    .nav-links a {
+        color: var(--ink-muted);
+        text-decoration: none;
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: 1rem;
+        transition: color 0.2s;
+        letter-spacing: 0.5px;
+    }
+    
+    .nav-links a:hover {
+        color: var(--primary);
+    }
+
+    /* Hero Section */
+    .hero {
+        text-align: center;
+        padding: 1rem 1rem 3rem 1rem;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    
+    .hero h1 {
+        font-size: 4rem !important;
+        line-height: 1.1;
+        margin-bottom: 1.5rem;
+        letter-spacing: -1px;
+        animation: popIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+    
+    .hero p {
+        font-size: 1.3rem;
+        margin-bottom: 2.5rem;
+        line-height: 1.6;
+        animation: fadeInUp 0.8s ease-out 0.2s both;
+    }
+
+    .hero a {
+        animation: fadeInUp 0.8s ease-out 0.4s both;
+    }
+
+    /* Features Grid */
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 2.5rem;
+    }
+    
+    .feature-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        animation: fadeInUp 0.8s ease-out both;
+    }
+
+    .features-grid > :nth-child(1) { animation-delay: 0.1s; }
+    .features-grid > :nth-child(2) { animation-delay: 0.2s; }
+    .features-grid > :nth-child(3) { animation-delay: 0.3s; }
+    .features-grid > :nth-child(4) { animation-delay: 0.4s; }
+    .features-grid > :nth-child(5) { animation-delay: 0.5s; }
+    .features-grid > :nth-child(6) { animation-delay: 0.6s; }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes popIn {
+        0% {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        70% {
+            transform: scale(1.02);
+        }
+        100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 16px 0 var(--ink, #000);
+    }
+    
+    .feature-icon {
+        font-size: 2.5rem;
+        color: var(--secondary);
+        margin-bottom: 1.5rem;
+        background: #f0f0f0;
+        width: 70px;
+        height: 70px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 20px;
+        border: 2px solid var(--ink);
+    }
+
+    /* Showcase Text Grid */
+    .showcase-text-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+    .showcase-text-grid .card-duo {
+        animation: popIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+    .showcase-text-grid > :nth-child(1) { animation-delay: 0.1s; }
+    .showcase-text-grid > :nth-child(2) { animation-delay: 0.2s; }
+    .showcase-text-grid > :nth-child(3) { animation-delay: 0.3s; }
+    .showcase-text-grid > :nth-child(4) { animation-delay: 0.4s; }
+
+    /* Feedback & Developer */
+    .feedback-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+    
+    .feedback-card {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 100%;
+    }
+    
+    .feedback-author {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 2px solid #e5e5e5;
+    }
+    
+    .feedback-author img {
+        width: 55px;
+        height: 55px;
+        border-radius: 50%;
+        border: 2px solid var(--ink);
+    }
+    
+    .feedback-author h4 {
+        margin: 0;
+        font-weight: 800;
+        color: var(--ink);
+        font-size: 1.1rem;
+    }
+    
+    .feedback-author p {
+        margin: 0 !important;
+        font-size: 0.9rem;
+        color: var(--ink-muted);
+    }
+
+    .developer {
+        text-align: center;
+        max-width: 800px;
+        margin: 0 auto 4rem auto;
+    }
+    
+    .developer-image {
+        width: 180px;
+        height: 180px;
+        border-radius: 50%;
+        margin-bottom: 1.5rem;
+        border: 4px solid var(--primary);
+        box-shadow: 0 8px 0 var(--ink);
+    }
+
+    /* Footer */
+    .social-links {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .social-links a {
+        color: var(--ink-muted);
+        transition: color 0.2s, transform 0.2s;
+        display: inline-block;
+    }
+    
+    .social-links a:hover {
+        color: var(--primary);
+        transform: translateY(-5px);
+    }
+
+    /* Landing page hamburger */
+    .landing-hamburger {
+        display: none;
+        background: var(--primary);
+        border: 2px solid var(--ink);
+        border-radius: 12px;
+        padding: 10px;
+        cursor: pointer;
+        flex-direction: column;
+        gap: 5px;
+        box-shadow: 0 4px 0 var(--ink);
+    }
+    .landing-hamburger span {
+        display: block;
+        width: 24px;
+        height: 3px;
+        background: white;
+        border-radius: 3px;
+        transition: all 0.3s ease;
+    }
+    .landing-hamburger.active span:nth-child(1) {
+        transform: rotate(45deg) translate(5px, 6px);
+    }
+    .landing-hamburger.active span:nth-child(2) {
+        opacity: 0;
+    }
+    .landing-hamburger.active span:nth-child(3) {
+        transform: rotate(-45deg) translate(5px, -6px);
+    }
+
+    /* Responsive Design Mobile */
+    @media (max-width: 991px) {
+        .hero h1 {
+            font-size: 3rem !important;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .landing-hamburger {
+            display: flex;
+        }
+        
+        .nav-links {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            gap: 0.5rem;
+            text-align: center;
+            padding-top: 1rem;
+        }
+        
+        .nav-links.open {
+            display: flex;
+        }
+        
+        header {
+            flex-wrap: wrap;
+            padding: 1rem !important;
+        }
+        
+        .hero h1 {
+            font-size: 2.5rem !important;
+        }
+        
+        .hero p {
+            font-size: 1.1rem;
+        }
+        
+        .feature-icon {
+            margin: 0 auto 1.5rem auto;
+        }
+        
+        .feature-card {
+            align-items: center;
+            text-align: center;
+        }
+        
+        .features-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .showcase-text-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Form constraint */
+    .feedback-form .card-duo {
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    /* Improved Mobile Responsiveness */
+    @media (max-width: 991px) {
+        .hero h1 {
+            font-size: 2.8rem !important;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .landing-hamburger {
+            display: flex;
+        }
+        
+        .nav-links {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            gap: 0.8rem;
+            text-align: center;
+            padding-top: 1.5rem;
+        }
+        
+        .nav-links.open {
+            display: flex;
+        }
+        
+        header {
+            flex-wrap: wrap;
+            padding: 1rem !important;
+        }
+        
+        .hero h1 {
+            font-size: 2.2rem !important;
+        }
+        
+        .hero p {
+            font-size: 1.05rem;
+        }
+        
+        .feature-icon {
+            margin: 0 auto 1.2rem auto;
+        }
+        
+        .feature-card {
+            align-items: center;
+            text-align: center;
+            padding: 1.5rem !important;
+        }
+        
+        .features-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        
+        .showcase-text-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+        
+        section {
+            padding: 0 0.5rem;
+            margin-bottom: 3rem;
+        }
+        
+        .card-duo {
+            padding: 1.5rem !important;
+        }
+        
+        .hero {
+            padding: 1rem 0.5rem 2rem 0.5rem;
+        }
+        
+        .social-links {
+            gap: 1.5rem;
+        }
+    }
+
+</style>
+<div style="max-width: 1200px; margin: 0 auto; padding: 1rem;">
+
+    <header class="card-duo p-4">
+        <div class="logo">
+            <img src="{% static 'img/icons/icon.png' %}" alt="Trakment" style="height: 40px; border-radius: 50%;">
+            <span>Trakment</span>
+        </div>
+        <button class="landing-hamburger" id="landing-hamburger-btn" aria-label="Toggle menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav class="nav-links" id="landing-nav">
+            <a href="#features">Features</a>
+            <a href="#showcase">Showcase</a>
+            <a href="#feedback">Feedback</a>
+            <a href="/login">Login</a>
+            <a href="/signup">Sign Up</a>
+        </nav>
+    </header>
+
+    <section class="hero" data-aos="zoom-in">
+        <h1 style="color: var(--ink); font-weight: 900;">Your All-in-One Student Companion</h1>
+        <p style="color: var(--ink-muted); font-weight: 600;">Track your study progress, manage tasks, analyze test results, and stay organized with our comprehensive student platform designed to help you succeed.</p>
+        <a href="#" class="btn-duo btn-duo-primary text-uppercase px-5 py-3 fs-5">Get Started - It's Free</a>
+    </section>
+
+    <section class="features" id="features">
+        <h2 class="section-title mb-5 text-center fw-bold" style="color: var(--ink); font-weight: 800;">Everything You Need in One Place</h2>
+        <div class="features-grid">
+            <div class="feature-card card-duo p-4 interactive-card" data-aos="fade-up">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3 class="feature-title" style="color: var(--ink); font-weight: 800;">Smart Dashboard</h3>
+                <p class="feature-desc" style="color: var(--ink-muted); font-weight: 600;">Visualize your progress with interactive charts and get personalized insights to improve your study habits.</p>
+            </div>
+
+            <div class="feature-card card-duo p-4 interactive-card" data-aos="fade-up">
+                <div class="feature-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <h3 class="feature-title" style="color: var(--ink); font-weight: 800;">Time Tracking</h3>
+                <p class="feature-desc" style="color: var(--ink-muted); font-weight: 600;">Monitor your study sessions, identify productive patterns, and optimize your schedule for better results.</p>
+            </div>
+
+            <div class="feature-card card-duo p-4 interactive-card" data-aos="fade-up">
+                <div class="feature-icon">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <h3 class="feature-title" style="color: var(--ink); font-weight: 800;">Task Management</h3>
+                <p class="feature-desc" style="color: var(--ink-muted); font-weight: 600;">Organize your assignments, set priorities, and never miss deadlines with our intuitive to-do system.</p>
+            </div>
+
+            <div class="feature-card card-duo p-4 interactive-card" data-aos="fade-up">
+                <div class="feature-icon">
+                    <i class="fas fa-flask"></i>
+                </div>
+                <h3 class="feature-title" style="color: var(--ink); font-weight: 800;">Test Analysis</h3>
+                <p class="feature-desc" style="color: var(--ink-muted); font-weight: 600;">Track your test scores, identify weak areas, and monitor improvement over time with detailed analytics.</p>
+            </div>
+
+            <div class="feature-card card-duo p-4 interactive-card" data-aos="fade-up">
+                <div class="feature-icon">
+                    <i class="fas fa-book"></i>
+                </div>
+                <h3 class="feature-title" style="color: var(--ink); font-weight: 800;">Syllabus Tracker</h3>
+                <p class="feature-desc" style="color: var(--ink-muted); font-weight: 600;">Mark completed topics, track your coverage percentage, and focus on what matters most for your exams.</p>
+            </div>
+
+            <div class="feature-card card-duo p-4 interactive-card" data-aos="fade-up">
+                <div class="feature-icon">
+                    <i class="fas fa-sticky-note"></i>
+                </div>
+                <h3 class="feature-title" style="color: var(--ink); font-weight: 800;">Digital Notes</h3>
+                <p class="feature-desc" style="color: var(--ink-muted); font-weight: 600;">Organize your study notes by subject and topic, with rich formatting and easy search functionality.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="feature-showcase" id="showcase">
+        <h2 class="section-title mb-5 text-center fw-bold" style="color: var(--ink); font-weight: 800;">How It Works</h2>
+        
+        <div class="showcase-text-grid">
+            <div class="card-duo p-4" data-aos="fade-up">
+                <h3 style="color: var(--ink); font-weight: 800;"><i class="fas fa-tachometer-alt me-2" style="color: var(--primary);"></i>Intuitive Dashboard</h3>
+                <p style="color: var(--ink-muted); font-weight: 600;">Get a comprehensive overview of your study progress at a glance. Our dashboard displays your daily study hours, upcoming tasks, syllabus completion, and test performance trends.</p>
+                <p style="color: var(--ink-muted); font-weight: 600;">Customize widgets to focus on what matters most to you, whether it's time management, syllabus coverage, or test preparation.</p>
+            </div>
+
+            <div class="card-duo p-4" data-aos="fade-up">
+                <h3 style="color: var(--ink); font-weight: 800;"><i class="fas fa-chart-bar me-2" style="color: var(--secondary);"></i>Advanced Test Analysis</h3>
+                <p style="color: var(--ink-muted); font-weight: 600;">Upload your test results and get detailed analytics on your performance. Our system identifies your strong and weak areas across subjects and topics.</p>
+                <p style="color: var(--ink-muted); font-weight: 600;">Track your improvement over time with visual graphs and receive personalized recommendations on what to focus on for your next test.</p>
+            </div>
+
+            <div class="card-duo p-4" data-aos="fade-up">
+                <h3 style="color: var(--ink); font-weight: 800;"><i class="fas fa-list-check me-2" style="color: var(--primary);"></i>Smart Task Management</h3>
+                <p style="color: var(--ink-muted); font-weight: 600;">Organize all your assignments, projects, and study goals in one place. Set priorities, due dates, and reminders to stay on top of your workload.</p>
+                <p style="color: var(--ink-muted); font-weight: 600;">Our smart scheduling system helps you allocate time effectively based on your priorities and available study hours.</p>
+            </div>
+
+            <div class="card-duo p-4" data-aos="fade-up">
+                <h3 style="color: var(--ink); font-weight: 800;"><i class="fas fa-stopwatch me-2" style="color: var(--secondary);"></i>Smart Time Management</h3>
+                <p style="color: var(--ink-muted); font-weight: 600;">Efficient time management starts with organizing all your study materials, assignments, and projects in one place. Set clear priorities, establish deadlines, and utilize reminders to ensure you stay on track.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="story" data-aos="fade-up">
+        <div class="card-duo p-4" style="padding: 3rem;">
+            <h2 style="color: var(--ink); font-weight: 800;">Why We Built Trakment</h2>
+            <p style="color: var(--ink-muted); font-weight: 600;">Tired of juggling between planners, diaries, notes, test scores, and syllabus tracking? We felt the same—and that's why we built your all-in-one digital companion, designed by students, for students.</p>
+            <p style="color: var(--ink-muted); font-weight: 600;">As   aspirants ourselves, we understand the challenges of managing intensive study schedules. Trakment was born from our own struggles to stay organized during preparation. We wanted a single platform that could handle all aspects of academic tracking, so we could focus on what really matters - learning.</p>
+        </div>
+    </section>
+
+    <section class="developer" data-aos="fade-up">
+        <div class="card-duo p-4" style="padding: 3rem;">
+            <img src="https://avatars.githubusercontent.com/u/70070584?s=400&u=b6951aae1e9a235e4ac9c69a2d06b9778b91200f&v=4" alt="Developer" class="developer-image">
+            <h2 style="color: var(--ink); font-weight: 800;">Meet the Developer</h2>
+            <p class="developer-title" style="color: var(--ink-muted); font-weight: 600;">  Aspirant & Self-Taught Developer</p>
+            <p class="developer-bio" style="color: var(--ink-muted); font-weight: 600;">Hi, I'm ABDUL ALI, a   aspirant who built Trakment out of my own need for a better study management tool. While preparing for one of India's toughest exams, I found myself spending more time organizing my study materials than actually studying. That's when I decided to create a solution that would help me and students like me stay focused on learning.</p>
+            <p class="developer-bio" style="color: var(--ink-muted); font-weight: 600;">This project combines my passion for medicine and technology, and I'm constantly improving it based on feedback from fellow students.</p>
+        </div>
+    </section>
+
+    <section class="notice" data-aos="fade-up">
+        <h3 style="color: var(--ink); font-weight: 800;">Notice: Website Under <i class="fa-solid fa-person-digging"> </i>  Development </h3>
+        <p style="color: var(--ink-muted); font-weight: 600;">Trakment is currently in active development. We're working hard to bring you the best possible experience.</p>
+        <p style="color: var(--ink-muted); font-weight: 600;">Your feedback is incredibly valuable to us! Please let us know what features you'd like to see, or any improvements we can make to better serve your study needs.</p>
+    </section>
+
+    <section class="feedback" id="feedback">
+        <h2 class="section-title mb-5 text-center fw-bold" style="color: var(--ink); font-weight: 800;">What Students Are Saying</h2>
+        <div class="feedback-grid">
+            <div class="feedback-card card-duo p-4" data-aos="fade-up" data-aos-delay="100">
+                <p class="feedback-text" style="color: var(--ink-muted); font-weight: 600;">Trakment has completely transformed how I organize my study schedule. The syllabus tracker keeps me motivated as I see my progress visually.</p>
+                <div class="feedback-author">
+                    <img src="https://randomuser.me/api/portraits/women/32.jpg" alt="Priya K.">
+                    <div class="author-info">
+                        <h4 style="color: var(--ink); font-weight: 800;">Priya K.</h4>
+                        <p style="color: var(--ink-muted); font-weight: 600;">  Aspirant, Delhi</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="feedback-card card-duo p-4" data-aos="fade-up" data-aos-delay="100">
+                <p class="feedback-text" style="color: var(--ink-muted); font-weight: 600;">The test analysis feature helped me identify my weak areas in Physics that I didn't even realize I had. My scores have improved by 15% in two months!</p>
+                <div class="feedback-author">
+                    <img src="https://randomuser.me/api/portraits/men/45.jpg" alt="Aryan S.">
+                    <div class="author-info">
+                        <h4 style="color: var(--ink); font-weight: 800;">Aryan S.</h4>
+                        <p style="color: var(--ink-muted); font-weight: 600;">JEE Aspirant, Mumbai</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="feedback-card card-duo p-4" data-aos="fade-up" data-aos-delay="100">
+                <p class="feedback-text" style="color: var(--ink-muted); font-weight: 600;">As someone who struggles with time management, the study timer and task planner have been game-changers. I'm more productive than ever before.</p>
+                <div class="feedback-author">
+                    <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Ananya R.">
+                    <div class="author-info">
+                        <h4 style="color: var(--ink); font-weight: 800;">Ananya R.</h4>
+                        <p style="color: var(--ink-muted); font-weight: 600;">Class 12 Student, Bangalore</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="feedback-form" data-aos="fade-up">
+        <div class="card-duo p-4" style="padding: 3rem;">
+            <h2 class="section-title mb-5 text-center fw-bold" style="color: var(--ink); font-weight: 800;">Share Your Feedback</h2>
+            <p style="color: var(--ink-muted); font-weight: 600;">We'd love to hear your thoughts! What features would you like to see in Trakment? How can we improve your experience?</p>
+            
+            <form method="post" action="" id="feedback-form" type="multipart/form-data">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="name">Your Name</label>
+                    <input class="duo-input w-100 mb-3" type="text" id="name" placeholder="Enter your name" name="name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email (optional)</label>
+                    <input class="duo-input w-100 mb-3" type="email" id="email" placeholder="Enter your email" name="email">
+                </div>
+                
+                <div class="form-group">
+                    <label for="role">You are a...</label>
+                    <select class="duo-input w-100 mb-3" id="role" name="role" required >
+                        <option value="">Select your role</option>
+                        <option value=" ">  Aspirant</option>
+                        <option value="jee">JEE Aspirant</option>
+                        <option value="school">School Student</option>
+                        <option value="college">College Student</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="feedback">Your Feedback</label>
+                    <textarea class="duo-input w-100 mb-3" rows="4" id="feedback" name="msg" placeholder="What do you think about Trakment? What features would you like to see?"></textarea>
+                </div>
+                
+                <button type="submit" class="btn-duo btn-duo-secondary w-100 py-3 mt-3 text-uppercase">Submit Feedback</button>
+            </form>
+        </div>
+    </section>
+
+    
+
+    
+</div>
+
+<script>
+    const landingHamburger = document.getElementById('landing-hamburger-btn');
+    const landingNav = document.getElementById('landing-nav');
+    if (landingHamburger && landingNav) {
+        landingHamburger.addEventListener('click', () => {
+            landingNav.classList.toggle('open');
+            landingHamburger.classList.toggle('active');
+        });
+    }
+</script>
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+    AOS.init({
+        duration: 800,
+        once: true,
+        offset: 50
+    });
+</script>
+
+{% endblock content %}

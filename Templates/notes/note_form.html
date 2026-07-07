@@ -4,60 +4,38 @@
 
 {% block content %}
 
-<style>
-  form {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 20px;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    background-color: #f9f9f9;
-  }
+<div class="py-5" style="max-width: 600px; margin: 0 auto;">
+    <div class="card-duo">
+        <div class="card-header">
+            <h1>Create New Note</h1>
+            <div class="card-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
+                </svg>
+            </div>
+        </div>
 
-  label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: bold;
-  }
+        <form method="post" enctype="multipart/form-data" class="note-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <div class="input-container">
+                    <textarea id="description" name="description" class="duo-input" rows="6" required placeholder="Type your note here...">{{ note.description }}</textarea>
+                    <label class="form-label fw-bold mb-2">Your Note Content</label>
+                    
+                </div>
+            </div>
 
-  input[type="text"],
-  textarea {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 16px;
-  }
+            <button type="submit" class="btn-duo btn-duo-primary w-100 mt-4">
+                <span>Save Note</span>
+                <svg viewBox="0 0 24 24">
+                    <path d="M15,9H5V5H15M12,19A3,3 0 0,1 9,16A3,3 0 0,1 12,13A3,3 0 0,1 15,16A3,3 0 0,1 12,19M17,3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V7L17,3Z" />
+                </svg>
+            </button>
+        </form>
+    </div>
+</div>
 
-  textarea {
-    height: 150px;
-    resize: none;
-  }
 
-  button {
-    background-color: crimson;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-  }
-
-  button:hover {
-    background-color: darkred;
-  }
-</style>
-
-<form method="post" enctype="multipart/form-data">
-  {% csrf_token %}
-  
-  
-  <label for="description">Note:</label>
-  <textarea name="description">{{ note.description }}</textarea>
-
-  <button type="submit">Save</button>
-</form>
 
 {% endblock %}

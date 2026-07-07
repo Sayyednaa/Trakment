@@ -1,181 +1,151 @@
-# in todo/views.py
- 
-from django.shortcuts import render, redirect
-from .models import Task,syallbuss
- 
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Todo, Syllabus
+from revision.models import Subject
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
- 
-from django.db.models import Count
+from django.db.models import Count, Q
+from django.utils.safestring import mark_safe
+import json
+from django.utils import timezone
+
 @login_required
 def task_list(request):
-    tasks = Task.objects.filter(user=request.user).all()
+    tasks = Todo.objects.filter(user=request.user).order_by('due')
     return render(request, 'todo/task_list.html', {'tasks': tasks})
+
 @login_required
 def task_create(request):
     if request.method == 'POST':
-        title = request.POST['title']
-        description = request.POST['date']
-        task = Task.objects.create(title=title, description=description,user=request.user)
+        title = request.POST.get('title')
+        due = request.POST.get('date') or timezone.now()
+        task = Todo(title=title, due=due, user=request.user)
         task.save()
-       
-
-        
-                
         return redirect('task_list')
     return render(request, 'todo/task_form.html')
+
 @login_required
 def task_update(request, pk):
-    task = Task.objects.filter(user=request.user).get(pk=pk)
+    task = get_object_or_404(Todo, pk=pk, user=request.user)
     if request.method == 'POST':
-        title = request.POST['title']
-        description = request.POST['description']
-        task.title = title
-        task.description = description
-        completed= request.POST.get('completed',False)
-       
-        # completed = request.POST.get('completed')
-        # print(completed)
-        if completed == 'on':
-            task.completed = True
-        else:
-            task.completed = False
-
-        # task.completed = completed
+        task.title = request.POST.get('title')
+        task.completed = request.POST.get('completed') == 'on'
+        due_date = request.POST.get('date')
+        if due_date:
+            task.due = due_date
         task.save()
         return redirect('task_list')
     return render(request, 'todo/task_form.html', {'task': task})
+
 @login_required
 def task_delete(request, pk):
-    task = Task.objects.filter(user=request.user).get(pk=pk)
+    task = get_object_or_404(Todo, pk=pk, user=request.user)
     task.delete()
     return redirect('task_list')
 
 @login_required
-def syal_delete(request, pk):
-    syal = syallbuss.objects.filter(user=request.user).get(pk=pk)
+def syal_delete(request, id):
+    syal = get_object_or_404(Syllabus, id=id, user=request.user)
     syal.delete()
-    return redirect('/todo/syallbuss')
+    return redirect('/todo/syllabus')
+
 @login_required
 def syal_add(request):
     if request.method == 'POST':
-        Subject = request.POST['Subject']
-        Chapter = request.POST['Chapter']
+        subject_id = request.POST.get('Subject')
+        custom_subject_name = request.POST.get('custom_subject')
+        chapter = request.POST.get('Chapter')
         
-        task = syallbuss.objects.create(Subject=Subject, Cname=Chapter,user=request.user,completed=False)
-        task.save()
-        return redirect('/todo/syallbuss')
-    return render(request, 'todo/syallbuss_add.html')
+        subject = None
+        if subject_id == 'new' and custom_subject_name:
+            subject, created = Subject.objects.get_or_create(
+                name=custom_subject_name.strip().title(),
+                user=request.user,
+                defaults={'normalized_name': custom_subject_name.strip().lower()}
+            )
+        elif subject_id and subject_id != 'new':
+            subject = get_object_or_404(Subject, id=subject_id, user=request.user)
+            
+        if subject and chapter:
+            Syllabus.objects.create(subject=subject, chapter=chapter, normalized_chapter=chapter.lower(), user=request.user)
+        return redirect('/todo/syllabus')
+    subjects = Subject.objects.filter(user=request.user)
+    return render(request, 'todo/syllabus_add.html', {'subjects': subjects})
 
 @login_required
-def syal_update(request,pk):
-    syal = syallbuss.objects.filter(user=request.user).get(pk=pk)
+def syal_update(request, id):
+    syal = get_object_or_404(Syllabus, id=id, user=request.user)
     if request.method == 'POST':
-        Subject = request.POST['Subject']
-        Chapter = request.POST['Chapter']
-        completed=request.POST.get('completed',False)
-        syal.Cname = Chapter
-        syal.Subject = Subject
+        syal.chapter = request.POST.get('Chapter', syal.chapter)
+        syal.normalized_chapter = syal.chapter.lower()
+        subject_id = request.POST.get('Subject')
+        if subject_id:
+            syal.subject = get_object_or_404(Subject, id=subject_id, user=request.user)
         
-        if completed == 'on':
+        syal.lecture = request.POST.get('Lecture') == 'on'
+        syal.notes = request.POST.get('Notes') == 'on'
+        syal.ncert = request.POST.get('NCERT') == 'on'
+        syal.dpp = request.POST.get('DPP') == 'on'
+        syal.punch = request.POST.get('Punch') == 'on'
+        syal.revision = request.POST.get('Revision') == 'on'
+        syal.done = request.POST.get('Done') == 'on'
+
+        # Auto complete logic
+        if syal.lecture and syal.notes and syal.ncert and syal.dpp and syal.punch and syal.revision and syal.done:
             syal.completed = True
         else:
             syal.completed = False
+
         syal.save()
-         
-        return redirect('/todo/syallbuss')
-    return render(request, 'todo/syallbuss_update.html',{'syal': syal})
+        messages.success(request, 'Syllabus updated successfully!')
+        return redirect('/todo/syllabus')
+
+    subjects = Subject.objects.filter(user=request.user)
+    return render(request, 'todo/syllabus_update.html', {'syal': syal, 'subjects': subjects})
+
 @login_required
 def syalfun(request):
-    # file="N:\\Code\\SMS\\csv\\todo_task.csv"
-    # with open(file, mode='r', newline='', encoding='utf-8') as file:
-    #     # Create a CSV reader object
-    #     csv_reader = csv.reader(file)
-        
-    #     # Optionally, skip the header row if it exists
-    #     header = next(csv_reader)  # Skip header row if there is one, remove this line if not
+    per_subject = (
+        Syllabus.objects
+        .filter(user=request.user)
+        .values('subject__name')
+        .annotate(
+            total=Count('id'),
+            completed=Count('id', filter=Q(completed=True))
+        )
+    )
 
-    #     # Loop through each row in the CSV file
-    #     for row in csv_reader:
-    #         print(f"Row: {row}")  # Debugging: print the row to verify values
+    labels = [entry['subject__name'] for entry in per_subject]
+    totals_list = [entry['total'] for entry in per_subject]
+    completeds_list = [entry['completed'] for entry in per_subject]
 
-    #         # Check if 'completed' should be True or False based on the value in row[3]
-    #         completed = False if row[3] == '0' else True  # Assumes row[3] is a string, update if it's an int
+    labels_json = mark_safe(json.dumps(labels))
+    totals_json = mark_safe(json.dumps(totals_list))
+    completeds_json = mark_safe(json.dumps(completeds_list))
 
-    #         # Debugging: print out the value being assigned to 'completed'
-    #         print(f"Completed: {completed}")
+    completed_count = Syllabus.objects.filter(user=request.user, completed=True).count()
+    tc = Syllabus.objects.filter(user=request.user).count()
+    data = Syllabus.objects.filter(user=request.user).select_related('subject')
+    subjects = Subject.objects.filter(user=request.user)
 
-    #         try:
-    #             # Create a new Task object and save it
-    #             Task.objects.create(
-    #                 title=row[1],
-    #                 description=row[2],
-    #                 completed=completed,
-    #                 user=request.user
-    #             ).save()
-    #         except Exception as e:
-    #             print(f"Error creating Task: {e}")
-
-    #         # Loop through each row in the CSV file
-        
-            
-        
-    bio=syallbuss.objects.filter(Subject='Biology',user=request.user)
-    chem=syallbuss.objects.filter(Subject='Chemistry',user=request.user)
-    phy=syallbuss.objects.filter(Subject='Physics',user=request.user)
-    eng=syallbuss.objects.filter(Subject='English',user=request.user)
-    hin=syallbuss.objects.filter(Subject='Hindi',user=request.user)
-    bt=syallbuss.objects.filter(Subject='Biology',user=request.user).all().count()
-    ct=syallbuss.objects.filter(Subject='Chemistry',user=request.user).all().count()
-    pt=syallbuss.objects.filter(Subject='Physics',user=request.user).all().count()
-    et=syallbuss.objects.filter(Subject='English',user=request.user).all().count()
-    ht=syallbuss.objects.filter(Subject='Hindi',user=request.user).all().count()
-    btc=syallbuss.objects.filter(Subject='Biology',user=request.user,completed=True).all().count()
-    ctc=syallbuss.objects.filter(Subject='Chemistry',user=request.user,completed=True).all().count()
-    ptc=syallbuss.objects.filter(Subject='Physics',user=request.user,completed=True).all().count()
-    etc=syallbuss.objects.filter(Subject='English',user=request.user,completed=True).all().count()
-    htc=syallbuss.objects.filter(Subject='Hindi',user=request.user,completed=True).all().count()
-    tc=syallbuss.objects.filter(user=request.user).all().count()
-    data=syallbuss.objects.filter(user=request.user).all()
-    subjects=syallbuss.objects.values('Subject').distinct()
-    for subject in subjects:
-        print(subject['Subject'])
-    subjects_with_counts = syallbuss.objects.filter(completed=True, user=request.user).values('Subject').annotate(completed_count=Count('Subject'))
-    try:
-
-        bp=format(btc/bt*100,'.0f'),
-        cp=format(ctc/ct*100 ,'.0f') ,
-        pp=format(ptc/pt*100 ,'.0f') ,
-    except :
-        bp="error"
-        cp="error"
-        pp="error"
-        
-        
-    
-
-    return render(request,'todo/syallbuss.html',{'bio':bio,
-                                                 'chem':chem,
-                                                 'phy':phy,
-                                                 'eng':eng,
-                                                 'hin':hin,
-                                                 'tc':tc,
-                                                 'pt':pt,
-                                                 'et':et,
-                                                 'ct':ct,
-                                                 'bt':bt,
-                                                 'ht':ht,
-                                                 'ptc':ptc,
-                                                 'etc':etc,
-                                                 'ctc':ctc,
-                                                 'btc':btc,
-                                                 'htc':htc,
-                                                 'bp':bp,
-                                                 'cp':cp,
-                                                 'pp': pp,
-                                                 'data':data,
-                                                 'subjects':subjects,
-                                                 'subjects_with_counts': subjects_with_counts
-                                                  
-                                                 })
+    context = {
+        'data': data,
+        'tc': tc,
+        'completed_count': completed_count,
+        'labels_json': labels_json,
+        'totals_json': totals_json,
+        'completeds_json': completeds_json,
+        'subjects': subjects,
+    }
+    return render(request, 'todo/syllabus.html', context)
 
 
+from django.http import JsonResponse
+
+@login_required
+def task_toggle(request, pk):
+    task = get_object_or_404(Todo, pk=pk, user=request.user)
+    task.completed = not task.completed
+    task.save()
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
+        return JsonResponse({'status': 'success', 'completed': task.completed})
+    return redirect('task_list')

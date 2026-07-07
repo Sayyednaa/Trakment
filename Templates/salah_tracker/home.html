@@ -1,0 +1,371 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Salah Tracker{% endblock %}
+
+{% block content %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Islamic Worship Tracker</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Scheherazade+New:wght@400;600;700&display=swap" rel="stylesheet">
+  
+
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4" style="border-bottom: 1px solid var(--surface-1); padding-bottom: 20px;">
+      <div class="d-flex align-items-center gap-2">
+        <i class="fas fa-mosque text-primary" style="font-size: 28px;"></i>
+        <h1 style="font-size: 24px; font-weight: 600; color: var(--primary); font-family: 'Scheherazade New', serif; margin:0;">Prayer Tracker</h1>
+      </div>
+      <div class="d-flex gap-3">
+        <div style="font-size: 14px; background: var(--surface-1); color: var(--ink); padding: 8px 16px; border-radius: 30px;">
+          <i class="fas fa-calendar text-primary"></i>
+          <span id="current-date">Loading...</span>
+        </div>
+        <div style="font-size: 14px; background: var(--primary); color: white; padding: 8px 16px; border-radius: 30px;">
+          <a href="stats/" style="text-decoration:none; color:white;"><i class="fas fa-chart-bar"></i> Stats</a>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px;">
+      <!-- Upcoming Prayer with Countdown -->
+      <div class="card-duo" style="background: linear-gradient(135deg, var(--primary), #1a4a38); color: white; grid-column: 1 / -1; position:relative; overflow:hidden;">
+        <div class="card-header">
+          <h3 style="font-size: 16px; font-weight: 600; color: white; margin:0;"><i class="fas fa-clock"></i> Next Prayer</h3>
+          <div class="card-icon"><i class="fas fa-mosque"></i></div>
+        </div>
+        <div class="card-body text-center" style="position:relative; z-index:2;">
+          {% if upcoming_prayer %}
+           <h4 class="prayer-time arabic-font">{{ upcoming_prayer.fard.name }}: {{ upcoming_prayer_time|time:"H:i" }}</h4>
+            <div class="countdown-container">
+              <canvas id="countdownCircle" width="200" height="200"></canvas>
+              <div class="countdown-text" id="countdownText"></div>
+            </div>
+            <p class="arabic-font">Time remaining until {{ upcoming_prayer.fard.name }}</p>
+          {% else %}
+            <div style="text-align: center; padding: 20px; color: var(--ink-muted);">
+              <i class="fas fa-pray"></i>
+              <p>No upcoming prayer today.</p>
+            </div>
+          {% endif %}
+        </div>
+        <div style="position: absolute; bottom: -20px; right: -20px; font-size: 120px; color: var(--primary); opacity: 0.1; pointer-events: none; z-index:0;"><i class="fas fa-star-and-crescent"></i></div>
+      </div>
+
+      <!-- Fard Prayers -->
+      <div class="card-duo">
+        <div class="card-header">
+          <h3 style="font-size: 16px; font-weight: 600; color: var(--ink); margin:0;"><i class="fas fa-pray"></i> Fard Prayers (Today)</h3>
+          <div class="card-icon"><i class="fas fa-check-circle"></i></div>
+        </div>
+        <div class="card-body">
+          {% if fard_with_times %}
+            <ul style="list-style: none; padding: 0;">
+              {% for f, f_time in fard_with_times %}
+                <li class="list-item" style="padding: 12px 0; border-bottom: 1px solid var(--surface-1); display:flex; align-items:center;">
+                  <input type="checkbox" class="prayer-checkbox toggle-completed" data-id="{{ f.id }}" {% if f.completed %} checked {% endif %}>
+                  <span class="{% if f.completed %}completed-text{% endif %} arabic-font">
+                    {{ f.fard.name }} - <strong>{{ f_time|time:"H:i" }}</strong>
+                  </span>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <div style="text-align: center; padding: 20px; color: var(--ink-muted);">
+              <i class="fas fa-praying-hands"></i>
+              <p>No fard prayers recorded today.</p>
+            </div>
+          {% endif %}
+        </div>
+        <div style="position: absolute; bottom: -20px; right: -20px; font-size: 120px; color: var(--primary); opacity: 0.1; pointer-events: none; z-index:0;"><i class="fas fa-star-and-crescent"></i></div>
+      </div>
+
+      <!-- Sunnah Prayers -->
+      <div class="card-duo">
+        <div class="card-header">
+          <h3 style="font-size: 16px; font-weight: 600; color: var(--ink); margin:0;"><i class="fas fa-hands-praying"></i> Sunnah Prayers (Today)</h3>
+          <div class="card-icon"><i class="fas fa-sun"></i></div>
+        </div>
+        <div class="card-body">
+          {% if sunnah_with_times %}
+            <ul style="list-style: none; padding: 0;">
+              {% for s, s_time in sunnah_with_times %}
+                <li class="list-item" style="padding: 12px 0; border-bottom: 1px solid var(--surface-1); display:flex; align-items:center;">
+                  <input type="checkbox" class="prayer-checkbox toggle-completed1" data-id="{{ s.id }}" {% if s.completed %} checked {% endif %}>
+                  <span class="{% if s.completed %}completed-text{% endif %} arabic-font">
+                    {{ s.sunnah.name }} - <strong>{{ s_time|time:"H:i" }}</strong>
+                  </span>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <div style="text-align: center; padding: 20px; color: var(--ink-muted);">
+              <i class="fas fa-hands"></i>
+              <p>No sunnah prayers recorded today.</p>
+            </div>
+          {% endif %}
+        </div>
+        <div style="position: absolute; bottom: -20px; right: -20px; font-size: 120px; color: var(--primary); opacity: 0.1; pointer-events: none; z-index:0;"><i class="fas fa-sun"></i></div>
+      </div>
+
+      <!-- Today's Zikr -->
+      <div class="card-duo">
+        <div class="card-header">
+          <h3 style="font-size: 16px; font-weight: 600; color: var(--ink); margin:0;"><i class="fas fa-dharmachakra"></i> Today's Zikr</h3>
+          <div class="card-icon"><i class="fas fa-dharmachakra"></i></div>
+        </div>
+        <div class="card-body">
+          {% if azkaar_today %}
+            <ul style="list-style: none; padding: 0;">
+              {% for zikr in azkaar_today %}
+                <li class="list-item" style="padding: 12px 0; border-bottom: 1px solid var(--surface-1); display:flex; align-items:center;">
+                  <div style="width: 40px; height: 40px; background-color: var(--surface-1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; color: var(--primary); font-size: 18px;"><i class="fas fa-dharmachakra"></i></div>
+                  <div class="arabic-font"><strong>{{ zikr.name }}</strong> - {{ zikr.count }} times</div>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <div style="text-align: center; padding: 20px; color: var(--ink-muted);">
+              <i class="fas fa-dharmachakra"></i>
+              <p>No Zikr recorded today.</p>
+            </div>
+          {% endif %}
+          
+          <form method="POST" style="margin-top: 20px;">
+            {% csrf_token %}
+            <input type="hidden" name="add_azkaar" value="1">
+            <input type="text" name="zikr_name" class="duo-input" style="display: block; width: 100%; margin-bottom: 20px; padding: 12px 16px; border-radius: 12px;" placeholder="Zikr name" required>
+            <input type="number" name="zikr_count" class="duo-input" style="display: block; width: 100%; margin-bottom: 20px; padding: 12px 16px; border-radius: 12px;" placeholder="Count" min="1" value="1">
+            <button type="submit" class="btn-duo btn-duo-primary" style="width: 100%; display:flex; justify-content:center; align-items:center; gap:8px; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 16px; background: linear-gradient(135deg, var(--primary), #1a4a38); color: white; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+              <i class="fas fa-save"></i> Save Zikr
+            </button>
+          </form>
+        </div>
+        <div style="position: absolute; bottom: -20px; right: -20px; font-size: 120px; color: var(--primary); opacity: 0.1; pointer-events: none; z-index:0;"><i class="fas fa-dharmachakra"></i></div>
+      </div>
+
+      <!-- Today's Quran Readings -->
+      <div class="card-duo">
+        <div class="card-header">
+          <h3 style="font-size: 16px; font-weight: 600; color: var(--ink); margin:0;"><i class="fas fa-book-quran"></i> Today's Quran Readings</h3>
+          <div class="card-icon"><i class="fas fa-book"></i></div>
+        </div>
+        <div class="card-body">
+          {% if quran_today %}
+            <ul style="list-style: none; padding: 0;">
+              {% for q in quran_today %}
+                <li class="list-item" style="padding: 12px 0; border-bottom: 1px solid var(--surface-1); display:flex; align-items:center;">
+                  <div style="width: 40px; height: 40px; background-color: var(--surface-1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; color: var(--primary); font-size: 18px;"><i class="fas fa-book"></i></div>
+                  <div class="arabic-font">
+                    <strong>{{ q.surah }}</strong>: {{ q.start_ayah }}-{{ q.end_ayah }}
+                    {% if q.notes %}<br><small style="color: #666;">{{ q.notes }}</small>{% endif %}
+                  </div>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <div style="text-align: center; padding: 20px; color: var(--ink-muted);">
+              <i class="fas fa-book"></i>
+              <p>No Quran readings recorded today.</p>
+            </div>
+          {% endif %}
+          <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="add_quran" value="1">
+            <input type="text" name="surah" class="duo-input" style="display: block; width: 100%; margin-bottom: 20px; padding: 12px 16px; border-radius: 12px;" placeholder="Surah name" required>
+            <input type="number" name="start_ayah" class="duo-input" style="display: block; width: 100%; margin-bottom: 20px; padding: 12px 16px; border-radius: 12px;" placeholder="Start Ayah" min="1" required>
+            <input type="number" name="end_ayah" class="duo-input" style="display: block; width: 100%; margin-bottom: 20px; padding: 12px 16px; border-radius: 12px;" placeholder="End Ayah" min="1" required>
+            <textarea name="notes" class="duo-input" style="display: block; width: 100%; margin-bottom: 20px; padding: 12px 16px; border-radius: 12px;" placeholder="Notes (optional)"></textarea>
+            <button type="submit" class="btn-duo btn-duo-primary" style="width: 100%; display:flex; justify-content:center; align-items:center; gap:8px; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 16px; background: linear-gradient(135deg, var(--primary), #1a4a38); color: white; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+              <i class="fas fa-save"></i> Save Reading
+            </button>
+          </form>
+        </div>
+        <div style="position: absolute; bottom: -20px; right: -20px; font-size: 120px; color: var(--primary); opacity: 0.1; pointer-events: none; z-index:0;"><i class="fas fa-book"></i></div>
+      </div>
+
+  <!-- Today's Nafl Prayers -->
+<div class="card-duo">
+    <div class="card-header">
+        <h3 style="font-size: 16px; font-weight: 600; color: var(--ink); margin:0;"><i class="fas fa-star"></i> Today's Nafl Prayers</h3>
+        <div class="card-icon"><i class="fas fa-pray"></i></div>
+    </div>
+    <div class="card-body">
+        {% if nafl_today %}
+            <ul style="list-style: none; padding: 0;">
+                {% for nafl in nafl_today %}
+                    <li class="list-item" style="padding: 12px 0; border-bottom: 1px solid var(--surface-1); display:flex; align-items:center;">
+                        <div style="width: 40px; height: 40px; background-color: var(--surface-1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; color: var(--primary); font-size: 18px;"><i class="fas fa-star"></i></div>
+                        <div class="arabic-font">
+                            <strong>{{ nafl.name }}</strong> - {{ nafl.time|time:"H:i" }}
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+             
+        {% endif %}
+        <form method="POST" action="add-nafl/" >
+            {% csrf_token %}
+            <input type="hidden" name="add_nafl" value="1">
+            <input type="text" name="name" class="duo-input" style="display: block; width: 100%; margin-bottom: 20px; padding: 12px 16px; border-radius: 12px;" placeholder="Enter Nafl prayer name" required>
+            
+            <button type="submit" class="btn-duo btn-duo-primary" style="width: 100%; display:flex; justify-content:center; align-items:center; gap:8px; margin-top: 20px; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 16px; background: linear-gradient(135deg, var(--primary), #1a4a38); color: white; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                <i class="fas fa-plus-circle"></i> Record Nafl Prayer
+            </button>
+        </form>
+    </div>
+    <div style="position: absolute; bottom: -20px; right: -20px; font-size: 120px; color: var(--primary); opacity: 0.1; pointer-events: none; z-index:0;"><i class="fas fa-star"></i></div>
+</div>
+
+ 
+  </div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+// Set current date
+const islamicMonths = ['Muharram', 'Safar', 'Rabi al-Awwal', 'Rabi al-Thani', 'Jumada al-Awwal', 
+                      'Jumada al-Thani', 'Rajab', 'Sha\'ban', 'Ramadan', 'Shawwal', 'Dhu al-Qi\'dah', 'Dhu al-Hijjah'];
+const today = new Date();
+const islamicDate = `${today.getDate()} ${islamicMonths[today.getMonth()]}, ${1444 + Math.floor(today.getFullYear()/33)} AH`;
+document.getElementById('current-date').textContent = islamicDate;
+
+// Fixed Countdown Timer
+document.addEventListener('DOMContentLoaded', function() {
+  function startCountdown(targetTime) {
+    let countdownCanvas = document.getElementById("countdownCircle");
+    if (!countdownCanvas) return;
+    
+    let ctx = countdownCanvas.getContext("2d");
+    let countdownText = document.getElementById("countdownText");
+
+    function updateCountdown() {
+      let now = new Date();
+      let target = new Date();
+      
+      // Parse the time string (format: "HH:MM:SS" or "HH:MM")
+      let timeParts = targetTime.split(':');
+      let hours = parseInt(timeParts[0]);
+      let minutes = parseInt(timeParts[1]);
+      let seconds = timeParts.length > 2 ? parseInt(timeParts[2]) : 0;
+      
+      target.setHours(hours, minutes, seconds, 0);
+
+      // If the target time has already passed today, set it for tomorrow
+      if (target <= now) {
+        target.setDate(target.getDate() + 1);
+      }
+
+      let diff = Math.floor((target - now) / 1000);
+      
+      if (diff < 0) {
+        // If we're still negative, refresh the page to get updated prayer times
+        location.reload();
+        return;
+      }
+      
+      // Calculate time components
+      let hrs = Math.floor(diff / 3600);
+      let mins = Math.floor((diff % 3600) / 60);
+      let secs = diff % 60;
+
+      // Update countdown text
+      if (countdownText) {
+        countdownText.innerHTML = `${hrs.toString().padStart(2, '0')}<span style="font-size:12px">h</span> ${mins.toString().padStart(2, '0')}<span style="font-size:12px">m</span> ${secs.toString().padStart(2, '0')}<span style="font-size:12px">s</span>`;
+      }
+
+      // Draw progress circle
+      let radius = 90;
+      let circumference = 2 * Math.PI * radius;
+      let totalSecondsInDay = 24 * 3600;
+      let progress = (diff / totalSecondsInDay) * circumference;
+      
+      ctx.clearRect(0, 0, 200, 200);
+      
+      // Background circle
+      ctx.beginPath();
+      ctx.arc(100, 100, radius, 0, 2 * Math.PI);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.lineWidth = 10;
+      ctx.stroke();
+      
+      // Progress circle
+      ctx.beginPath();
+      ctx.arc(100, 100, radius, -Math.PI/2, (-Math.PI/2) + (2 * Math.PI * (diff / totalSecondsInDay)));
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 10;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+    }
+
+    // Initial call and set interval
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+  }
+
+  // Start the countdown with the upcoming prayer time
+  {% if upcoming_prayer %}
+    {% for f, f_time in fard_with_times %}
+      {% if upcoming_prayer %}
+    startCountdown("{{ upcoming_prayer_time|time:'H:i:s' }}");
+{% endif %}
+    {% endfor %}
+  {% endif %}
+});
+
+// AJAX for toggling prayer completion
+$(document).on("change", ".toggle-completed", function() {
+  let checkbox = $(this);
+  let fardId = checkbox.data("id");
+  let textSpan = checkbox.next("span");
+
+  $.ajax({
+    url: "{% url 'toggle_fard' %}",
+    method: "POST",
+    data: {
+      'id': fardId,
+      'csrfmiddlewaretoken': '{{ csrf_token }}'
+    },
+    success: function(response) {
+      if (response.status === true) {
+        textSpan.addClass("completed-text");
+      } else {
+        textSpan.removeClass("completed-text");
+      }
+    },
+    error: function() {
+      alert("Something went wrong!");
+      checkbox.prop("checked", !checkbox.prop("checked"));
+    }
+  });
+});
+
+// AJAX for toggling prayer completion
+$(document).on("change", ".toggle-completed1", function() {
+  let checkbox = $(this);
+  let sunnahId = checkbox.data("id");
+  let textSpan = checkbox.next("span");
+
+  $.ajax({
+    url: "{% url 'toggle_sunnah' %}",
+    method: "POST",
+    data: {
+      'id': sunnahId,
+      'csrfmiddlewaretoken': '{{ csrf_token }}'
+    },
+    success: function(response) {
+      if (response.status === true) {
+        textSpan.addClass("completed-text");
+      } else {
+        textSpan.removeClass("completed-text");
+      }
+    },
+    error: function() {
+      alert("Something went wrong!");
+      checkbox.prop("checked", !checkbox.prop("checked"));
+    }
+  });
+});
+</script>
+{% endblock %}

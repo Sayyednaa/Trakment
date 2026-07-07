@@ -1,110 +1,300 @@
-from django.shortcuts import render,redirect
-from todo.models import Task
-from django.contrib import messages
-from django.contrib.auth.models import User
-from pyislam import Quran
-from django.contrib.auth import authenticate, login,logout
-from .import pygq
-import os
-from todo.models import Task,syallbuss
-
-import random
-import datetime
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.decorators import user_passes_test
+from django.contrib import messages
+from django.utils import timezone
+from django.db.models import Sum, Count, Avg
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.models import User
+from datetime import timedelta
 
+from todo.models import Todo, Syllabus
+from daily.models import Time
+from test_app.models import Test, TestData
+from notes.models import Note
+from revision.models import Revision, RevisionLecture, Subject
 
-from django.views.decorators.csrf import csrf_protect,csrf_exempt
+from Salah_Tracker.models import Fard, Sunnah, Nafl, QuranReading, Azkaar, PrayerTime, DailyFard, DailySunnah
+from Salah_Tracker.helpers import create_daily_records, get_daily_fard_time, get_daily_sunnah_time
 
+def calculate_study_time_change(user):
+    today = timezone.now().date()
 
+    current_start = today - timedelta(days=6)
+    current_end = today
 
-Q = pygq.PyGQ()
+    previous_start = today - timedelta(days=13)
+    previous_end = today - timedelta(days=7)
 
+    current_entries = Time.objects.filter(
+        user=user,
+        date__date__gte=current_start,
+        date__date__lte=current_end
+    )
+    current_total = current_entries.aggregate(total_duration=Sum('duration'))['total_duration'] or 0
 
-@login_required
-def home(request):
-    if request.user.is_authenticated:
-        x = datetime.date.today()
-        date=x.strftime('%m/%d/%Y')
-       
-        
-        task=Task.objects.filter(description=datetime.date.today(),user=request.user)
+    previous_entries = Time.objects.filter(
+        user=user,
+        date__date__gte=previous_start,
+        date__date__lte=previous_end
+    )
+    previous_total = previous_entries.aggregate(total_duration=Sum('duration'))['total_duration'] or 0
 
-
-
-        TaskData=Task.objects.filter(user=request.user).all()
-        completedTask=Task.objects.filter(completed=True,user=request.user).count()
-        Tc=syallbuss.objects.filter(user=request.user).all().count()
-        CompletedC=syallbuss.objects.filter(completed=True,user=request.user).count()
-        Rc=Tc-CompletedC
-        ct=completedTask
-        pt=TaskData.count()-completedTask
-
-
-
-
-        return render(request, 'main/home.html',{'totalTask':TaskData.count(),
-                                                'completedTask':ct,
-                                                'pendingTask':pt,
-                                                
-                                                'task':task,
-                                                'Tc':Tc,
-                                                'CompletedC':CompletedC,
-                                                'Rc':Rc,
-                                             
-
-                                                })
-    return redirect("/login")
-
-@csrf_exempt
-def loginUser(request):
-    if request.user.is_authenticated:
-        return redirect('/')
-    if request.method=='POST':
-        email = request.POST['email']
-        password = request.POST['password']
-        user = authenticate(request, username=email, password=password)
-        if user is not None:
-            login(request,user)
-            return redirect('/')
-
+    if previous_total == 0:
+        if current_total == 0:
+            percent_change = 0
         else:
-            # Return an 'invalid login' error message.
-            messages.error(request, 'Invalid Email or Password')
-    return render(request,'main/login.html')
+            percent_change = 100
+    else:
+        percent_change = ((current_total - previous_total) / previous_total) * 100
 
-@login_required
+    result = Time.objects.filter(user=user).aggregate(Avg('duration'))
+    all_time_avg = result['duration__avg'] or 0
+
+    return round(current_total, 2), round(percent_change, 2), round(all_time_avg, 2)
+
+def home(request):
+    if not request.user.is_authenticated:
+        if request.method == 'POST':
+            name = request.POST.get('name')
+            feedback = request.POST.get('msg')
+            email = request.POST.get('email')
+            role = request.POST.get('role')
+            # Assign to target user or superuser since unauthenticated
+            target_user = User.objects.first()
+            if target_user:
+                Note.objects.create(
+                    content=f'From:{name}\n Role: {role}\nEmail: {email}\n Feedback:{feedback}',
+                    user=target_user
+                )
+        return render(request, 'main/landing.html')
+
+    user = request.user
+    today_date = timezone.now().date()
+    now_time = timezone.localtime()
+
+    # Create daily records
+    try:
+        create_daily_records(user)
+    except Exception as e:
+        print(f"Error creating records: {e}")
+
+    # Fetch stats
+    current_total, percent_change, all_time_avg = calculate_study_time_change(user)
+    
+    tasks = Todo.objects.filter(user=user, completed=False).order_by('due')[:3]
+    recent_notes = Note.objects.filter(user=user).order_by('-created_at')[:3]
+    from test_app.models import TestData
+    recent_tests = TestData.objects.filter(user=user).select_related('test').order_by('-test__test_date')[:3]
+    time_entries = Time.objects.filter(user=user).order_by('-date')[:3]
+    
+    pending_revisions = Revision.objects.filter(user=user, completed=False).order_by('date')[:3]
+    
+    daily_fard = DailyFard.objects.filter(user=user, date=today_date).order_by("fard__name")
+    fard_with_times = [(f, get_daily_fard_time(f)) for f in daily_fard]
+    
+    upcoming_prayer = None
+    upcoming_prayer_time = None
+    sorted_fard_with_times = sorted(fard_with_times, key=lambda x: x[1].time() if x[1] else datetime.max.time())
+    
+    for f, time_value in sorted_fard_with_times:
+        if time_value and time_value.time() > now_time.time():
+            upcoming_prayer = f
+            upcoming_prayer_time = time_value
+            break
+            
+    if not upcoming_prayer and sorted_fard_with_times:
+        upcoming_prayer = sorted_fard_with_times[0][0]
+        upcoming_prayer_time = sorted_fard_with_times[0][1]
+        if upcoming_prayer_time:
+            upcoming_prayer_time = upcoming_prayer_time + timedelta(days=1)
+
+    # Calculate additional metrics for dashboard compatibility
+    completedTask = Todo.objects.filter(user=user, completed=True).count()
+    totalTask = Todo.objects.filter(user=user).count()
+    
+    from todo.models import Syllabus
+    Tc = Syllabus.objects.filter(user=user).count()
+    completedC = Syllabus.objects.filter(user=user, completed=True).count()
+    
+    from test_app.models import SelfTest
+    
+    # Test Charts & Avg Score
+    last_self_tests = list(SelfTest.objects.filter(user=user).order_by('-date_taken')[:5])[::-1]
+    if last_self_tests:
+        test_dates = [t.date_taken.strftime('%b %d') for t in last_self_tests]
+        test_percentages = [float(t.percentage) for t in last_self_tests]
+        average_percentage = SelfTest.objects.filter(user=user).aggregate(Avg('percentage'))['percentage__avg'] or 0
+    else:
+        last_test_datas = list(TestData.objects.filter(user=user).select_related('test').order_by('-test__test_date')[:5])[::-1]
+        test_dates = [t.test.test_date.strftime('%b %d') for t in last_test_datas if t.test and t.test.test_date]
+        test_percentages = [float(t.marks) for t in last_test_datas]
+        average_percentage = TestData.objects.filter(user=user).aggregate(Avg('marks'))['marks__avg'] or 0
+
+    average_percentage = round(float(average_percentage), 1)
+    
+    # Study Chart (last 7 days)
+    daily_durations = list(Time.objects.filter(user=user).order_by('-date')[:7])[::-1]
+
+    # Fetch subjects for Focus Session
+    subjects = Subject.objects.filter(user=user).order_by('name')
+
+    context = {
+        'is_authenticated': True,
+        'user': user,
+        'subjects': subjects,
+        'tasks': tasks,
+        'task': tasks,  # Singular for compatibility
+        'recent_notes': recent_notes,
+        'recent_tests': recent_tests,
+        'time_entries': time_entries,
+        'pending_revisions': pending_revisions,
+        'revision_topics': pending_revisions,  # Compatibility for revision topics
+        'current_total': current_total,
+        'percent_change': percent_change,
+        'change': percent_change,  # Compatibility for study time percentage change
+        'total_study_time': current_total, # For dashboard weekly time
+        'all_time_avg': all_time_avg,
+        'upcoming_prayer': upcoming_prayer,
+        'upcoming_prayer_time': upcoming_prayer_time,
+        'fard_with_times': fard_with_times,  # Fix missing fard prayers on dashboard
+        'completedTask': completedTask,
+        'totalTask': totalTask,
+        'Tc': Tc,
+        'completedC': completedC,
+        'average_percentage': average_percentage,
+        'test_dates': test_dates,
+        'test_percentages': test_percentages,
+        'daily_durations': daily_durations,
+    }
+
+    return render(request, 'main/home.html', context)
+
+def loginUser(request):
+    if request.method == "POST":
+        data = request.POST
+        username = data.get('username')
+        password = data.get('password')
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('/')
+        else:
+            messages.error(request, 'Invalid credentials')
+    return render(request, 'main/login.html')
+
 def logoutUser(request):
-   logout(request)
-   return redirect('/login')
+    logout(request)
+    return redirect('/login')
 
+def createac(request):
+    if request.method == "POST":
+        data = request.POST
+        first_name = data.get('first_name')
+        last_name = data.get('last_name')
+        username = data.get('username')
+        password = data.get('password')
+        email = data.get('email')
+
+        user = User.objects.filter(username=username)
+        if user.exists():
+            messages.info(request, 'Username already taken')
+            return redirect('/signup')
+
+        user = User.objects.create_user(
+            first_name=first_name,
+            last_name=last_name,
+            username=username,
+            password=password,
+            email=email
+        )
+        user.save()
+        messages.info(request, 'Account created successfully')
+        return redirect('/login')
+    return render(request, 'main/signup.html')
 
 def forgetPass(request):
-    pass
-def createac(request):
-    if request.user.is_authenticated:
-
-        return redirect('/')
-    if request.method=='POST':
-            print("hurray")
-            password=request.POST['password']
-            username=request.POST['username']
-            email=request.POST['email']
-            fist_name=request.POST['first_name']
-            last_name=request.POST['last_name']
-            user = User.objects.create_user(username, email, password,first_name=fist_name,last_name=last_name,)
-            user.save()
-            messages.success(request, 'Account Created Successfully')
-
-    return render(request,'main/signup.html')
-
-
+    return render(request, 'main/login.html') # fallback to login if not exists
 
 @login_required
 def user_profile(request):
-    user = request.user  # The logged-in user's details
-    recent_activities = [
-        {"description": "Logged in", "date": "2025-01-28"},
-        {"description": "Updated profile", "date": "2025-01-25"}
-    ]  # Example activities; you can fetch these from a database
-    return render(request, 'user/profile.html', {'user': user, 'recent_activities': recent_activities})
+    from test_app.models import SelfTest
+    from daily.models import Time
+    from todo.models import Todo
+    from datetime import datetime
+    
+    user = request.user
+    
+    if request.method == "POST":
+        # Check which form was submitted (Personal Info vs Study Goals)
+        form_type = request.POST.get('form_type')
+        
+        if form_type == 'personal':
+            user.first_name = request.POST.get('first_name')
+            user.last_name = request.POST.get('last_name')
+            user.email = request.POST.get('email')
+            user.save()
+            
+            # Profile Photo
+            if 'profile_photo' in request.FILES:
+                user.userprofile.profile_photo = request.FILES['profile_photo']
+                user.userprofile.save()
+                
+            messages.success(request, 'Personal Information updated successfully')
+            
+        elif form_type == 'goals':
+            target_date_str = request.POST.get('target_date')
+            target_hours_str = request.POST.get('target_study_hours')
+            
+            if target_date_str:
+                user.userprofile.target_date = datetime.strptime(target_date_str, '%Y-%m-%d').date()
+            if target_hours_str:
+                user.userprofile.target_study_hours = target_hours_str
+                
+            user.userprofile.save()
+            messages.success(request, 'Study Goals updated successfully')
+            
+        return redirect('/profile')
+        
+    # Calculate Metrics
+    study_hrs = Time.objects.filter(user=user).aggregate(Sum('duration'))['duration__sum'] or 0
+    tasks_done = Todo.objects.filter(user=user, completed=True).count()
+    avg_score = SelfTest.objects.filter(user=user).aggregate(Avg('percentage'))['percentage__avg'] or 0
+    avg_score = round(float(avg_score), 1)
+    
+    context = {
+        'study_hrs': round(float(study_hrs), 1),
+        'tasks_done': tasks_done,
+        'avg_score': avg_score,
+    }
+    
+    return render(request, 'user/profile.html', context)
+
+
+@csrf_exempt
+@login_required
+def omr(request):
+    import json
+    subjects_qs = Subject.objects.filter(user=request.user)
+    subjects_list = [s.name for s in subjects_qs]
+    
+    chapters_dict = {}
+    for s in subjects_qs:
+        chapters = Syllabus.objects.filter(subject=s, user=request.user)
+        chapters_dict[s.name] = [{'id': c.id, 'Cname': c.Cname} for c in chapters]
+        
+    context = {
+        'subjects': subjects_list,
+        'chapters_by_subject': json.dumps(chapters_dict)
+    }
+    return render(request, 'main/omr.html', context)
+
+
+def help_center(request):
+    return render(request, 'main/help_center.html')
+
+def privacy_policy(request):
+    return render(request, 'main/privacy_policy.html')
+
+def terms_of_service(request):
+    return render(request, 'main/terms_of_service.html')

@@ -1,0 +1,535 @@
+{% extends 'base.html' %}
+{% block title %}Syllabus - Trakment{% endblock %}
+
+{% block content %}
+<style>
+    /* Prevent zoomed appearance and scale down elements on this page */
+    .mb-3 {
+        margin-bottom: 0.75rem !important;
+    }
+    .mb-4 {
+        margin-bottom: 0.9rem !important;
+    }
+    .card-duo {
+        padding: 1rem !important;
+        border-radius: 12px !important;
+    }
+    h1, .h1 {
+        font-size: 1.3rem !important;
+        font-weight: 850 !important;
+    }
+    h2, .h2 {
+        font-size: 1.1rem !important;
+        font-weight: 850 !important;
+    }
+    h3, .h3 {
+        font-size: 0.95rem !important;
+        font-weight: 850 !important;
+    }
+    .table th {
+        font-size: 0.7rem !important;
+        padding: 0.5rem 0.7rem !important;
+        font-weight: 800 !important;
+    }
+    .table td {
+        font-size: 0.8rem !important;
+        padding: 0.5rem 0.7rem !important;
+    }
+    .subject-pill {
+        font-size: 0.65rem !important;
+        padding: 0.15rem 0.35rem !important;
+    }
+    .badge {
+        font-size: 0.7rem !important;
+        padding: 0.25rem 0.5rem !important;
+    }
+    .btn-duo {
+        padding: 8px 16px !important;
+        font-size: 0.8rem !important;
+        border-radius: 8px !important;
+        box-shadow: 0 3px 0 var(--primary-shadow) !important;
+    }
+    .btn-duo-secondary {
+        padding: 7px 15px !important;
+        box-shadow: 0 3px 0 var(--border) !important;
+    }
+    
+    /* Styling helpers for desktop vs mobile view */
+    @media (max-width: 767.98px) {
+        .desktop-only {
+            display: none !important;
+        }
+        .mobile-only {
+            display: block !important;
+        }
+    }
+    @media (min-width: 768px) {
+        .desktop-only {
+            display: block !important;
+        }
+        .mobile-only {
+            display: none !important;
+        }
+    }
+
+    /* Elegant Custom Scrollbar for the table */
+    .table-container::-webkit-scrollbar {
+        width: 5px;
+        height: 5px;
+    }
+    .table-container::-webkit-scrollbar-track {
+        background: var(--surface-1);
+        border-radius: 3px;
+    }
+    .table-container::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 3px;
+    }
+    .table-container::-webkit-scrollbar-thumb:hover {
+        background: var(--ink-muted);
+    }
+</style>
+
+<div class="row g-3">
+
+    <!-- Header Section -->
+    <div class="col-12 d-flex flex-column flex-sm-row justify-content-between align-items-center pb-2 border-bottom gap-2">
+        <div class="text-center text-sm-start">
+            <h1 style="color: var(--ink); margin: 0;"><i class="fas fa-book me-2" style="color: var(--primary);"></i>Syllabus Tracker</h1>
+            <p class="text-muted mb-0" style="font-weight: 600; font-size: 0.8rem;">Track your progress across multiple chapters</p>
+        </div>
+        <button class="btn-duo btn-duo-primary" data-bs-toggle="modal" data-bs-target="#addSyllabusModal">
+            <i class="fas fa-plus me-2"></i>Add Chapter
+        </button>
+    </div>
+
+    <!-- Stats & Charts Section -->
+    <div class="col-12">
+        <div class="row g-3">
+            <div class="col-md-6 col-12">
+                <div class="card-duo h-100">
+                    <h3 style="color: var(--ink);" class="mb-2 text-center">Subject-wise Distribution</h3>
+                    <div style="height: 160px; position: relative;" class="d-flex justify-content-center align-items-center">
+                        <canvas id="statChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-12">
+                <div class="card-duo h-100">
+                    <h3 style="color: var(--ink);" class="mb-2 text-center">Overall Progress</h3>
+                    <div style="height: 160px; position: relative;" class="d-flex justify-content-center align-items-center">
+                        <canvas id="ratioChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Card Container -->
+    <div class="col-12">
+        <div class="card-duo p-0 overflow-hidden" style="width: 100%;">
+            <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+                <h2 style="color: var(--ink); margin: 0;">Chapter Status</h2>
+                <span class="badge" style="background: var(--primary); color: white; border-radius: var(--radius-pill); font-weight: 800;">
+                    {{ completed_count }}/{{ tc }} Chapters Done
+                </span>
+            </div>
+
+            {% if data %}
+            
+            <!-- Desktop/Tablet View (Visible on >= 768px) -->
+            <div class="desktop-only table-container" style="max-height: 380px; overflow-y: auto; overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%;">
+                <table class="table mb-0" style="border-collapse: separate; border-spacing: 0; width: 100%;">
+                    <thead style="position: sticky; top: 0; background: var(--surface-1); color: var(--ink); z-index: 10; box-shadow: 0 1px 0 var(--border);">
+                        <tr style="font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">
+                            <th style="padding: 0.6rem 0.8rem;">#</th>
+                            <th style="padding: 0.6rem 0.8rem;">Chapter Name</th>
+                            <th style="padding: 0.6rem 0.8rem;">Subject</th>
+                            <th style="padding: 0.6rem 0.8rem; text-align: center;">Lecture</th>
+                            <th style="padding: 0.6rem 0.8rem; text-align: center;">Notes</th>
+                            <th style="padding: 0.6rem 0.8rem; text-align: center;">NCERT</th>
+                            <th style="padding: 0.6rem 0.8rem; text-align: center;">DPP</th>
+                            <th style="padding: 0.6rem 0.8rem; text-align: center;">Punch</th>
+                            <th style="padding: 0.6rem 0.8rem; text-align: center;">Revision</th>
+                            <th style="padding: 0.6rem 0.8rem; text-align: center;">Done</th>
+                            <th style="padding: 0.6rem 0.8rem; text-align: center;">Status</th>
+                            <th style="padding: 0.6rem 0.8rem; text-align: center;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for j in data reversed %}
+                        <tr style="border-bottom: 2px solid var(--border); color: var(--ink); font-weight: 700; transition: background 0.2s;">
+                            <td style="padding: 0.6rem 0.8rem;">{{ forloop.counter }}</td>
+                            <td style="padding: 0.6rem 0.8rem;">{{ j.Cname }}</td>
+                            <td style="padding: 0.6rem 0.8rem;">
+                                <span class="subject-pill">
+                                    {{ j.Subject }}
+                                </span>
+                            </td>
+                            <td style="padding: 0.6rem 0.8rem; text-align: center;">
+                                {% if j.lecture %}<i class="fas fa-check-circle text-success fs-5"></i>{% else %}<i class="far fa-circle text-muted fs-5"></i>{% endif %}
+                            </td>
+                            <td style="padding: 0.6rem 0.8rem; text-align: center;">
+                                {% if j.notes %}<i class="fas fa-check-circle text-success fs-5"></i>{% else %}<i class="far fa-circle text-muted fs-5"></i>{% endif %}
+                            </td>
+                            <td style="padding: 0.6rem 0.8rem; text-align: center;">
+                                {% if j.ncert %}<i class="fas fa-check-circle text-success fs-5"></i>{% else %}<i class="far fa-circle text-muted fs-5"></i>{% endif %}
+                            </td>
+                            <td style="padding: 0.6rem 0.8rem; text-align: center;">
+                                {% if j.dpp %}<i class="fas fa-check-circle text-success fs-5"></i>{% else %}<i class="far fa-circle text-muted fs-5"></i>{% endif %}
+                            </td>
+                            <td style="padding: 0.6rem 0.8rem; text-align: center;">
+                                {% if j.punch %}<i class="fas fa-check-circle text-success fs-5"></i>{% else %}<i class="far fa-circle text-muted fs-5"></i>{% endif %}
+                            </td>
+                            <td style="padding: 0.6rem 0.8rem; text-align: center;">
+                                {% if j.revision %}<i class="fas fa-check-circle text-success fs-5"></i>{% else %}<i class="far fa-circle text-muted fs-5"></i>{% endif %}
+                            </td>
+                            <td style="padding: 0.6rem 0.8rem; text-align: center;">
+                                {% if j.done %}<i class="fas fa-check-circle text-success fs-5"></i>{% else %}<i class="far fa-circle text-muted fs-5"></i>{% endif %}
+                            </td>
+                            <td style="padding: 0.6rem 0.8rem; text-align: center;">
+                                {% if j.completed %}
+                                <span class="badge bg-success" style="border-radius: var(--radius-pill); font-weight: 800; padding: 0.2rem 0.4rem;">Completed</span>
+                                {% else %}
+                                <span class="badge bg-warning text-dark" style="border-radius: var(--radius-pill); font-weight: 800; padding: 0.2rem 0.4rem;">In Progress</span>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 0.6rem 0.8rem; text-align: center;">
+                                <div class="d-inline-flex gap-1">
+                                    <button class="btn-duo btn-duo-secondary py-1 px-2 btn-sm"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#updateSyllabusModal"
+                                            data-id="{{ j.id }}"
+                                            data-chapter="{{ j.Cname }}"
+                                            data-subject-id="{{ j.subject.id }}"
+                                            data-lecture="{{ j.lecture }}"
+                                            data-notes="{{ j.notes }}"
+                                            data-ncert="{{ j.ncert }}"
+                                            data-dpp="{{ j.dpp }}"
+                                            data-punch="{{ j.punch }}"
+                                            data-revision="{{ j.revision }}"
+                                            data-done="{{ j.done }}">
+                                        <i class="fas fa-edit" style="font-size: 0.75rem;"></i>
+                                    </button>
+                                    <a href="/test/chapter/{{ j.id }}/analytics/" class="btn-duo btn-duo-primary py-1 px-2 btn-sm">
+                                        <i class="fas fa-chart-bar" style="font-size: 0.75rem;"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mobile View (Visible on < 768px) -->
+            <div class="mobile-only p-2" style="max-height: 380px; overflow-y: auto; -webkit-overflow-scrolling: touch;">
+                {% for j in data reversed %}
+                <div class="card-duo p-2 mb-2" style="background: var(--canvas);">
+                    <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                        <div>
+                            <h4 style="font-weight: 900; color: var(--ink); font-size: 0.9rem; margin: 0 0 0.2rem 0;">{{ j.Cname }}</h4>
+                            <span class="subject-pill">
+                                {{ j.Subject }}
+                            </span>
+                        </div>
+                        <div class="d-flex gap-1">
+                            <button class="btn-duo btn-duo-secondary py-1 px-2 btn-sm"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#updateSyllabusModal"
+                                    data-id="{{ j.id }}"
+                                    data-chapter="{{ j.Cname }}"
+                                    data-subject-id="{{ j.subject.id }}"
+                                    data-lecture="{{ j.lecture }}"
+                                    data-notes="{{ j.notes }}"
+                                    data-ncert="{{ j.ncert }}"
+                                    data-dpp="{{ j.dpp }}"
+                                    data-punch="{{ j.punch }}"
+                                    data-revision="{{ j.revision }}"
+                                    data-done="{{ j.done }}">
+                                <i class="fas fa-edit" style="font-size: 0.75rem;"></i>
+                            </button>
+                            <a href="/test/chapter/{{ j.id }}/analytics/" class="btn-duo btn-duo-primary py-1 px-2 btn-sm">
+                                <i class="fas fa-chart-bar" style="font-size: 0.75rem;"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Progress Checklist Summary -->
+                    <div class="row g-1 pt-2 border-top text-center" style="font-size: 0.7rem; font-weight: 800;">
+                        <div class="col-4">
+                            <span class="d-block text-muted mb-0.5" style="font-size: 0.6rem; letter-spacing: 0.5px;">LECTURE</span>
+                            {% if j.lecture %}<i class="fas fa-check-circle text-success" style="font-size: 0.85rem;"></i>{% else %}<i class="far fa-circle text-muted" style="font-size: 0.85rem;"></i>{% endif %}
+                        </div>
+                        <div class="col-4">
+                            <span class="d-block text-muted mb-0.5" style="font-size: 0.6rem; letter-spacing: 0.5px;">NOTES</span>
+                            {% if j.notes %}<i class="fas fa-check-circle text-success" style="font-size: 0.85rem;"></i>{% else %}<i class="far fa-circle text-muted" style="font-size: 0.85rem;"></i>{% endif %}
+                        </div>
+                        <div class="col-4">
+                            <span class="d-block text-muted mb-0.5" style="font-size: 0.6rem; letter-spacing: 0.5px;">NCERT</span>
+                            {% if j.ncert %}<i class="fas fa-check-circle text-success" style="font-size: 0.85rem;"></i>{% else %}<i class="far fa-circle text-muted" style="font-size: 0.85rem;"></i>{% endif %}
+                        </div>
+                        <div class="col-4 mt-1">
+                            <span class="d-block text-muted mb-0.5" style="font-size: 0.6rem; letter-spacing: 0.5px;">DPP</span>
+                            {% if j.dpp %}<i class="fas fa-check-circle text-success" style="font-size: 0.85rem;"></i>{% else %}<i class="far fa-circle text-muted" style="font-size: 0.85rem;"></i>{% endif %}
+                        </div>
+                        <div class="col-4 mt-1">
+                            <span class="d-block text-muted mb-0.5" style="font-size: 0.6rem; letter-spacing: 0.5px;">PUNCH</span>
+                            {% if j.punch %}<i class="fas fa-check-circle text-success" style="font-size: 0.85rem;"></i>{% else %}<i class="far fa-circle text-muted" style="font-size: 0.85rem;"></i>{% endif %}
+                        </div>
+                        <div class="col-4 mt-1">
+                            <span class="d-block text-muted mb-0.5" style="font-size: 0.6rem; letter-spacing: 0.5px;">REVISION</span>
+                            {% if j.revision %}<i class="fas fa-check-circle text-success" style="font-size: 0.85rem;"></i>{% else %}<i class="far fa-circle text-muted" style="font-size: 0.85rem;"></i>{% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% else %}
+            <div class="text-center py-4 rounded m-3" style="background: var(--surface-1); border: 2px dashed var(--border);">
+                <i class="fas fa-book-open text-muted mb-2" style="font-size: 2rem;"></i>
+                <h3 style="font-weight: 800; color: var(--ink); font-size: 1rem;">No chapters tracked</h3>
+                <p class="mb-0" style="color: var(--ink-muted); font-size: 0.85rem;">Click the button at the top to add your first chapter!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+<!-- Add Chapter Modal -->
+<div class="modal fade" id="addSyllabusModal" tabindex="-1" aria-hidden="true" style="z-index: 1055;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-duo p-4" style="background: var(--canvas); border: 2px solid var(--border);">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" style="color: var(--ink);"><i class="fas fa-plus-circle me-2" style="color: var(--primary);"></i>Add Chapter</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="/todo/syllabus/add/" method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="syllabus_subject" class="form-label fw-bold" style="color: var(--ink-muted);">Subject</label>
+                        <select class="duo-input" id="syllabus_subject" name="Subject" required>
+                            <option value="" disabled selected>Select Subject</option>
+                            {% for subject in subjects %}
+                            <option value="{{ subject.id }}">{{ subject.name }}</option>
+                            {% endfor %}
+                            <option value="new">-- Add Custom Subject --</option>
+                        </select>
+                    </div>
+                    <div class="mb-3 d-none" id="custom_subject_container">
+                        <label for="custom_subject" class="form-label fw-bold" style="color: var(--ink-muted);">Custom Subject Name</label>
+                        <input type="text" class="duo-input" id="custom_subject" name="custom_subject" placeholder="Enter new subject name">
+                    </div>
+                    <div class="mb-3">
+                        <label for="syllabus_chapter" class="form-label fw-bold" style="color: var(--ink-muted);">Chapter Name</label>
+                        <input type="text" class="duo-input" id="syllabus_chapter" name="Chapter" placeholder="Enter Chapter's Name" required>
+                    </div>
+                    <button type="submit" class="btn-duo btn-duo-primary w-100 py-3 mt-3">Add Chapter</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Update Chapter Modal -->
+<div class="modal fade" id="updateSyllabusModal" tabindex="-1" aria-hidden="true" style="z-index: 1055;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-duo p-4" style="background: var(--canvas); border: 2px solid var(--border);">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" style="color: var(--ink);"><i class="fas fa-edit me-2" style="color: var(--primary);"></i>Update Chapter</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="updateSyllabusForm" method="post" action="">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="update_syllabus_subject" class="form-label fw-bold" style="color: var(--ink-muted);">Subject</label>
+                        <select class="duo-input" id="update_syllabus_subject" name="Subject" required>
+                            {% for subject in subjects %}
+                            <option value="{{ subject.id }}">{{ subject.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="update_syllabus_chapter" class="form-label fw-bold" style="color: var(--ink-muted);">Chapter Name</label>
+                        <input type="text" class="duo-input" id="update_syllabus_chapter" name="Chapter" required>
+                    </div>
+                    
+                    <div class="row g-2 mb-3">
+                        <div class="col-6 form-check">
+                            <input type="checkbox" id="update_syllabus_lecture" name="Lecture" class="form-check-input">
+                            <label for="update_syllabus_lecture" class="form-check-label fw-bold">Lecture</label>
+                        </div>
+                        <div class="col-6 form-check">
+                            <input type="checkbox" id="update_syllabus_notes" name="Notes" class="form-check-input">
+                            <label for="update_syllabus_notes" class="form-check-label fw-bold">Notes</label>
+                        </div>
+                        <div class="col-6 form-check">
+                            <input type="checkbox" id="update_syllabus_ncert" name="NCERT" class="form-check-input">
+                            <label for="update_syllabus_ncert" class="form-check-label fw-bold">NCERT</label>
+                        </div>
+                        <div class="col-6 form-check">
+                            <input type="checkbox" id="update_syllabus_dpp" name="DPP" class="form-check-input">
+                            <label for="update_syllabus_dpp" class="form-check-label fw-bold">DPP</label>
+                        </div>
+                        <div class="col-6 form-check">
+                            <input type="checkbox" id="update_syllabus_punch" name="Punch" class="form-check-input">
+                            <label for="update_syllabus_punch" class="form-check-label fw-bold">Punch</label>
+                        </div>
+                        <div class="col-6 form-check">
+                            <input type="checkbox" id="update_syllabus_revision" name="Revision" class="form-check-input">
+                            <label for="update_syllabus_revision" class="form-check-label fw-bold">Revision</label>
+                        </div>
+                        <div class="col-12 form-check mt-2">
+                            <input type="checkbox" id="update_syllabus_done" name="Done" class="form-check-input">
+                            <label for="update_syllabus_done" class="form-check-label fw-bold">Done</label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn-duo btn-duo-primary w-100 py-3 mb-2">Save Changes</button>
+                    <a href="" id="deleteSyllabusBtn" class="btn-duo btn-duo-danger w-100 py-3 text-center d-block" data-confirm="Are you sure you want to delete this chapter?" data-confirm-title="Confirm Delete">Delete Chapter</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart JS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. Chart Data
+    const labels = {{ labels_json|safe }};
+    const totals = {{ totals_json|safe }};
+    const completeds = {{ completeds_json|safe }};
+    const hasData = Array.isArray(labels) && labels.length > 0;
+
+    // Chart colors
+    const colors = {
+        primary: 'rgba(108, 92, 231, 0.85)',
+        primaryBorder: 'rgba(108, 92, 231, 1)',
+        secondary: 'rgba(253, 121, 168, 0.85)',
+        secondaryBorder: 'rgba(253, 121, 168, 1)',
+    };
+
+    if (hasData) {
+        // Bar Chart
+        const ctx1 = document.getElementById('statChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Total Chapters',
+                        data: totals,
+                        backgroundColor: colors.primary,
+                        borderColor: colors.primaryBorder,
+                        borderWidth: 2,
+                        borderRadius: 6
+                    },
+                    {
+                        label: 'Completed Chapters',
+                        data: completeds,
+                        backgroundColor: colors.secondary,
+                        borderColor: colors.secondaryBorder,
+                        borderWidth: 2,
+                        borderRadius: 6
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 }
+                    }
+                }
+            }
+        });
+
+        // Ratio Pie/Doughnut Chart
+        const ctx2 = document.getElementById('ratioChart').getContext('2d');
+        const totalSum = totals.reduce((a, b) => a + b, 0);
+        const completedSum = completeds.reduce((a, b) => a + b, 0);
+        const remainingSum = Math.max(0, totalSum - completedSum);
+
+        new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: ['Completed', 'Pending'],
+                datasets: [{
+                    data: [completedSum, remainingSum],
+                    backgroundColor: [colors.secondary, 'rgba(0, 0, 0, 0.05)'],
+                    borderColor: [colors.secondaryBorder, 'rgba(0, 0, 0, 0.1)'],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%'
+            }
+        });
+    }
+
+    // 2. Edit Modal Logic
+    const updateSyllabusModal = document.getElementById('updateSyllabusModal');
+    if (updateSyllabusModal) {
+        updateSyllabusModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const id = button.getAttribute('data-id');
+            const chapter = button.getAttribute('data-chapter');
+            const subjectId = button.getAttribute('data-subject-id');
+            
+            const lecture = button.getAttribute('data-lecture') === 'True';
+            const notes = button.getAttribute('data-notes') === 'True';
+            const ncert = button.getAttribute('data-ncert') === 'True';
+            const dpp = button.getAttribute('data-dpp') === 'True';
+            const punch = button.getAttribute('data-punch') === 'True';
+            const revision = button.getAttribute('data-revision') === 'True';
+            const done = button.getAttribute('data-done') === 'True';
+            
+            document.getElementById('update_syllabus_chapter').value = chapter;
+            document.getElementById('update_syllabus_subject').value = subjectId;
+            
+            document.getElementById('update_syllabus_lecture').checked = lecture;
+            document.getElementById('update_syllabus_notes').checked = notes;
+            document.getElementById('update_syllabus_ncert').checked = ncert;
+            document.getElementById('update_syllabus_dpp').checked = dpp;
+            document.getElementById('update_syllabus_punch').checked = punch;
+            document.getElementById('update_syllabus_revision').checked = revision;
+            document.getElementById('update_syllabus_done').checked = done;
+            
+            document.getElementById('updateSyllabusForm').action = `/todo/syllabus/update/${id}/`;
+            document.getElementById('deleteSyllabusBtn').href = `/todo/syllabus/delete/${id}/`;
+        });
+    }
+
+    // 3. Custom Subject Toggle Logic
+    const addSyllabusSubject = document.getElementById('syllabus_subject');
+    const customSubjectContainer = document.getElementById('custom_subject_container');
+    const customSubjectInput = document.getElementById('custom_subject');
+
+    if (addSyllabusSubject && customSubjectContainer && customSubjectInput) {
+        addSyllabusSubject.addEventListener('change', function() {
+            if (this.value === 'new') {
+                customSubjectContainer.classList.remove('d-none');
+                customSubjectInput.required = true;
+                customSubjectInput.focus();
+            } else {
+                customSubjectContainer.classList.add('d-none');
+                customSubjectInput.required = false;
+                customSubjectInput.value = '';
+            }
+        });
+    }
+});
+</script>
+
+{% endblock %}

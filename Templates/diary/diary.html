@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+
+{% block title %}Diary - Trakment{% endblock title %}
+
+{% block content %}
+<div class="py-3 px-2" style="max-width: 1100px; margin: 0 auto; width: 100%;">
+    
+    <!-- Header Section -->
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mb-4 pb-2 border-bottom gap-2">
+        <div class="text-center text-sm-start">
+            <h1 style="font-weight: 900; color: var(--ink); margin: 0;"><i class="fas fa-book-open me-2" style="color: var(--secondary);"></i>My Diary</h1>
+            <p class="text-muted mb-0" style="font-weight: 700; font-size: 0.85rem;">Document your daily thoughts and reflections</p>
+        </div>
+        <button class="btn-duo btn-duo-primary py-2 px-4" data-bs-toggle="modal" data-bs-target="#addDiaryModal">
+            <i class="fas fa-plus me-2"></i>Add Entry
+        </button>
+    </div>
+
+    
+    <!-- Search Bar Card -->
+    <div class="card-duo mb-4">
+        <div class="p-2">
+            <input type="text" id="searchDiary" class="duo-input w-100" placeholder="🔍 Search diary entries by title, date, or content..." style="font-size: 1.1rem; padding: 12px 20px; border-radius: 50px;">
+        </div>
+    </div>
+
+    <!-- Diary Entries List -->
+    <div class="card-duo p-4">
+        <div class="table-responsive">
+            <table class="table align-middle" style="border: 2px solid var(--border); border-radius: var(--radius-md); overflow: hidden; margin-bottom: 0;">
+                <thead style="background: var(--surface-1); color: var(--ink); border-bottom: 2px solid var(--border);">
+                    <tr style="border-bottom: 2px solid var(--border); color: var(--ink);">
+                        <th class="ps-3 py-3" style="font-weight: 800; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px;">Date</th>
+                        <th class="py-3" style="font-weight: 800; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px;">Title</th>
+                        <th class="text-end pe-3 py-3" style="font-weight: 800; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in diary %}
+                    <tr class="diary-row" style="border-bottom: 2px solid var(--border); color: var(--ink);">
+                        <td class="ps-3 fw-bold diary-date">{{ entry.date|date:"d M Y" }}</td>
+                        <td class="fw-bold diary-title" style="color: var(--ink-muted);">{{ entry.title|default:"Untitled" }}</td>
+                        <td class="text-end pe-3">
+                            <div class="d-flex justify-content-end gap-2">
+                                <!-- View Button (Opens Modal) -->
+                                <button type="button" class="btn-duo btn-duo-secondary py-1 px-3 btn-sm d-flex align-items-center gap-1" 
+                                    onclick="openViewModal('{{ entry.title|escapejs }}', '{{ entry.date|date:'d M Y'|escapejs }}', '{{ entry.content|escapejs }}')">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                                <!-- Delete Button -->
+                                <a href="/diary/delete/{{ entry.id }}" class="btn-duo btn-duo-danger py-1 px-2 btn-sm" data-confirm="Are you sure you want to delete this diary entry?" data-confirm-title="Delete Entry" title="Delete Entry">
+                                    <i class="fa fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <tr id="diaryNoResults" style="display: none;">
+                        <td colspan="3" class="text-center py-5">
+                            <i class="fas fa-search text-muted mb-3" style="font-size: 3rem; opacity: 0.5;"></i>
+                            <h4 style="font-weight: 800; color: var(--ink);">No matching entries found</h4>
+                            <p style="color: var(--ink-muted);">Try a different search term.</p>
+                        </td>
+                    </tr>
+
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center py-5" id="diaryEmptyState">
+                            <i class="fas fa-book-open text-muted mb-3" style="font-size: 3rem; opacity: 0.5;"></i>
+                            <h4 style="font-weight: 800; color: var(--ink);">No entries yet</h4>
+                            <p style="color: var(--ink-muted);">Click "Add Entry" to create your first diary entry!</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Diary Modal -->
+<div class="modal fade" id="addDiaryModal" tabindex="-1" aria-hidden="true" style="z-index: 1055;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-duo p-4" style="background: var(--canvas); border: 2px solid var(--border);">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" style="color: var(--ink);"><i class="fas fa-plus-circle me-2" style="color: var(--secondary);"></i>New Diary Entry</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="/diary/">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="date" class="form-label fw-bold" style="color: var(--ink-muted);">Date</label>
+                        <input type="date" id="date" name="date" class="duo-input w-100" value="{{ today }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="title" class="form-label fw-bold" style="color: var(--ink-muted);">Title</label>
+                        <input type="text" id="title" name="title" class="duo-input w-100" placeholder="e.g. A Great Day!" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="entry" class="form-label fw-bold" style="color: var(--ink-muted);">Your Thoughts</label>
+                        <textarea id="entry" name="entry" class="duo-input w-100" rows="6" required placeholder="Write your diary entry here..."></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn-duo btn-duo-primary w-100 py-3 mt-3">Save Entry</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Diary Modal -->
+<div class="modal fade" id="viewDiaryModal" tabindex="-1" aria-hidden="true" style="z-index: 1055;">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content card-duo p-4" style="background: var(--canvas); border: 2px solid var(--border);">
+            <div class="modal-header border-0 pb-2 border-bottom">
+                <div>
+                    <h4 class="modal-title fw-bold mb-1" id="viewModalTitle" style="color: var(--ink);">Title</h4>
+                    <span class="text-muted fw-bold" style="font-size: 0.85rem;" id="viewModalDate"><i class="far fa-calendar-alt me-1"></i> Date</span>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-4">
+                <div id="viewModalContent" style="font-size: 1.05rem; color: var(--ink); line-height: 1.6; white-space: pre-wrap; word-break: break-word; font-weight: 600;">
+                    Content goes here...
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-3">
+                <button type="button" class="btn-duo btn-duo-secondary w-100 py-2" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openViewModal(title, date, content) {
+        document.getElementById('viewModalTitle').textContent = title;
+        document.getElementById('viewModalDate').innerHTML = '<i class="far fa-calendar-alt me-1"></i> ' + date;
+        document.getElementById('viewModalContent').textContent = content;
+        
+        var viewModal = new bootstrap.Modal(document.getElementById('viewDiaryModal'));
+        viewModal.show();
+    }
+
+    // Search Diary functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchDiary');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const query = this.value.toLowerCase().trim();
+                const rows = document.querySelectorAll('.diary-row');
+                let visibleCount = 0;
+
+                rows.forEach(row => {
+                    const dateText = row.querySelector('.diary-date').textContent.toLowerCase();
+                    const titleText = row.querySelector('.diary-title').textContent.toLowerCase();
+                    // Extract content from the onclick attribute of the View button
+                    const viewBtn = row.querySelector('button[onclick^="openViewModal"]');
+                    let contentText = "";
+                    if (viewBtn) {
+                        const onclickStr = viewBtn.getAttribute('onclick');
+                        // Content is the third argument
+                        const matches = onclickStr.match(/openViewModal\(.*?,\s*.*?,\s*'(.*?)'\)/);
+                        if (matches && matches[2]) {
+                            contentText = matches[2].toLowerCase();
+                        }
+                    }
+
+                    if (dateText.includes(query) || titleText.includes(query) || contentText.includes(query)) {
+                        row.style.setProperty('display', '', 'important');
+                        visibleCount++;
+                    } else {
+                        row.style.setProperty('display', 'none', 'important');
+                    }
+                });
+
+                const noResults = document.getElementById('diaryNoResults');
+                const emptyState = document.getElementById('diaryEmptyState');
+                
+                if (noResults) {
+                    if (visibleCount === 0 && rows.length > 0) {
+                        noResults.style.setProperty('display', 'table-row', 'important');
+                    } else {
+                        noResults.style.setProperty('display', 'none', 'important');
+                    }
+                }
+            });
+        }
+    });
+
+</script>
+{% endblock content %}

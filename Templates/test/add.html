@@ -11,6 +11,8 @@
     }
 
     .form-container {
+        border: none;
+        box-shadow: none;
         max-width: 600px;
         margin: 50px auto;
         padding: 20px;
@@ -40,20 +42,9 @@
         box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
     }
 
-    .form-container button {
-        width: 100%;
-        background-color: #007bff;
-        color: #fff;
-        border: none;
-        padding: 10px 15px;
-        font-size: 16px;
-        border-radius: 5px;
-        cursor: pointer;
-    }
+    
 
-    .form-container button:hover {
-        background-color: #0056b3;
-    }
+    
 
     .form-container h2 {
         text-align: center;
@@ -62,31 +53,31 @@
     }
 </style>
 
-<div class="form-container">
+<div class="form-container card-duo">
     <h2>Add Test</h2>
     <form action="" method="post">
         {% csrf_token %}
         <label for="botany">Botany</label>
-        <input type="number" class="form-control" id="botany" name="botany" value="{{ botany }}">
+        <input type="number" class="duo-input" id="botany" name="botany" value="{{ botany }}">
 
         <label for="zoology">Zoology</label>
-        <input type="number" class="form-control" id="zoology" name="zoology" value="{{ zoology }}">
+        <input type="number" class="duo-input" id="zoology" name="zoology" value="{{ zoology }}">
 
         <label for="organic">Organic</label>
-        <input type="number" class="form-control" id="organic" name="organic" value="{{ organic }}">
+        <input type="number" class="duo-input" id="organic" name="organic" value="{{ organic }}">
 
         <label for="inorganic">Inorganic</label>
-        <input type="number" class="form-control" id="inorganic" name="inorganic" value="{{ inorganic }}">
+        <input type="number" class="duo-input" id="inorganic" name="inorganic" value="{{ inorganic }}">
 
         <label for="physical">Physical</label>
-        <input type="number" class="form-control" id="physical" name="physical" value="{{ physical }}">
+        <input type="number" class="duo-input" id="physical" name="physical" value="{{ physical }}">
 
         <label for="Physics">Physics</label>
-        <input type="number" class="form-control" id="Physics" name="physics" value="{{ Physics }}">
+        <input type="number" class="duo-input" id="Physics" name="physics" value="{{ Physics }}">
         <label for="date">Test Date</label>  
-        <input type="date" class="form-control" id="date" name="date" >
+        <input type="date" class="duo-input" id="date" name="date" >
 
-        <button type="submit">Submit</button>
+        <button type="submit" class="btn-duo btn-duo-primary w-100">Submit</button>
     </form>
 </div>
 {% endblock content %}

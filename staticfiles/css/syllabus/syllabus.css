@@ -1,0 +1,68 @@
+/*body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    color: #343a40;
+    margin: 0; /* Resetting body margin */
+
+
+h2 {
+    color: #6c757d;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+table th, table td {
+    border: 1px solid #dee2e6;
+    padding: 10px;
+    text-align: center;
+}
+
+table th {
+    background-color: #343a40;
+    color: white;
+}
+
+input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+}
+
+.card {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin: 0 auto;
+    text-align: center;
+    width: fit-content;
+    overflow: hidden;
+}
+
+.graph {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+#stat, #stat2 {
+    width: 250px;
+    height: 250px;
+}
+
+.stats h4,
+.stats h6 {
+    margin: 0;
+    color: #495057;
+}
+
+.stats {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}

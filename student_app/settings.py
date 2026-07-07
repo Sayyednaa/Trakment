@@ -26,8 +26,9 @@ SECRET_KEY = 'django-insecure-*z2qza#bgwf8=svl+p^g72qb@w5#b_f75q$l*=)&6t27##(!(2
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-CSRF_TRUSTED_ORIGINS = ['https://*.127.0.0.1']
+CSRF_TRUSTED_ORIGINS = ['https://*.127.0.0.1',"https://sayyednaa.pythonanywhere.com/"]
 LOGIN_URL = '/login'
+CORS_ALLOW_ALL_ORIGINS = True
 
 # Application definition
 
@@ -38,17 +39,24 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
+    'core',
+
+    'test_app',
     'notes',
-   
+    'diary',
+    'password',
+    'habit',
     'todo',
     'daily',
-   
-   
-    'test',
+    'logs',
+    'revision',
+    'Salah_Tracker',
+
 
 
 ]
+
+USE_TZ = True
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -65,7 +73,7 @@ ROOT_URLCONF = 'student_app.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['Templates'],
+        'DIRS': [BASE_DIR /'Templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -122,15 +130,21 @@ USE_I18N = True
 
 USE_TZ = True
 
-
+TIME_ZONE = 'Asia/Kolkata'
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
 
+import os
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+STATIC_URL = '/static/'
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static"),  # Ensure this path is valid
 ]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Folder for production
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 

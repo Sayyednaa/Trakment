@@ -1,0 +1,64 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.sqlite3
+db.sqlite3
+old_db.sqlite3
+db.sqlite3.backup
+*.log
+*.pot
+*.pyc
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite33
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Virtual Environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Agent Scratch Files (My temporary scripts)
+*.py
+!manage.py
+!*/views.py
+!*/models.py
+!*/urls.py
+!*/admin.py
+!*/apps.py
+!*/tests.py
+!*/__init__.py
+!*/migrations/*.py
+!student_app/*.py
+!test_app/*.py
+!todo/*.py
+!notes/*.py
+!daily/*.py
+!habit/*.py
+!diary/*.py
+!logs/*.py
+!password/*.py
+!Salah_Tracker/*.py
+!revision/*.py
+
+# Ignore backups
+backup_before_changes.csv
+backup_before_changes.json
+example db.txt
+recovered.txt
+all_models.txt
+schema_diff.json
+duolingo-DESIGN.md
+temp_landing.html

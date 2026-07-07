@@ -1,0 +1,131 @@
+ 
+
+@font-face {
+  font-family: nothing;
+  src: url('/static/fonts/nothing-font.ttf');
+}
+.taskUpdate{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 10px 15px;
+  background-color: #ffffff;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.taskTitle{
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #343a40;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+ 
+.content {
+  padding: 20px;
+  background-color: #f8f9fa;
+}
+
+
+
+ 
+ 
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+a{
+  align-self: center;
+}
+.card {
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  /* max-width: fit-content; */
+}
+ 
+
+.btn{
+  background-color: #4CAF50;
+  border: none;
+  color: white;
+  padding: 5px 10px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  height: fit-content;
+  width: fit-content;
+}
+btn:hover {
+  background-color: #0056b3;
+}
+
+.card-header {
+  background-color: #343a40;
+  color: white;
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  padding: 10px 15px;
+  border-bottom: 2px solid #28a745;
+}
+
+.card-body {
+  padding: 20px;
+  font-size: 1rem;
+  color: #495057;
+}
+
+.chart-container {
+  width: 100%;
+  height: 300px;
+}
+ 
+ 
+
+h4 {
+  margin: 5px 0;
+  font-size: 1.1rem;
+}
+
+
+
+table {
+  text-align: center;
+  width: 80%;
+  border-collapse: collapse;
+ 
+}
+th, td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+th {
+  background-color: #f4f4f4;
+}
+tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+tr:hover {
+  background-color: #f1f1f1;
+}
+.container {
+  text-align: center;
+}
+.graph{
+  inline-size: fit-content;
+}
+* {
+box-sizing: border-box;
+}
+.graph{
+  inline-size: fit-content;
+}
+* {
+box-sizing: border-box;
+}
+

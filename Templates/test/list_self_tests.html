@@ -1,0 +1,636 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %} My Self Tests {% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card-duo p-4">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="display-5 fw-bold text-primary mb-2">
+                            <i class="fas fa-chart-line me-3"></i>My Self Tests
+                        </h1>
+                        <p class="text-muted mb-0">Track your progress and performance across all tests</p>
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        <a href="/omr/" class="btn-duo-primary btn-lg btn-duo">
+                            <i class="fas fa-plus me-2"></i>Take New Test
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Overview -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card-duo p-4">
+                <h3 class="mb-4 text-primary">
+                    <i class="fas fa-chart-bar me-2"></i>Overall Statistics
+                </h3>
+
+                <div class="row">
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="stat-card h-100 text-center p-3">
+                            <div class="stat-icon mb-3">
+                                <i class="fas fa-clipboard-list fa-3x text-primary"></i>
+                            </div>
+                            <h2 class="fw-bold text-primary">{{ total_tests }}</h2>
+                            <p class="text-muted mb-0">Total Tests</p>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="stat-card h-100 text-center p-3">
+                            <div class="stat-icon mb-3">
+                                <i class="fas fa-bullseye fa-3x text-success"></i>
+                            </div>
+                            <h2 class="fw-bold text-success">{{ avg_accuracy }}%</h2>
+                            <p class="text-muted mb-0">Average Accuracy</p>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="stat-card h-100 text-center p-3">
+                            <div class="stat-icon mb-3">
+                                <i class="fas fa-chart-pie fa-3x text-info"></i>
+                            </div>
+                            <h2 class="fw-bold text-info">{{ overall_accuracy }}%</h2>
+                            <p class="text-muted mb-0">Overall Accuracy</p>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="stat-card h-100 text-center p-3">
+                            <div class="stat-icon mb-3">
+                                <i class="fas fa-clock fa-3x text-warning"></i>
+                            </div>
+                            <h2 class="fw-bold text-warning">{{ avg_time }}</h2>
+                            <p class="text-muted mb-0">Average Time</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Stats Row -->
+                <div class="row mt-4">
+                    <div class="col-md-4 text-center">
+                        <div class="p-3">
+                            <h4 class="fw-bold text-success">{{ total_correct }}</h4>
+                            <p class="text-muted mb-0">Total Correct Answers</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="p-3">
+                            <h4 class="fw-bold text-primary">{{ total_questions_attempted }}</h4>
+                            <p class="text-muted mb-0">Total Questions Attempted</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="p-3">
+                            <h4 class="fw-bold text-info">
+                                {% if total_questions_attempted > 0 %}
+                                    {% widthratio total_correct total_questions_attempted 100 %}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </h4>
+                            <p class="text-muted mb-0">Success Rate</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row mb-4">
+        <div class="col-lg-8 mb-4">
+            <div class="card-duo h-100">
+                <div class="card-header bg-transparent border-bottom-0">
+                    <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Performance Trend</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="performanceChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-4">
+            <div class="card-duo h-100">
+                <div class="card-header bg-transparent border-bottom-0">
+                    <h5 class="mb-0"><i class="fas fa-tachometer-alt me-2"></i>Accuracy Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="accuracyChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tests List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card-duo">
+                <div class="card-header bg-transparent border-bottom-0 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-list me-2"></i>All Tests ({{ total_tests }})</h5>
+                    <div class="dropdown">
+                        <button class="btn-outline-primary btn-sm dropdown-toggle btn-duo" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-filter me-1"></i>Filter
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="?sort=date">By Date</a></li>
+                            <li><a class="dropdown-item" href="?sort=score">By Score</a></li>
+                            <li><a class="dropdown-item" href="?sort=chapter">By Chapter</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% if self_tests %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Chapter</th>
+                                    <th>Date & Time</th>
+                                    <th>Questions</th>
+                                    <th>Attempted</th>
+                                    <th>Correct</th>
+                                    <th>Score</th>
+                                    <th>Time Taken</th>
+                                    <th>Accuracy</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for test in self_tests %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ test.chapter }}</strong>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ test.date_taken|date:"M d, Y" }}</small>
+                                        <br>
+                                        <small class="text-muted">{{ test.date_taken|date:"h:i A" }}</small>
+                                    </td>
+                                    <td>{{ test.questions }}</td>
+                                    <td>{{ test.attempted }}</td>
+                                    <td>
+                                        <span class="badge bg-success">{{ test.correct }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress flex-grow-1 me-2" style="height: 6px;">
+                                                <div class="progress-bar {% if test.percentage >= 70 %}bg-success{% elif test.percentage >= 50 %}bg-warning{% else %}bg-danger{% endif %}"
+                                                     style="width: {{ test.percentage }}%"></div>
+                                            </div>
+                                            <span class="fw-bold">{{ test.percentage }}%</span>
+                                        </div>
+                                  <td>
+    {% if test.time_taken %}
+        {% with total_seconds=test.time_taken.total_seconds %}
+            {% with hours=total_seconds|floatformat:0|divisibleby:"3600" minutes=total_seconds|floatformat:0|divisibleby:"60" %}
+                {% if hours > 0 %}
+                    {{ hours }}h {{ minutes }}m
+                {% else %}
+                    {{ minutes }}m
+                {% endif %}
+            {% endwith %}
+        {% endwith %}
+    {% else %}
+        <span class="text-muted">N/A</span>
+    {% endif %}
+</td>
+                                    <td>
+                                        {% if test.attempted > 0 %}
+                                            {% widthratio test.correct test.attempted 100 as accuracy %}
+                                            <span class="badge {% if accuracy >= 70 %}bg-success{% elif accuracy >= 50 %}bg-warning{% else %}bg-danger{% endif %}">
+                                                {{ accuracy }}%
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">0%</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                                                                <div class="d-inline-flex gap-2">
+                                            <button type="button" class="btn-duo btn-duo-primary py-1 px-2 btn-sm view-details-btn" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#selfTestDetailModal"
+                                                    data-chapter="{{ test.chapter }}"
+                                                    data-date="{{ test.date_taken|date:'F j, Y 	 g:i A' }}"
+                                                    data-questions="{{ test.questions }}"
+                                                    data-attempted="{{ test.attempted }}"
+                                                    data-correct="{{ test.correct }}"
+                                                    data-incorrect="{{ test.incorrect }}"
+                                                    data-plus="{{ test.plus_marks }}"
+                                                    data-minus="{{ test.minus_marks }}"
+                                                    data-total="{{ test.total_marks }}"
+                                                    data-percentage="{{ test.percentage|floatformat:1 }}"
+                                                    data-time="{{ test.time|default:0 }}"
+                                                    title="View Details">
+                                                <i class="fas fa-eye" style="font-size: 0.8rem;"></i>
+                                            </button>
+                                            <button type="button" class="btn-duo btn-duo-danger py-1 px-2 btn-sm" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#deleteModal{{ test.pk }}" 
+                                                    title="Delete Test">
+                                                <i class="fas fa-trash" style="font-size: 0.8rem;"></i>
+                                            </button>
+                                        </div>
+
+                                        <!-- Delete Modal -->
+                                        <div class="modal fade" id="deleteModal{{ test.pk }}" tabindex="-1" style="z-index: 1055;">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content card-duo p-4" style="background: var(--canvas); border: 2px solid var(--border);">
+                                                    <div class="modal-header border-0 pb-0">
+                                                        <h5 class="modal-title fw-bold" style="color: var(--ink);">Confirm Delete</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body py-3" style="color: var(--ink);">
+                                                        Are you sure you want to delete the test for "{{ test.chapter }}"?
+                                                     </div>
+                                                    <div class="modal-footer border-0 pt-0 d-flex justify-content-end gap-2 align-items-center">
+                                                        <button type="button" class="btn-duo btn-duo-secondary py-1.5 px-3 btn-sm" data-bs-dismiss="modal">Cancel</button>
+                                                        <form method="post" action="{% url 'test:self_test_delete' test.pk %}" class="m-0">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn-duo btn-duo-danger py-1.5 px-3 btn-sm">Delete</button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-clipboard-list fa-4x text-muted mb-3"></i>
+                        <h4 class="text-muted">No Tests Yet</h4>
+                        <p class="text-muted">Take your first test to start tracking your progress!</p>
+                        <a href="/omr/" class="btn-duo-primary btn-duo">
+                            <i class="fas fa-plus me-2"></i>Take First Test
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Self Test Detail Modal -->
+<div class="modal fade" id="selfTestDetailModal" tabindex="-1" aria-hidden="true" style="z-index: 1055;">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content card-duo p-4" style="background: var(--canvas); border: 2px solid var(--border);">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" style="color: var(--ink);"><i class="fas fa-chart-pie me-2" style="color: var(--primary);"></i>Test Attempt Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <h2 id="modalChapter" class="fw-bold" style="color: var(--ink); margin-bottom: 0.2rem; font-size: 1.5rem;"></h2>
+                    <p id="modalDate" class="text-muted mb-0" style="font-weight: 700; font-size: 0.9rem;"></p>
+                </div>
+                
+                <!-- Summary metrics -->
+                <div class="row g-3 mb-4">
+                    <div class="col-6">
+                        <div class="card-duo p-3 text-center" style="background: var(--surface-1);">
+                            <h3 id="modalAccuracy" class="fw-bold text-success mb-1" style="font-size: 1.6rem;">0%</h3>
+                            <p class="text-muted mb-0" style="font-size: 0.85rem; font-weight: 800;">Accuracy</p>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="card-duo p-3 text-center" style="background: var(--surface-1);">
+                            <h3 id="modalEfficiency" class="fw-bold text-info mb-1" style="font-size: 1.6rem;">0%</h3>
+                            <p class="text-muted mb-0" style="font-size: 0.85rem; font-weight: 800;">Efficiency</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info segments -->
+                <div class="row g-3">
+                    <div class="col-md-6 col-12">
+                        <div class="card-duo p-3 h-100" style="border-radius: 12px !important;">
+                            <h5 class="fw-bold mb-3" style="color: var(--ink); font-size: 1.05rem;"><i class="fas fa-info-circle me-1" style="color: var(--secondary);"></i>Overview</h5>
+                            <div class="d-flex justify-content-between mb-2" style="font-size: 0.9rem;">
+                                <span class="text-muted">Total Questions:</span>
+                                <strong id="modalQuestions" class="text-ink" style="font-weight: 800;"></strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2" style="font-size: 0.9rem;">
+                                <span class="text-muted">Attempted:</span>
+                                <strong id="modalAttempted" class="text-ink" style="font-weight: 800;"></strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2" style="font-size: 0.9rem;">
+                                <span class="text-muted">Correct Answers:</span>
+                                <strong id="modalCorrect" class="text-success" style="font-weight: 800;"></strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2" style="font-size: 0.9rem;">
+                                <span class="text-muted">Incorrect Answers:</span>
+                                <strong id="modalIncorrect" class="text-danger" style="font-weight: 800;"></strong>
+                            </div>
+                            <div class="d-flex justify-content-between" style="font-size: 0.9rem;">
+                                <span class="text-muted">Time Taken:</span>
+                                <strong id="modalTime" class="text-ink" style="font-weight: 800;"></strong>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-12">
+                        <div class="card-duo p-3 h-100" style="border-radius: 12px !important;">
+                            <h5 class="fw-bold mb-3" style="color: var(--ink); font-size: 1.05rem;"><i class="fas fa-award me-1" style="color: var(--accent-yellow);"></i>Score Details</h5>
+                            <div class="d-flex justify-content-between mb-2" style="font-size: 0.9rem;">
+                                <span class="text-muted">Positive Marks:</span>
+                                <strong id="modalPlus" class="text-success" style="font-weight: 800;"></strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2" style="font-size: 0.9rem;">
+                                <span class="text-muted">Negative Marks:</span>
+                                <strong id="modalMinus" class="text-danger" style="font-weight: 800;"></strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2" style="font-size: 0.9rem;">
+                                <span class="text-muted">Total Marks:</span>
+                                <strong id="modalTotal" class="text-ink" style="font-weight: 800;"></strong>
+                            </div>
+                            <div class="d-flex justify-content-between" style="font-size: 0.9rem;">
+                                <span class="text-muted">Percentage:</span>
+                                <strong id="modalPercentage" class="text-ink" style="font-weight: 800;"></strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Initialize charts when page loads
+document.addEventListener('DOMContentLoaded', function() {
+
+    // Initialize modal listeners for details modal
+    const selfTestDetailModal = document.getElementById('selfTestDetailModal');
+    if (selfTestDetailModal) {
+        selfTestDetailModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const chapter = button.getAttribute('data-chapter');
+            const date = button.getAttribute('data-date');
+            const questions = parseInt(button.getAttribute('data-questions')) || 0;
+            const attempted = parseInt(button.getAttribute('data-attempted')) || 0;
+            const correct = parseInt(button.getAttribute('data-correct')) || 0;
+            const incorrect = parseInt(button.getAttribute('data-incorrect')) || 0;
+            const plus = parseInt(button.getAttribute('data-plus')) || 0;
+            const minus = parseInt(button.getAttribute('data-minus')) || 0;
+            const total = parseInt(button.getAttribute('data-total')) || 0;
+            const percentage = button.getAttribute('data-percentage');
+            const timeSeconds = parseInt(button.getAttribute('data-time')) || 0;
+            
+            const accuracy = attempted > 0 ? ((correct / attempted) * 100).toFixed(1) : '0';
+            const efficiency = questions > 0 ? ((attempted / questions) * 100).toFixed(1) : '0';
+            
+            const minutes = Math.floor(timeSeconds / 60);
+            const seconds = timeSeconds % 60;
+            const timeDisplay = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+            
+            document.getElementById('modalChapter').textContent = chapter;
+            document.getElementById('modalDate').textContent = `Taken on ${date}`;
+            document.getElementById('modalAccuracy').textContent = `${accuracy}%`;
+            document.getElementById('modalEfficiency').textContent = `${efficiency}%`;
+            document.getElementById('modalQuestions').textContent = questions;
+            document.getElementById('modalAttempted').textContent = attempted;
+            document.getElementById('modalCorrect').textContent = correct;
+            document.getElementById('modalIncorrect').textContent = incorrect;
+            document.getElementById('modalTime').textContent = timeDisplay;
+            document.getElementById('modalPlus').textContent = `+${plus}`;
+            document.getElementById('modalMinus').textContent = `-${minus}`;
+            document.getElementById('modalTotal').textContent = total;
+            document.getElementById('modalPercentage').textContent = `${percentage}%`;
+        });
+    }
+
+    loadStatistics();
+});
+
+async function loadStatistics() {
+    try {
+        const response = await fetch('{% url "test:self_tests_statistics" %}');
+        const data = await response.json();
+
+        if (data.error) {
+            console.log('No test data available for charts');
+            return;
+        }
+
+        renderPerformanceChart(data);
+        renderAccuracyChart(data);
+    } catch (error) {
+        console.error('Error loading statistics:', error);
+    }
+}
+
+function renderPerformanceChart(data) {
+    const ctx = document.getElementById('performanceChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.time_series.dates,
+            datasets: [{
+                label: 'Percentage Score',
+                data: data.time_series.percentages,
+                borderColor: '#6366f1',
+                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: '#6366f1',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 6,
+                pointHoverRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Performance Over Time',
+                    font: {
+                        size: 16
+                    }
+                },
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    title: {
+                        display: true,
+                        text: 'Percentage (%)'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                },
+                x: {
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                }
+            }
+        }
+    });
+}
+
+function renderAccuracyChart(data) {
+    const ctx = document.getElementById('accuracyChart').getContext('2d');
+
+    // Calculate accuracy distribution from chapter stats
+    const accuracyRanges = {
+        '90-100%': 0,
+        '80-89%': 0,
+        '70-79%': 0,
+        '60-69%': 0,
+        'Below 60%': 0
+    };
+
+    data.chapter_stats.forEach(stat => {
+        const accuracy = stat.avg_accuracy;
+        if (accuracy >= 90) accuracyRanges['90-100%']++;
+        else if (accuracy >= 80) accuracyRanges['80-89%']++;
+        else if (accuracy >= 70) accuracyRanges['70-79%']++;
+        else if (accuracy >= 60) accuracyRanges['60-69%']++;
+        else accuracyRanges['Below 60%']++;
+    });
+
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(accuracyRanges),
+            datasets: [{
+                data: Object.values(accuracyRanges),
+                backgroundColor: [
+                    '#10b981',
+                    '#34d399',
+                    '#f59e0b',
+                    '#f97316',
+                    '#ef4444'
+                ],
+                borderWidth: 2,
+                borderColor: 'rgba(255, 255, 255, 0.1)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#6c757d',
+                        font: {
+                            size: 12
+                        }
+                    }
+                }
+            },
+            cutout: '60%'
+        }
+    });
+}
+</script>
+
+<style>
+.card-duo {
+    background: var(--surface-1);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+    transition: transform 0.3s ease;
+}
+
+.card-duo:hover {
+    transform: translateY(-2px);
+}
+
+
+
+
+
+.stat-icon {
+    opacity: 0.8;
+}
+
+.table {
+    margin-bottom: 0;
+    color: var(--ink);
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: var(--ink-muted);
+    background: var(--surface-1);
+}
+
+.table td {
+    vertical-align: middle;
+    border-color: var(--border);
+}
+
+.progress {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+}
+
+.progress-bar {
+    border-radius: 10px;
+}
+
+.badge {
+    font-size: 0.75em;
+    font-weight: 500;
+}
+
+.btn-group .btn {
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.modal-content {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+
+    .btn-group .btn {
+        padding: 0.25rem 0.5rem;
+    }
+
+    .card-duo {
+        padding: 1rem;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,652 @@
+{% extends "base.html" %}
+{% block content %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Islamic Worship Stats</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Scheherazade+New:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #2d6a4f;
+      --secondary-color: #40916c;
+      --accent-color: #74c69d;
+      --light-color: #d8f3dc;
+      --dark-color: #1b4332;
+      --text-color: #333;
+      --background-color: #f8f9fa;
+      --card-bg: #ffffff;
+      --border-radius: 12px;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      padding: 0;
+      margin: 0;
+      background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h100v100H0z' fill='%23d8f3dc' fill-opacity='0.05'/%3E%3Cpath d='M11 11h23v23H11z' fill='%232d6a4f' fill-opacity='0.03'/%3E%3Cpath d='M66 11h23v23H66z' fill='%232d6a4f' fill-opacity='0.03'/%3E%3Cpath d='M11 66h23v23H11z' fill='%232d6a4f' fill-opacity='0.03'/%3E%3Cpath d='M66 66h23v23H66z' fill='%232d6a4f' fill-opacity='0.03'/%3E%3C/svg%3E");
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 0;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--light-color);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo i {
+      font-size: 28px;
+      color: var(--primary-color);
+    }
+
+    .logo h1 {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--primary-color);
+      font-family: 'Scheherazade New', serif;
+    }
+
+    .date-display {
+      font-size: 14px;
+      color: var(--secondary-color);
+      background: var(--light-color);
+      padding: 8px 16px;
+      border-radius: 30px;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--dark-color);
+    }
+
+    .card-icon {
+      width: 36px;
+      height: 36px;
+      background-color: var(--light-color);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary-color);
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin: 10px 0;
+    }
+
+    .stat-subtitle {
+      font-size: 14px;
+      color: var(--secondary-color);
+      margin-bottom: 10px;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 250px;
+      width: 100%;
+    }
+
+    .islamic-pattern {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      opacity: 0.03;
+      font-size: 120px;
+      z-index: 0;
+      color: var(--primary-color);
+    }
+
+    .full-width {
+      grid-column: 1 / -1;
+    }
+
+    .half-width {
+      grid-column: span 2;
+    }
+
+    .quick-links {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    .quick-link {
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      text-align: center;
+      text-decoration: none;
+      color: var(--text-color);
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .quick-link:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+      color: var(--primary-color);
+    }
+
+    .quick-link i {
+      font-size: 24px;
+      color: var(--primary-color);
+      margin-bottom: 5px;
+    }
+
+    .quick-link span {
+      font-weight: 500;
+    }
+
+    .completion-rate {
+      font-size: 14px;
+      padding: 4px 8px;
+      border-radius: 20px;
+      background: var(--light-color);
+      color: var(--primary-color);
+      font-weight: 500;
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: var(--light-color);
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+
+    @media (max-width: 768px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .half-width {
+        grid-column: 1 / -1;
+      }
+
+      .quick-links {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .quick-links {
+        grid-template-columns: 1fr;
+      }
+    }
+
+
+
+    .streak-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .fire-icon {
+      color: #ff6b6b;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+
+    .stats-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+
+    .stat-item {
+      text-align: center;
+      flex: 1;
+    }
+
+    .stat-number {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--primary-color);
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--secondary-color);
+    }
+  </style>
+
+  <div class="container">
+    <header>
+      <div class="logo">
+        <i class="fas fa-mosque"></i>
+        <h1>Worship Tracker</h1>
+      </div>
+      <div class="date-display">
+        <i class="fas fa-calendar"></i>
+        <span id="current-date">Loading...</span>
+      </div>
+    </header>
+
+    <!-- Quick Links to Detailed Stats -->
+    <div class="quick-links">
+      <a href="/salah/prayer-stats/" class="quick-link">
+        <i class="fas fa-pray"></i>
+        <span>Prayer Analytics</span>
+        <div class="completion-rate">{{ comprehensive_stats.prayer_stats.fard_stats.completion_rate }}% Fard</div>
+      </a>
+
+      <a href="/salah/quran-stats/" class="quick-link">
+        <i class="fas fa-book-quran"></i>
+        <span>Quran Statistics</span>
+        <div class="completion-rate">{{ comprehensive_stats.quran_stats.reading_consistency }}% Consistent</div>
+      </a>
+
+      <a href="/salah/azkaar-stats/" class="quick-link">
+        <i class="fas fa-dharmachakra"></i>
+        <span>Zikr Analytics</span>
+        <div class="completion-rate">{{ comprehensive_stats.azkaar_stats.total_count }} Total</div>
+      </a>
+
+      <a href="/salah/nafl-stats/" class="quick-link">
+        <i class="fas fa-star"></i>
+        <span>Nafl Prayers</span>
+        <div class="completion-rate">{{ comprehensive_stats.nafl_stats.total_nafl }} Offered</div>
+      </a>
+
+
+    </div>
+
+    <div class="dashboard-grid">
+      <!-- Overall Worship Score -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Overall Worship Score</h3>
+          <div class="card-icon">
+            <i class="fas fa-trophy"></i>
+          </div>
+        </div>
+        <div class="stat-value">{{ comprehensive_stats.prayer_stats.overall_completion_rate }}%</div>
+        <p class="stat-subtitle">Last {{ comprehensive_stats.period_days }} days</p>
+
+        <div class="stats-row">
+          <div class="stat-item">
+            <div class="stat-number">{{ comprehensive_stats.prayer_stats.fard_stats.completed }}</div>
+            <div class="stat-label">Fard</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">{{ comprehensive_stats.prayer_stats.sunnah_stats.completed }}</div>
+            <div class="stat-label">Sunnah</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">{{ comprehensive_stats.quran_stats.total_sessions }}</div>
+            <div class="stat-label">Quran</div>
+          </div>
+        </div>
+
+        <div class="islamic-pattern">
+          <i class="fas fa-trophy"></i>
+        </div>
+      </div>
+
+      <!-- Fard Completion % -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Fard Completion</h3>
+          <div class="card-icon">
+            <i class="fas fa-pray"></i>
+          </div>
+        </div>
+        <div class="stat-value">{{ comprehensive_stats.prayer_stats.fard_stats.completion_rate }}%</div>
+        <p class="stat-subtitle">{{ comprehensive_stats.prayer_stats.fard_stats.completed }}/{{ comprehensive_stats.prayer_stats.fard_stats.total }} prayers</p>
+
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: {{ comprehensive_stats.prayer_stats.fard_stats.completion_rate }}%"></div>
+        </div>
+
+        <div class="islamic-pattern">
+          <i class="fas fa-star-and-crescent"></i>
+        </div>
+      </div>
+
+      <!-- Prayer Streak -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Prayer Streak</h3>
+          <div class="card-icon">
+            <i class="fas fa-fire"></i>
+          </div>
+        </div>
+        <div class="streak-container">
+          <i class="fas fa-fire fire-icon" style="font-size: 32px;"></i>
+          <div class="stat-value">{{ streak }} days</div>
+        </div>
+        <p>Keep going! You're doing great.</p>
+        <div class="islamic-pattern">
+          <i class="fas fa-fire"></i>
+        </div>
+      </div>
+
+      <!-- Sunnah Completion -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Sunnah Completion</h3>
+          <div class="card-icon">
+            <i class="fas fa-hands-praying"></i>
+          </div>
+        </div>
+        <div class="stat-value">{{ comprehensive_stats.prayer_stats.sunnah_stats.completion_rate }}%</div>
+        <p class="stat-subtitle">{{ comprehensive_stats.prayer_stats.sunnah_stats.completed }}/{{ comprehensive_stats.prayer_stats.sunnah_stats.total }} prayers</p>
+
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: {{ comprehensive_stats.prayer_stats.sunnah_stats.completion_rate }}%"></div>
+        </div>
+
+        <div class="islamic-pattern">
+          <i class="fas fa-hands-praying"></i>
+        </div>
+      </div>
+
+      <!-- Quran Statistics -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Quran Reading</h3>
+          <div class="card-icon">
+            <i class="fas fa-book-quran"></i>
+          </div>
+        </div>
+        <div class="stat-value">{{ comprehensive_stats.quran_stats.total_ayahs }}</div>
+        <p class="stat-subtitle">Ayahs read in {{ comprehensive_stats.quran_stats.total_sessions }} sessions</p>
+
+        <div class="stats-row">
+          <div class="stat-item">
+            <div class="stat-number">{{ comprehensive_stats.quran_stats.reading_days_count }}</div>
+            <div class="stat-label">Active Days</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">{{ comprehensive_stats.quran_stats.average_ayahs_per_session }}</div>
+            <div class="stat-label">Avg/Session</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">{{ comprehensive_stats.quran_stats.reading_consistency }}%</div>
+            <div class="stat-label">Consistency</div>
+          </div>
+        </div>
+
+        <div class="islamic-pattern">
+          <i class="fas fa-book"></i>
+        </div>
+      </div>
+
+      <!-- Zikr & Nafl Stats -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Zikr & Nafl</h3>
+          <div class="card-icon">
+            <i class="fas fa-dharmachakra"></i>
+          </div>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat-item">
+            <div class="stat-number">{{ comprehensive_stats.azkaar_stats.total_count }}</div>
+            <div class="stat-label">Zikr Count</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">{{ comprehensive_stats.nafl_stats.total_nafl }}</div>
+            <div class="stat-label">Nafl Prayers</div>
+          </div>
+        </div>
+
+        <p class="stat-subtitle" style="margin-top: 15px;">
+          Most frequent: {{ comprehensive_stats.azkaar_stats.most_frequent }}
+        </p>
+
+        <div class="islamic-pattern">
+          <i class="fas fa-dharmachakra"></i>
+        </div>
+      </div>
+
+      <!-- Worship Score Chart -->
+      <div class="card half-width">
+        <div class="card-header">
+          <h3 class="card-title">Worship Distribution</h3>
+          <div class="card-icon">
+            <i class="fas fa-chart-pie"></i>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="worshipDistributionChart"></canvas>
+          <div class="islamic-pattern">
+            <i class="fas fa-chart-pie"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Prayer Trend -->
+      <div class="card half-width">
+        <div class="card-header">
+          <h3 class="card-title">Prayer Completion Trend</h3>
+          <div class="card-icon">
+            <i class="fas fa-chart-line"></i>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="prayerTrendChart"></canvas>
+          <div class="islamic-pattern">
+            <i class="fas fa-chart-line"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+
+<script>
+    // Set current date
+    const islamicMonths = ['Muharram', 'Safar', 'Rabi al-Awwal', 'Rabi al-Thani', 'Jumada al-Awwal',
+                          'Jumada al-Thani', 'Rajab', 'Sha\'ban', 'Ramadan', 'Shawwal', 'Dhu al-Qi\'dah', 'Dhu al-Hijjah'];
+    const today = new Date();
+    const islamicDate = `${today.getDate()} ${islamicMonths[today.getMonth()]}, ${1444 + Math.floor(today.getFullYear()/33)} AH`;
+    document.getElementById('current-date').textContent = islamicDate;
+
+    // ----- Django context variables -----
+    const fard_labels = {{ fard_labels|safe }};
+    const fard_completion = {{ fard_completion|safe }};
+    const streak = {{ streak }};
+    const quran_labels = {{ quran_labels|safe }};
+    const quran_verses = {{ quran_verses|safe }};
+    const quran_days = {{ quran_days }};
+    const worship_labels = {{ worship_labels|safe }};
+    const worship_data = {{ worship_data|safe }};
+
+    // ----- New Charts -----
+
+    // Worship Distribution Chart
+    new Chart(document.getElementById('worshipDistributionChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Fard Prayers', 'Sunnah Prayers', 'Quran Reading', 'Zikr & Nafl'],
+        datasets: [{
+          data: [
+            {{ comprehensive_stats.prayer_stats.fard_stats.completed }},
+            {{ comprehensive_stats.prayer_stats.sunnah_stats.completed }},
+            {{ comprehensive_stats.quran_stats.total_sessions }},
+            {{ comprehensive_stats.azkaar_stats.total_count|add:comprehensive_stats.nafl_stats.total_nafl }}
+          ],
+          backgroundColor: [
+            '#2d6a4f',
+            '#40916c',
+            '#74c69d',
+            '#95d5b2'
+          ],
+          borderWidth: 2,
+          borderColor: '#ffffff'
+        }]
+      },
+      options: {
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: {
+              color: '#2d6a4f',
+              padding: 15
+            }
+          }
+        },
+        cutout: '60%'
+      }
+    });
+
+    // Prayer Trend Chart
+    new Chart(document.getElementById('prayerTrendChart'), {
+      type: 'line',
+      data: {
+        labels: fard_labels,
+        datasets: [
+          {
+            label: 'Fard Completion %',
+            data: fard_completion,
+            borderColor: '#2d6a4f',
+            backgroundColor: 'rgba(45,106,79,0.1)',
+            fill: true,
+            tension: 0.3,
+            pointBackgroundColor: '#2d6a4f'
+          }
+        ]
+      },
+      options: {
+        maintainAspectRatio: false,
+        scales:{
+          y:{
+            beginAtZero: true,
+            max: 100,
+            grid: { color: 'rgba(45,106,79,0.05)' },
+            ticks: { color: '#2d6a4f' }
+          },
+          x:{
+            grid: { display: false },
+            ticks: { color: '#2d6a4f' }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: {
+              color: '#2d6a4f',
+              font: { size: 12 }
+            }
+          }
+        }
+      }
+    });
+
+    // Original Charts (kept for compatibility)
+    new Chart(document.getElementById('worshipChart'), {
+      type: 'radar',
+      data:{
+        labels: worship_labels,
+        datasets:[{
+          label:'Score',
+          data:worship_data,
+          borderColor:'#2d6a4f',
+          backgroundColor:'rgba(45,106,79,0.2)',
+          pointBackgroundColor:'#2d6a4f',
+          pointBorderColor:'#fff',
+          pointHoverBackgroundColor:'#fff',
+          pointHoverBorderColor:'#2d6a4f'
+        }]
+      },
+      options:{
+        maintainAspectRatio:false,
+        scales:{
+          r:{
+            angleLines:{ color:'rgba(45,106,79,0.1)' },
+            grid:{ color:'rgba(45,106,79,0.1)' },
+            pointLabels:{ color:'#2d6a4f' }
+          }
+        },
+        plugins:{ legend:{ labels:{ color:'#2d6a4f' } } }
+      }
+    });
+</script>
+{% endblock %}

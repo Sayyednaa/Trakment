@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+
+{% block title %}Revision Tracker{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Today's Tasks Card -->
+    <div class="card-duo p-4 mb-4">
+        <h2 class="text-center mb-4"><i class="fas fa-calendar-day me-2"></i> Today's Tasks</h2>
+
+        <!-- New Lectures -->
+        <div class="p-3 mb-3 rounded shadow-sm border">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0"><i class="fas fa-plus-circle me-2"></i> New Lectures (Max 3)</h4>
+                <button class="btn-duo btn-duo-primary btn-sm btn-duo" data-bs-toggle="modal" data-bs-target="#addRevisionModal">
+                    <i class="fas fa-plus me-1"></i> Add New
+                </button>
+            </div>
+            <ul class="list-group">
+                {% for lecture in new_lectures %}
+                <li class="list-group-item mb-2 d-flex justify-content-between align-items-center">
+                    <span>
+                        <strong>{{ lecture.subject }}</strong>: {{ lecture.topic }}
+                    </span>
+                    <div>
+                        <button class="btn-sm btn-duo-primary me-1 btn-duo"
+                                data-bs-toggle="modal"
+                                data-bs-target="#editLectureModal"
+                                data-lecture-id="{{ lecture.id }}"
+                                data-subject="{{ lecture.subject }}"
+                                data-topic="{{ lecture.topic }}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <a href="{% url 'delete_lecture' lecture.id %}" class="btn-sm btn-duo-danger btn-duo">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </div>
+                </li>
+                {% empty %}
+                <li class="list-group-item">No new lectures today!</li>
+                {% endfor %}
+            </ul>
+        </div>
+          <!-- Overdue Revisions Card -->
+    <div class="card-duo p-4 mb-4">
+        <h2 class="text-center mb-4"><i class="fas fa-exclamation-triangle me-2"></i> Overdue Revisions</h2>
+        <div class="p-3 rounded shadow-sm border">
+            <ul class="list-group">
+                {% for revision in overdue_revisions %}
+                <li class="list-group-item mb-2 d-flex justify-content-between align-items-center">
+                    <span>
+                        <strong>{{ revision.lecture.subject }}</strong>: {{ revision.lecture.topic }}
+                        <small class="d-block text-danger">Was due: {{ revision.date|date:"d M Y" }}</small>
+                        <small class="d-block text-muted">Overdue by: {{ revision.date|timesince }}</small>
+                    </span>
+                    <div>
+                        <a href="{% url 'mark_done' revision.id %}" class="btn-sm btn-duo-success me-1 btn-duo">
+                            <i class="fas fa-check"></i>
+                        </a>
+                        <button class="btn-sm btn-duo-secondary me-1 reschedule-btn btn-duo"
+                                data-bs-toggle="modal"
+                                data-bs-target="#rescheduleModal"
+                                data-revision-id="{{ revision.id }}">
+                            <i class="fas fa-calendar-alt"></i>
+                        </button>
+                        <a href="{% url 'delete_revision' revision.id %}" class="btn-sm btn-duo-danger btn-duo">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </div>
+                </li>
+                {% empty %}
+                <li class="list-group-item">No overdue revisions! Great job!</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+        <!-- Pending revision Section -->
+        <div class="p-3 rounded shadow-sm border">
+            <h4><i class="fas fa-sync-alt me-2"></i> Revision Due</h4>
+            <ul class="list-group">
+                {% for revision in pending_revision %}
+                <li class="list-group-item mb-2 d-flex justify-content-between align-items-center">
+                    <span>
+                        <strong>{{ revision.lecture.subject }}</strong>: {{ revision.lecture.topic }}
+                        <small class="d-block text-muted">Due: {{ revision.date|date:"d M Y" }}</small>
+                    </span>
+                    <div>
+                        <a href="{% url 'mark_done' revision.id %}" class="btn-sm btn-duo-success me-1 btn-duo">
+                            <i class="fas fa-check"></i>
+                        </a>
+                        <button class="btn-sm btn-duo-secondary me-1 reschedule-btn btn-duo"
+                                data-bs-toggle="modal"
+                                data-bs-target="#rescheduleModal"
+                                data-revision-id="{{ revision.id }}">
+                            <i class="fas fa-calendar-alt"></i>
+                        </button>
+                        <a href="{% url 'delete_revision' revision.id %}" class="btn-sm btn-duo-danger btn-duo">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </div>
+                </li>
+                {% empty %}
+                <li class="list-group-item">No revision due today!</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Progress Visualization -->
+    <div class="card-duo p-4 mb-4">
+        <h3 class="text-center mb-3"><i class="fas fa-chart-pie me-2"></i> Revision Progress</h3>
+        <div style="position: relative; height: 280px; width: 100%;">
+            <canvas id="progressChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Add Lecture Modal -->
+<!-- Add Lecture Modal -->
+<div class="modal fade" id="addRevisionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-duo" >
+            <div class="modal-header border-0">
+                <h5 class="modal-title"><i class="fas fa-plus-circle me-2"></i> New Lecture</h5>
+                <button type="button" class="btn-close " data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'add_lecture' %}">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label"><i class="fas fa-book me-2"></i> Subject</label>
+                        <select class="duo-input" name="subject_name" required>
+                            <option value="" disabled selected>Select subject</option>
+                            {% for subject in subjects %}
+                            <option value="{{ subject.name }}">{{ subject.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label"><i class="fas fa-heading me-2"></i> Topic</label>
+                        <input type="text" class="duo-input duo-input" name="topic"
+                               placeholder="e.g., Electrostatics, Organic Chemistry" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label"><i class="fas fa-calendar-alt me-2"></i> Revision Plan</label>
+                        <select class="duo-input" name="revision_plan" required>
+                            <option value="1-3-7-14-30" selected>1D - 3D - 7D - 14D - 30D (Default)</option>
+                            <option value="1-7-30">1D - 7D - 30D</option>
+                            <option value="1-7-16-35">1D - 7D - 16D - 35D</option>
+                        </select>
+                        <div class="form-text mt-1 text-muted"><small><i class="fas fa-info-circle"></i> Spacing is calculated in days from today.</small></div>
+                    </div>
+
+                    <button type="submit" class="btn-duo btn-duo-primary w-100 py-2 btn-duo">
+                        <i class="fas fa-calendar-plus me-2"></i> Schedule Revision
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Lecture Modal -->
+<!-- Edit Lecture Modal -->
+<div class="modal fade" id="editLectureModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-duo" >
+            <div class="modal-header border-0">
+                <h5 class="modal-title"><i class="fas fa-edit me-2"></i> Edit Lecture</h5>
+                <button type="button" class="btn-close " data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editLectureForm" method="post" action="">
+                    {% csrf_token %}
+                    <input type="hidden" name="lecture_id" id="editLectureId">
+
+                    <div class="mb-3">
+                        <label class="form-label"><i class="fas fa-book me-2"></i> Subject</label>
+                        <select class="duo-input" name="subject" id="editSubject" required>
+                            {% for subject in request.user.subject_set.all %}
+                            <option value="{{ subject.id }}">{{ subject.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><i class="fas fa-heading me-2"></i> Topic</label>
+                        <input type="text" class="duo-input duo-input" name="topic" id="editTopic" required>
+                    </div>
+
+                    <button type="submit" class="btn-duo btn-duo-primary w-100 py-2 btn-duo">
+                        <i class="fas fa-save me-2"></i> Save Changes
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reschedule Revision Modal -->
+<div class="modal fade" id="rescheduleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-duo">
+            <div class="modal-header border-0">
+                <h5 class="modal-title"><i class="fas fa-calendar-edit me-2"></i> Reschedule Revision</h5>
+                <button type="button" class="btn-close " data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="" id="rescheduleForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">New Date</label>
+                        <input type="date" class="duo-input duo-input" name="new_date" required value="{% now 'Y-m-d' %}">
+                    </div>
+                    <button type="submit" class="btn-duo btn-duo-primary w-100 py-2 btn-duo">
+                        <i class="fas fa-save me-2"></i> Update Schedule
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Initialize Chart
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const labelColor = isDark ? '#ffffff' : '#475569';
+
+    const ctx = document.getElementById('progressChart').getContext('2d');
+    const progressChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Completed', 'Pending Today', 'Upcoming', 'Overdue'],
+            datasets: [{
+                data: [
+                    {{ completed_revision_count }},
+                    {{ pending_revision_today.count }},
+                    {{ upcoming_revision_count }},
+                    {{ overdue_revision_count }}
+                ],
+                backgroundColor: [
+                    'rgba(40, 167, 69, 0.8)',
+                    'rgba(23, 162, 184, 0.8)',
+                    'rgba(255, 193, 7, 0.8)',
+                    'rgba(220, 53, 69, 0.8)'
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        color: labelColor,
+                        font: {
+                            family: 'Poppins',
+                            weight: 'bold'
+                        }
+                    }
+                }
+            },
+            cutout: '65%'
+        }
+    });
+
+    // Edit Lecture Modal Handler
+    const editModal = document.getElementById('editLectureModal');
+    editModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        const lectureId = button.getAttribute('data-lecture-id');
+        document.getElementById('editLectureId').value = lectureId;
+        document.getElementById('editSubject').value = button.getAttribute('data-subject');
+        document.getElementById('editTopic').value = button.getAttribute('data-topic');
+
+        // Update form action with correct URL
+        document.getElementById('editLectureForm').action = `edit-lecture/${lectureId}/`;
+    });
+
+    // Reschedule Modal Handler
+    document.querySelectorAll('.reschedule-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const revisionId = this.getAttribute('data-revision-id');
+            document.getElementById('rescheduleForm').action = `reschedule/${revisionId}/`;
+        });
+    });
+
+
+</script>
+
+{% endblock %}

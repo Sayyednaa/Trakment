@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block title %}Data{% endblock title %}
+
+{% block content %}
+<link rel="stylesheet" href="/static/css/style.css">
+
+<div class="container">
+    <div class="form mt-5">
+        <form action="" method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="date" class="form-label">Date</label>
+                <input type="date" class="duo-input" id="date" name="date" value="{{today}}" required>
+            </div>
+            <div class="mb-3">
+                <label for="name" class="form-label">Name</label>
+                <input type="text" class="duo-input" id="name" name="name" required>
+            </div>
+            <button type="submit" class="btn-duo-success btn-duo">Add</button>
+        </form>
+    </div>
+
+    <div class="streak">
+        <h5>Current Streak: {{ current_streak }}</h5>
+        <h5>Longest Streak: {{ longest_streak }} ({{ longest_streak_range.0 }} - {{ longest_streak_range.1 }})</h5>
+    </div>
+
+    <div class="graphs">
+        <iframe src="https://sayyednaa.github.io/2026/" height="300" width="500" title="Iframe Example"></iframe>
+
+        <h2>Year-wise Monthly Entries</h2>
+        <div id="chart_div" style="width: 100%; height: 100%"></div>
+
+        <h2>Yearly Average Entries Per Month</h2>
+        <div id="curve_chart" style="width: 100%; height: 100%"></div>
+        <h2>Weekday Activity</h2>
+        <div id="weekday_activity_chart" style="width: 100%; height: 100%"></div>
+
+        <h2>Cumulative Sum Over Time</h2>
+        <div id="cumulative_sum_chart" style="width: 100%; height: 100%"></div>
+        <h2>Entry Distribution by Month</h2>
+        <div id="entry_distribution_chart" style="width: 100%; height: 100%"></div>
+
+        <h2>Yearly Growth</h2>
+        <div id="yearly_growth_chart" style="width: 100%; height: 100%"></div>
+
+
+
+
+    </div>
+
+<div class="scripts">
+    <script type="text/javascript">
+        google.charts.load('current', { packages: ['corechart'] });
+        google.charts.setOnLoadCallback(drawEntryDistribution);
+
+        function drawEntryDistribution() {
+            var rawData = JSON.parse('{{ monthly_distribution|safe }}');  // Safely parse Django JSON
+
+            var dataArray = [['Month', 'Entries']];
+            for (var month in rawData) {
+                dataArray.push([month, rawData[month]]);
+            }
+
+            // Ensure at least one valid row exists (avoid empty chart)
+            if (dataArray.length < 2) {
+                console.error("Not enough data for Entry Distribution chart.");
+                return;
+            }
+
+            var data = google.visualization.arrayToDataTable(dataArray);
+
+            var options = {
+                title: 'Entry Distribution by Month',
+                hAxis: { title: 'Month' },
+                vAxis: { title: 'Number of Entries' },
+                bars: 'vertical',
+                legend: { position: 'none' },
+                colors: ['#4285F4']
+            };
+
+            var chart = new google.visualization.ColumnChart(document.getElementById('entry_distribution_chart'));
+            chart.draw(data, options);
+        }
+    </script>
+
+    <script type="text/javascript">
+        google.charts.load('current', { packages: ['corechart', 'bar'] });
+        google.charts.setOnLoadCallback(drawYearlyGrowth);
+
+        function drawYearlyGrowth() {
+            var rawData = JSON.parse('{{ yearly_totals|safe }}');  // Safely parse Django JSON
+
+            var dataArray = [['Year', 'Entries']];
+            for (var year in rawData) {
+                dataArray.push([year, rawData[year]]);
+            }
+
+            // Ensure at least one valid row exists (avoid empty chart)
+            if (dataArray.length < 2) {
+                console.error("Not enough data for Yearly Growth chart.");
+                return;
+            }
+
+            var data = google.visualization.arrayToDataTable(dataArray);
+
+            var options = {
+                title: 'Yearly Growth',
+                hAxis: { title: 'Year' },
+                vAxis: { title: 'Number of Entries' },
+                curveType: 'function',  // Smooth line chart
+                legend: { position: 'bottom' },
+                pointSize: 5
+            };
+
+            var chart = new google.visualization.LineChart(document.getElementById('yearly_growth_chart'));
+            chart.draw(data, options);
+        }
+    </script>
+
+    <script type="text/javascript">
+        google.charts.load('current', {packages: ['corechart']});
+        google.charts.setOnLoadCallback(drawWeekdayActivity);
+
+        function drawWeekdayActivity() {
+            var rawData = JSON.parse('{{ weekday_activity|safe }}');  // Parse JSON safely
+
+            var dataArray = [['Day', 'Entries']];
+            for (var day in rawData) {
+                dataArray.push([day, rawData[day]]);
+            }
+
+            var data = google.visualization.arrayToDataTable(dataArray);
+
+            var options = {
+                title: 'Weekday Activity',
+                bars: 'horizontal',
+                legend: { position: 'none' },
+                hAxis: { title: 'Entries' },
+                vAxis: { title: 'Day' }
+            };
+
+            var chart = new google.visualization.BarChart(document.getElementById('weekday_activity_chart'));
+            chart.draw(data, options);
+        }
+    </script>
+    <script type="text/javascript">
+        google.charts.load('current', { packages: ['corechart'] });
+        google.charts.setOnLoadCallback(drawCumulativeSum);
+
+        function drawCumulativeSum() {
+            var rawData = JSON.parse('{{ cumulative_data|safe }}');  // Parse JSON safely
+
+            var dataArray = [['Date', 'Cumulative Sum']];
+            for (var i = 0; i < rawData.length; i++) {
+                dataArray.push([new Date(rawData[i][0]), rawData[i][1]]);
+            }
+
+            var data = google.visualization.arrayToDataTable(dataArray);
+
+            var options = {
+                title: 'Cumulative Sum Over Time',
+                curveType: 'function',
+                legend: { position: 'bottom' },
+                hAxis: { title: 'Date' },
+                vAxis: { title: 'Total Entries' }
+            };
+
+            var chart = new google.visualization.LineChart(document.getElementById('cumulative_sum_chart'));
+            chart.draw(data, options);
+        }
+    </script>
+
+
+</div>
+    <!-- Load Google Charts -->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+    <script type="text/javascript">
+        google.charts.load('current', { packages: ['corechart', 'bar', 'calendar'] });
+        google.charts.setOnLoadCallback(drawCharts);
+
+        function drawCharts() {
+            drawYearlyMonthlyEntries();
+            drawYearlyAverageEntries();
+        }
+
+        // 🚀 Yearly Monthly Entries
+        function drawYearlyMonthlyEntries() {
+            var chartData = JSON.parse('{{ chart_data|safe }}');
+            var data = google.visualization.arrayToDataTable(chartData);
+
+            var options = {
+                title: "Year-wise Monthly Entries",
+                hAxis: { title: "Month" },
+                vAxis: { title: "Number of Entries" },
+                curveType: "function",
+                legend: { position: "bottom" },
+                pointSize: 5
+            };
+
+            var chart = new google.visualization.LineChart(document.getElementById("chart_div"));
+            chart.draw(data, options);
+        }
+
+        // 🚀 Yearly Average Entries
+        function drawYearlyAverageEntries() {
+            var data = google.visualization.arrayToDataTable([
+                ['Year', 'Avg Entries'],
+                {% for year, avg in yearly_averages.items %}
+                    ['{{ year }}', {{ avg }}],
+                {% endfor %}
+            ]);
+
+            var options = {
+                title: 'Average Entries per Month for Each Year',
+                curveType: 'function',
+                legend: { position: 'bottom' },
+                hAxis: { title: 'Year' },
+                vAxis: { title: 'Avg Entries per Month' }
+            };
+
+            var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+            chart.draw(data, options);
+        }
+    </script>
+
+    <div class="table">
+        <table class="table table-striped mt-5">
+            <thead>
+                <tr>
+                    <th>SR</th>
+                    <th>Date</th>
+                    <th>Name</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for habit in habit reversed %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ habit.date }}</td>
+                    <td>{{ habit.name }}</td>
+                    <td>
+                        <a href="update/{{ habit.id }}" class="btn-duo-primary btn-duo">Update</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock content %}

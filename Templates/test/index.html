@@ -1,393 +1,319 @@
-{% extends 'base.html' %}
-{% block title %}Tests{% endblock title %}
+{% extends "base.html" %}
+{% block title %}Test Tracker - Trakment{% endblock %}
+
 {% block content %}
 <style>
-    table{
-        margin:20px;
-        .container {
-        text-align: center;
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
     }
-    }
-    td,th,tr,{
-        border: 1px solid black;
-        padding: 10px;
-    }
-    .submit-btn {
-        padding: 10px 15px;
-        background-color: #007bff;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 16px;
-    }
-
-.submit-btn:hover {
-        background-color: #0056b3;
+    
+    th, td {
+        border-bottom: 2px solid var(--border);
+        font-weight: 700;
+        color: var(--ink);
+        padding: 8px 10px;
+        font-size: 14px;
     }
 </style>
 
-<a href="add/" class="btn btn-primary"><button class="submit-btn">Add Test</button> </a>
- 
-<div id="curve_chart"  ></div>
-<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-<script type="text/javascript">
+<!-- Add & Overview Section -->
+<div class="row g-3 mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center pb-2 border-bottom">
+        <h1 style="font-weight: 900; color: var(--ink); margin: 0;"><i class="fas fa-clipboard-check me-2" style="color: var(--primary);"></i>Test Analyzer</h1>
+        <button type="button" class="btn-duo btn-duo-primary" data-bs-toggle="modal" data-bs-target="#addTestModal">
+            <i class="fas fa-plus me-2"></i>Add Test
+        </button>
+    </div>
+</div>
 
-    google.charts.load('current', { 'packages': ['corechart'] });
-    google.charts.setOnLoadCallback(drawChart);
+<!-- Charts Section -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6 col-12">
+        <div class="card-duo p-3 h-100">
+            <h3 style="font-weight: 900; color: var(--ink); font-size: 1.15rem;" class="mb-3"><i class="fas fa-chart-bar me-2" style="color: var(--secondary);"></i>Total Marks Progress</h3>
+            <div class="chart-container">
+                <canvas id="totalMarksChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-12">
+        <div class="card-duo p-3 h-100">
+            <h3 style="font-weight: 900; color: var(--ink); font-size: 1.15rem;" class="mb-3"><i class="fas fa-chart-line me-2" style="color: var(--primary);"></i>Subject Performance Trends</h3>
+            <div class="chart-container">
+                <canvas id="subjectsTrendChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
 
-    function drawChart() {
-        var data = google.visualization.arrayToDataTable([
-            ['Date', 'marks',],
-            {% for i in total_marks_by_date %}
-    ['{{i.date}}', {{ i.total_marks }},],
-        {% endfor %}
+<!-- Table Card Container -->
+<div class="card-duo p-0 overflow-hidden mb-4">
+    <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+        <h2 style="font-weight: 900; color: var(--ink); margin: 0; font-size: 1.3rem;">All Tests</h2>
+        <button id="toggle-btn" class="btn-duo btn-duo-secondary py-1.5 px-3 btn-sm">
+            <i class="fas fa-table me-2"></i>Show Table
+        </button>
+    </div>
 
-          ]);
+    <div class="table-responsive" style="overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%;">
+        <table id="test-table" class="table mb-0" style="display: none; border-collapse: separate; border-spacing: 0; width: 100%;">
+            <thead style="background: var(--surface-1); color: var(--ink); border-bottom: 2px solid var(--border);">
+                <tr style="font-weight: 800; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                    <th style="padding: 0.8rem 1rem;">S.No</th>
+                    <th style="padding: 0.8rem 1rem;">Date</th>
+                    {% for subject in subjects %}
+                    <th style="padding: 0.8rem 1rem; text-align: center;">{{ subject.name }}</th>
+                    {% endfor %}
+                    <th style="padding: 0.8rem 1rem; text-align: center;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in all_data reversed %}
+                <tr style="border-bottom: 2px solid var(--border); color: var(--ink); font-weight: 700; transition: background 0.2s;">
+                    <td style="padding: 0.8rem 1rem;">{{ forloop.counter }}</td>
+                    <td style="padding: 0.8rem 1rem;">{{ entry.date|date:"Y-m-d"|default_if_none:"-" }}</td>
+                    {% for mark in entry.marks_list %}
+                    <td style="padding: 0.8rem 1rem; text-align: center; color: var(--primary);">{{ mark|default_if_none:"-" }}</td>
+                    {% endfor %}
+                    <td style="padding: 0.8rem 1rem; text-align: center;">
+                        <button class="btn-duo btn-duo-success btn-sm py-1.5 px-3"
+                                data-bs-toggle="modal"
+                                data-bs-target="#editTestModal"
+                                data-id="{{ entry.id }}"
+                                data-date="{{ entry.date|date:'Y-m-d' }}"
+                                {{ entry.data_attributes|safe }}>
+                            UPDATE
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center py-4" style="color: var(--accent-red);">
+                        No Test Data Available. Add Data From The Above "Add Test" Button.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 
-    var options = {
-        title: 'Test Marks',
-        curveType: 'function',
-        legend: { position: 'bottom' }
-    };
-
-    var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
-
-    chart.draw(data, options);
-        }
-</script>
-
-
- <div class="graph" style="inline-size:fit-content">
-                <div class="card">
-                    <div id="stat" style="width: 250px; height: 250px;">
-                        <div style="position: relative;">
-                            <div dir="ltr" style="position: relative; width: 250px; height: 250px;">
-                                <div aria-label="A chart." style="position: absolute; left: 0px; top: 0px; width: 100%; height: 100%;">
-                                    <svg width="250" height="250" aria-label="A chart." style="overflow: hidden;">
-                                        <!-- SVG content goes here -->
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
+<!-- Add Test Modal -->
+<div class="modal fade" id="addTestModal" tabindex="-1" aria-hidden="true" style="z-index: 1055;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-duo p-4" style="background: var(--canvas); border: 2px solid var(--border);">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" style="color: var(--ink);"><i class="fas fa-plus-circle me-2" style="color: var(--primary);"></i>Add Test Data</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="/test/add/" method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="test_name" class="form-label fw-bold" style="color: var(--ink-muted);">Test Name</label>
+                        <input type="text" class="duo-input" id="test_name" name="name" placeholder="General Test" required>
                     </div>
-                </div>
-
-                <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-            <script type="text/javascript">
-              google.charts.load('current', {'packages':['corechart']});
-              google.charts.setOnLoadCallback(drawChart);
-
-              function drawChart() {
-
-                var data = google.visualization.arrayToDataTable([
-                ['Test',     'Marks'],
-                {% for i in total_marks_by_date %}
-                ['{{i.date}}', {{ i.total_marks }},],
-
-
-                {% endfor %}]);
-
-                var options = {
-                  title: 'Total. Months: {{tc}}'
-                };
-
-                var chart = new google.visualization.PieChart(document.getElementById('stat'));
-
-                chart.draw(data, options);
-              }
-            </script>
-
-
-
-    <div class="container">
-
-       <table>
-    <tr>
-        <th>S.No</th>
-        <th>Date</th>
-        <th>Botany</th>
-        <th>Inorganic</th>
-        <th>Organic</th>
-        <th>Physics</th>
-        <th>Zoology</th>
-        <th>Update</th>
-    </tr>
-    {% for entry in all_data reversed %}
-    <tr>
-        <td>{{ forloop.counter }}</td>
-        <td>{{ entry.date }}</td>
-        <td>{{ entry.Botany }}</td>
-        <td>{{ entry.Inorganic }}</td>
-        <td>{{ entry.Organic }}</td>
-        <td>{{ entry.Physics }}</td>
-        <td>{{ entry.Zoology }}</td>
-        <td><a href="update/{{entry.id}}"  rel="noopener noreferrer"><button class="submit-btn">UPDATE</button></a></td>
-    </tr>
-    {% empty %}
-    <h1 style="color: red;">No Test Data Available. Add Data From The Above "Add Test " Button. </h1>
-
-    {% endfor %}
-</table></div>
-    <div class="container">
-
-<h1>Botany </h1>
-<table>
-    <tr>
-        <th>Date</th>
-        <th>Botany Marks</th>
-    </tr>
-    {% for date, marks in botany_marks %}
-    <tr>
-        <td>{{ date }}</td>
-        <td>{{ marks }}</td>
-    </tr>
-    {% endfor %}
-
-</table>
-<div id="curve_chart_botany" ></div>
-<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-<script type="text/javascript">
-
-    google.charts.load('current', { 'packages': ['corechart'] });
-    google.charts.setOnLoadCallback(drawChart);
-
-    function drawChart() {
-        var data = google.visualization.arrayToDataTable([
-            ['Date', 'marks',],
-           {% for date, marks in botany_marks %}
-    ['{{date}}', {{ marks }},],
-        {% endfor %}
-
-          ]);
-
-    var options = {
-        title: 'Test Marks',
-        curveType: 'function',
-        legend: { position: 'bottom' }
-    };
-
-    var chart = new google.visualization.LineChart(document.getElementById('curve_chart_botany'));
-
-    chart.draw(data, options);
-        }
-</script>
-
-</div>
-    <div class="container">
-<h1>Zoology </h1>
-<table>
-    <tr>
-        <th>Date</th>
-        <th> Marks</th>
-    </tr>
-    {% for date, marks in zoology_marks %}
-    <tr>
-        <td>{{ date }}</td>
-        <td>{{ marks }}</td>
-    </tr>
-    {% endfor %}
-</table>
-<div id="curve_chart_zoology"></div>
-<script type="text/javascript">
-
-    google.charts.load('current', { 'packages': ['corechart'] });
-    google.charts.setOnLoadCallback(drawChart);
-
-    function drawChart() {
-        var data = google.visualization.arrayToDataTable([
-            ['Date', 'marks',],
-           {% for date, marks in zoology_marks %}
-    ['{{date}}', {{ marks }},],
-        {% endfor %}
-
-          ]);
-
-    var options = {
-        title: 'Test Marks',
-        curveType: 'function',
-        legend: { position: 'bottom' }
-    };
-
-    var chart = new google.visualization.LineChart(document.getElementById('curve_chart_zoology'));
-
-    chart.draw(data, options);
-        }
-</script>
-</div>
-    <div class="container">
-<h1>Inorganic </h1>
-<table>
-    <tr>
-        <th>Date</th>
-        <th> Marks</th>
-    </tr>
-    {% for date, marks in inorganic_marks %}
-    <tr>
-        <td>{{ date }}</td>
-        <td>{{ marks }}</td>
-    </tr>
-    {% endfor %}
-</table>
-<div id="curve_chart_Inorganic"  ></div>
-<script type="text/javascript">
-
-    google.charts.load('current', { 'packages': ['corechart'] });
-    google.charts.setOnLoadCallback(drawChart);
-
-    function drawChart() {
-        var data = google.visualization.arrayToDataTable([
-            ['Date', 'marks',],
-           {% for date, marks in inorganic_marks %}
-    ['{{date}}', {{ marks }},],
-        {% endfor %}
-
-          ]);
-
-    var options = {
-        title: 'Test Marks',
-        curveType: 'function',
-        legend: { position: 'bottom' }
-    };
-
-    var chart = new google.visualization.LineChart(document.getElementById('curve_chart_Inorganic'));
-
-    chart.draw(data, options);
-        }
-</script>
-</div>
-    <div class="container">
-
-<h1>Physical </h1>
-<table>
-    <tr>
-        <th>Date</th>
-        <th> Marks</th>
-    </tr>
-    {% for date, marks in physical_marks %}
-    <tr>
-        <td>{{ date }}</td>
-        <td>{{ marks }}</td>
-    </tr>
-    {% endfor %}
-</table>
-
-<div id="curve_chart_Physical"  ></div>
-
-<script type="text/javascript">
-
-    google.charts.load('current', { 'packages': ['corechart'] });
-    google.charts.setOnLoadCallback(drawChart);
-
-    function drawChart() {
-        var data = google.visualization.arrayToDataTable([
-            ['Date', 'marks',],
-           {% for date, marks in physical_marks %}
-    ['{{date}}', {{ marks }},],
-        {% endfor %}
-
-          ]);
-
-    var options = {
-        title: 'Test Marks',
-        curveType: 'function',
-        legend: { position: 'bottom' }
-    };
-
-    var chart = new google.visualization.LineChart(document.getElementById('curve_chart_Physical'));
-
-    chart.draw(data, options);
-        }
-</script>
-</div>
-    <div class="container">
-
-<h1>Organic </h1>
-<table>
-    <tr>
-        <th>Date</th>
-        <th> Marks</th>
-    </tr>
-    {% for date, marks in organic_marks %}
-    <tr>
-        <td>{{ date }}</td>
-        <td>{{ marks }}</td>
-    </tr>
-    {% endfor %}
-</table>
-<div id="curve_chart_Organic"  ></div>
-<script type="text/javascript">
-
-    google.charts.load('current', { 'packages': ['corechart'] });
-    google.charts.setOnLoadCallback(drawChart);
-
-    function drawChart() {
-        var data = google.visualization.arrayToDataTable([
-            ['Date', 'marks',],
-           {% for date, marks in organic_marks %}
-    ['{{date}}', {{ marks }},],
-        {% endfor %}
-
-          ]);
-
-    var options = {
-        title: 'Test Marks',
-        curveType: 'function',
-        legend: { position: 'bottom' }
-    };
-
-    var chart = new google.visualization.LineChart(document.getElementById('curve_chart_Organic'));
-
-    chart.draw(data, options);
-        }
-</script>
-
-</div>
-    <div class="container">
-<h1>Physics </h1>
-<table>
-    <tr>
-        <th>Date</th>
-        <th> Marks</th>
-    </tr>
-    {% for date, marks in physics_marks %}
-    <tr>
-        <td>{{ date }}</td>
-        <td>{{ marks }}</td>
-    </tr>
-    {% endfor %}
-</table>
-
-
-<div id="curve_chart_Physics" ></div>
-
-<script type="text/javascript">
-
-    google.charts.load('current', { 'packages': ['corechart'] });
-    google.charts.setOnLoadCallback(drawChart);
-
-    function drawChart() {
-        var data = google.visualization.arrayToDataTable([
-            ['Date', 'marks',],
-           {% for date, marks in physics_marks %}
-    ['{{date}}', {{ marks }},],
-        {% endfor %}
-
-          ]);
-
-    var options = {
-        title: 'Test Marks',
-        curveType: 'function',
-        legend: { position: 'bottom' }
-    };
-
-    var chart = new google.visualization.LineChart(document.getElementById('curve_chart_Physics'));
-
-    chart.draw(data, options);
-        }
-</script>
+                    <div class="mb-3">
+                        <label for="test_date" class="form-label fw-bold" style="color: var(--ink-muted);">Test Date</label>
+                        <input type="date" class="duo-input" id="test_date" name="date" required>
+                    </div>
+                    
+                    <h6 class="fw-bold mt-4 mb-3" style="color: var(--ink); border-bottom: 2px solid var(--border); padding-bottom: 0.5rem;">Subject Marks</h6>
+                    {% for subject in subjects %}
+                    <div class="mb-3">
+                        <label for="subject_{{ subject.id }}" class="form-label fw-bold" style="color: var(--ink-muted);">{{ subject.name }}</label>
+                        <input type="number" step="0.01" class="duo-input" id="subject_{{ subject.id }}" name="subject_{{ subject.id }}" placeholder="Enter marks">
+                    </div>
+                    {% endfor %}
+                    
+                    <button type="submit" class="btn-duo btn-duo-primary w-100 py-3 mt-3">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
+<!-- Edit Test Modal -->
+<div class="modal fade" id="editTestModal" tabindex="-1" aria-hidden="true" style="z-index: 1055;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-duo p-4" style="background: var(--canvas); border: 2px solid var(--border);">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" style="color: var(--ink);"><i class="fas fa-edit me-2" style="color: var(--primary);"></i>Update Test Data</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editTestForm" method="post" action="">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="edit_test_date" class="form-label fw-bold" style="color: var(--ink-muted);">Test Date</label>
+                        <input type="date" class="duo-input" id="edit_test_date" name="date" required>
+                    </div>
+                    
+                    <h6 class="fw-bold mt-4 mb-3" style="color: var(--ink); border-bottom: 2px solid var(--border); padding-bottom: 0.5rem;">Subject Marks</h6>
+                    {% for subject in subjects %}
+                    <div class="mb-3">
+                        <label for="edit_subject_{{ subject.id }}" class="form-label fw-bold" style="color: var(--ink-muted);">{{ subject.name }}</label>
+                        <input type="number" step="0.01" class="duo-input edit-mark-input" id="edit_subject_{{ subject.id }}" name="subject_{{ subject.id }}" placeholder="Enter marks" data-subject-name="{{ subject.name }}">
+                    </div>
+                    {% endfor %}
+                    
+                    <button type="submit" class="btn-duo btn-duo-primary w-100 py-3 mb-2">Save Changes</button>
+                    <a href="" id="deleteTestBtn" class="btn-duo btn-duo-danger w-100 py-3 text-center d-block" data-confirm="Are you sure you want to delete this test?" data-confirm-title="Confirm Delete">Delete Test</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
+<!-- Chart JS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Toggle table visibility
+    document.getElementById("toggle-btn").addEventListener("click", function() {
+        var table = document.getElementById("test-table");
+        if (table.style.display === "none") {
+            table.style.display = "table";
+            this.innerHTML = '<i class="fas fa-table"></i> Hide Table';
+        } else {
+            table.style.display = "none";
+            this.innerHTML = '<i class="fas fa-table"></i> Show Table';
+        }
+    });
 
+    // Combined Chart Data lists
+    const testDates = [{% for entry in all_data %}'{{ entry.date|date:"Y-m-d" }}',{% endfor %}];
+    
+    // Total Marks Chart
+    const totalMarksCtx = document.getElementById('totalMarksChart').getContext('2d');
+    new Chart(totalMarksCtx, {
+        type: 'bar',
+        data: {
+            labels: [{% for i in total_marks_by_date %}'{{i.date}}',{% endfor %}],
+            datasets: [{
+                label: 'Total Marks',
+                data: [{% for i in total_marks_by_date %}{{ i.total_marks }},{% endfor %}],
+                backgroundColor: 'rgba(28, 176, 246, 0.85)',
+                borderColor: '#1CB0F6',
+                borderWidth: 2,
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Subject Performance Trends Chart
+    const subjectsTrendCtx = document.getElementById('subjectsTrendChart').getContext('2d');
+    new Chart(subjectsTrendCtx, {
+        type: 'line',
+        data: {
+            labels: testDates,
+            datasets: [
+                {
+                    label: 'Botany',
+                    data: [{% for entry in all_data %}{{ entry.Botany|default_if_none:"null" }},{% endfor %}],
+                    borderColor: '#58CC02',
+                    backgroundColor: 'rgba(88, 204, 2, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.3,
+                    spanGaps: true
+                },
+                {
+                    label: 'Zoology',
+                    data: [{% for entry in all_data %}{{ entry.Zoology|default_if_none:"null" }},{% endfor %}],
+                    borderColor: '#1CB0F6',
+                    backgroundColor: 'rgba(28, 176, 246, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.3,
+                    spanGaps: true
+                },
+                {
+                    label: 'Organic',
+                    data: [{% for entry in all_data %}{{ entry.Organic|default_if_none:"null" }},{% endfor %}],
+                    borderColor: '#FF9600',
+                    backgroundColor: 'rgba(255, 150, 0, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.3,
+                    spanGaps: true
+                },
+                {
+                    label: 'Inorganic',
+                    data: [{% for entry in all_data %}{{ entry.Inorganic|default_if_none:"null" }},{% endfor %}],
+                    borderColor: '#CE82FF',
+                    backgroundColor: 'rgba(206, 130, 255, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.3,
+                    spanGaps: true
+                },
+                {
+                    label: 'Physical',
+                    data: [{% for entry in all_data %}{{ entry.Physical|default_if_none:"null" }},{% endfor %}],
+                    borderColor: '#2ecc71',
+                    backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.3,
+                    spanGaps: true
+                },
+                {
+                    label: 'Physics',
+                    data: [{% for entry in all_data %}{{ entry.Physics|default_if_none:"null" }},{% endfor %}],
+                    borderColor: '#FFC800',
+                    backgroundColor: 'rgba(255, 200, 0, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.3,
+                    spanGaps: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Populate Add Test Modal date
+    const addDateInput = document.getElementById("test_date");
+    if (addDateInput) {
+        const date = new Date();
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        addDateInput.value = year + "-" + month + "-" + day;
+    }
+
+    // Populate Edit Test Modal
+    const editTestModal = document.getElementById('editTestModal');
+    if (editTestModal) {
+        editTestModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const id = button.getAttribute('data-id');
+            const date = button.getAttribute('data-date');
+            
+            document.getElementById('edit_test_date').value = date;
+            document.getElementById('editTestForm').action = `/test/update/${id}/`;
+            document.getElementById('deleteTestBtn').href = `/test/delete/${id}/`;
+            
+            document.querySelectorAll('.edit-mark-input').forEach(input => {
+                const subName = input.getAttribute('data-subject-name');
+                const marksVal = button.getAttribute(`data-mark-${subName}`);
+                input.value = (marksVal && marksVal !== 'None') ? marksVal : '';
+            });
+        });
+    }
+</script>
 {% endblock content %}

@@ -1,40 +1,242 @@
 {% extends 'base.html' %}
-{% block title %}Notes{% endblock title %}
+{% block title %}Notes Hub - Trakment{% endblock title %}
 {% block content %}
 
-<div class="divupl">
-    <script src="/static/js/html2canvas.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400..700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="/static/css/notes.css" />
+<div class="py-3 px-2" style="max-width: 1100px; margin: 0 auto; width: 100%;">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-    <a href="upload_note/" class="btnupl"><button class="btn-add">Add Note</button></a>
-</div>
-<br>
-
-<div class="margin-top container">
-    {% for note in notes reversed %}
-        <div class="card" id="{{ forloop.counter }}" ondblclick="downloadImage(this)">
-            <p class="note-content">{{ note.description }}</p>
-            <a href="delete_note/{{ note.pk }}" class="btn-delete">Delete</a>
-            <a href="" class="btn-add">Download</a>
+    <!-- Header Section -->
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mb-4 pb-2 border-bottom gap-2">
+        <div class="text-center text-sm-start">
+            <h1 style="font-weight: 900; color: var(--ink); margin: 0;"><i class="fas fa-sticky-note me-2" style="color: var(--accent-yellow);"></i>Notes Hub</h1>
+            <p class="text-muted mb-0" style="font-weight: 700; font-size: 0.85rem;">Capture key concepts, equations, and reminders</p>
         </div>
-    {% empty %}
-        <h2>No notes yet.</h2>
-    {% endfor %}
+        <button class="btn-duo btn-duo-primary py-2 px-4" data-bs-toggle="modal" data-bs-target="#addNoteModal">
+            <i class="fas fa-plus me-2"></i>Add Note
+        </button>
+    </div>
+
+    <!-- Search & Filter Card -->
+    <div class="card-duo mb-4">
+        <div class="row g-2 align-items-center">
+            <div class="col-12">
+                <input type="text" id="searchNotes" class="duo-input" placeholder="🔍 Search notes or tags...">
+            </div>
+        </div>
+    </div>
+
+    <!-- Notes Grid -->
+    <div class="row g-3" id="notesGrid">
+        {% for note in notes %}
+            <div class="col-12 col-sm-6 col-md-4 note-card-wrapper" data-tags="{{ note.tags|default:'' }}">
+                <div class="card-duo h-100 d-flex flex-column justify-content-between p-3" id="note-card-{{ forloop.counter }}" style="border-top: 5px solid var(--accent-yellow) !important; min-height: 230px;">
+                    <!-- Note Content -->
+                    <div class="note-content-body">
+                        <div class="note-text mb-3" id="note-text-{{ forloop.counter }}" style="font-size: 0.95rem; color: var(--ink); font-weight: 700; line-height: 1.5; white-space: pre-wrap; word-break: break-word;">{{ note.content }}</div>
+                    </div>
+
+                    <!-- Footer Details and Actions -->
+                    <div>
+                        <!-- Tags List -->
+                        {% if note.tag_list %}
+                        <div class="d-flex flex-wrap gap-1 mb-3">
+                            {% for tag in note.tag_list %}
+                            <span class="badge note-tag" onclick="filterByTag('{{ tag }}')" style="background: rgba(255, 200, 0, 0.15); color: #B38600; border: 1px solid rgba(255, 200, 0, 0.3); font-weight: 800; font-size: 0.7rem; cursor: pointer; border-radius: 6px; padding: 0.25rem 0.4rem;">
+                                {{ tag }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <!-- Actions Bar -->
+                        <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                            <span class="text-muted" style="font-size: 0.75rem; font-weight: 700;"><i class="far fa-clock me-1"></i>{{ note.created_at|date:"d M Y" }}</span>
+                            <div class="d-flex gap-2">
+                                <button class="btn-duo btn-duo-secondary py-1 px-2 btn-sm" onclick="downloadImage('note-card-{{ forloop.counter }}')" title="Download Image">
+                                    <i class="fas fa-download" style="font-size: 0.75rem; color: var(--primary);"></i>
+                                </button>
+                                <a href="/notes/delete/{{ note.pk }}/" class="btn-duo btn-duo-danger py-1 px-2 btn-sm" data-confirm="Are you sure you want to delete this note?" data-confirm-title="Confirm Delete" title="Delete Note">
+                                    <i class="fa fa-trash" style="font-size: 0.75rem;"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12" id="emptyOriginalState">
+                <div class="text-center py-5 rounded" style="background: var(--surface-1); border: 2px dashed var(--border);">
+                    <i class="fas fa-sticky-note text-muted mb-3" style="font-size: 3rem; opacity: 0.5;"></i>
+                    <h3 style="font-weight: 800; color: var(--ink);">No notes yet</h3>
+                    <p style="color: var(--ink-muted);">Click the "Add Note" button above to make your first study note!</p>
+                </div>
+            </div>
+        {% endfor %}
+
+        <!-- Empty Search Result State -->
+        <div class="col-12" id="emptySearchState" style="display: none;">
+            <div class="text-center py-5 rounded" style="background: var(--surface-1); border: 2px dashed var(--border);">
+                <i class="fas fa-search text-muted mb-3" style="font-size: 3rem; opacity: 0.5;"></i>
+                <h3 style="font-weight: 800; color: var(--ink);">No matching notes</h3>
+                <p style="color: var(--ink-muted);">Try typing another query or clear the active tag filters.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Note Modal -->
+<div class="modal fade" id="addNoteModal" tabindex="-1" aria-hidden="true" style="z-index: 1055;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-duo p-4" style="background: var(--canvas); border: 2px solid var(--border);">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" style="color: var(--ink);"><i class="fas fa-plus-circle me-2" style="color: var(--accent-yellow);"></i>Create New Note</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="/notes/upload/">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="note_description" class="form-label fw-bold" style="color: var(--ink-muted);">Note Content</label>
+                        <textarea id="note_description" name="description" class="duo-input" rows="5" required placeholder="Type or paste your note details here..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="note_tags" class="form-label fw-bold" style="color: var(--ink-muted);">Tags (Comma separated)</label>
+                        <input type="text" id="note_tags" name="tags" class="duo-input" placeholder="e.g. Physics, Formula, Inorganic, Organic">
+                    </div>
+                    <button type="submit" class="btn-duo btn-duo-primary w-100 py-3 mt-3">Save Note</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
-    function downloadImage(element) {
-        html2canvas(element).then((canvas) => {
-            const imageDataURL = canvas.toDataURL("image/png");
-            const a = document.createElement("a");
-            a.href = imageDataURL;
-            a.download = "note.png";
-            a.click();
+document.addEventListener('DOMContentLoaded', function() {
+    // Extract unique tags from page to generate filter list
+    const tagsSet = new Set();
+    document.querySelectorAll('.note-card-wrapper').forEach(wrapper => {
+        const tagsStr = wrapper.getAttribute('data-tags');
+        if (tagsStr) {
+            tagsStr.split(',').forEach(tag => {
+                const cleaned = tag.trim();
+                if (cleaned) {
+                    tagsSet.add(cleaned);
+                }
+            });
+        }
+    });
+
+    const tagsFilterList = document.getElementById('tags-filter-list');
+    if (tagsFilterList) {
+        tagsSet.forEach(tag => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-duo btn-duo-secondary py-1 px-2 btn-sm filter-tag-pill';
+            btn.style.fontSize = '0.8rem';
+            btn.textContent = tag;
+            btn.onclick = () => filterByTag(tag);
+            tagsFilterList.appendChild(btn);
         });
     }
+
+    // Connect Search bar input
+    const searchNotesInput = document.getElementById('searchNotes');
+    if (searchNotesInput) {
+        searchNotesInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            const cards = document.querySelectorAll('.note-card-wrapper');
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                const text = card.querySelector('.note-text').textContent.toLowerCase();
+                const tags = card.getAttribute('data-tags').toLowerCase();
+                
+                if (text.includes(query) || tags.includes(query)) {
+                    card.style.setProperty('display', '', 'important');
+                    visibleCount++;
+                } else {
+                    card.style.setProperty('display', 'none', 'important');
+                }
+            });
+
+            // Update empty states
+            const emptySearchState = document.getElementById('emptySearchState');
+            const emptyOriginalState = document.getElementById('emptyOriginalState');
+
+            if (visibleCount === 0) {
+                if (emptyOriginalState) emptyOriginalState.style.setProperty('display', 'none', 'important');
+                emptySearchState.style.display = 'block';
+            } else {
+                emptySearchState.style.display = 'none';
+            }
+        });
+    }
+});
+
+// Filter trigger by tag pill
+function filterByTag(tag) {
+    const searchInput = document.getElementById('searchNotes');
+    if (searchInput) {
+        searchInput.value = tag;
+        searchInput.dispatchEvent(new Event('input'));
+        
+        // Highlight active button style
+        document.querySelectorAll('.filter-tag-pill, #clear-tags-btn').forEach(btn => {
+            if (btn.textContent.trim().toLowerCase() === tag.toLowerCase()) {
+                btn.style.background = 'var(--accent-yellow)';
+                btn.style.color = 'var(--ink)';
+                btn.style.borderColor = 'var(--accent-yellow)';
+            } else {
+                btn.style.background = '';
+                btn.style.color = '';
+                btn.style.borderColor = '';
+            }
+        });
+    }
+}
+
+// Clear all tag filters
+function clearTagFilter() {
+    const searchInput = document.getElementById('searchNotes');
+    if (searchInput) {
+        searchInput.value = '';
+        searchInput.dispatchEvent(new Event('input'));
+        
+        document.querySelectorAll('.filter-tag-pill').forEach(btn => {
+            btn.style.background = '';
+            btn.style.color = '';
+            btn.style.borderColor = '';
+        });
+        const clearBtn = document.getElementById('clear-tags-btn');
+        if (clearBtn) {
+            clearBtn.style.background = 'var(--surface-2)';
+        }
+    }
+}
+
+// Download Card Screenshot helper
+function downloadImage(noteCardId) {
+    const noteCard = document.getElementById(noteCardId);
+    if (!noteCard) return;
+
+    // Temporarily hide actions row during capture
+    const actions = noteCard.querySelector('.border-top');
+    if (actions) actions.style.display = 'none';
+
+    html2canvas(noteCard, { 
+        backgroundColor: document.documentElement.getAttribute('data-theme') === 'dark' ? '#131415' : '#ffffff',
+        scale: 2,
+        windowWidth: noteCard.offsetWidth,
+        windowHeight: noteCard.offsetHeight
+    }).then(canvas => {
+        // Restore actions row
+        if (actions) actions.style.display = 'flex';
+
+        const link = document.createElement("a");
+        link.href = canvas.toDataURL("image/jpeg", 0.9);
+        link.download = "note-" + Date.now() + ".jpg";
+        link.click();
+    });
+}
 </script>
 
 {% endblock %}

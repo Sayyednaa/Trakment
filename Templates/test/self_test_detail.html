@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %} Test Details - {{ self_test.chapter }} {% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/test/self-tests/">My Tests</a></li>
+                    <li class="breadcrumb-item active">Test Details</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card-duo p-4">
+                <!-- Header -->
+                <div class="text-center mb-4">
+                    <h1 class="h2 fw-bold text-primary">{{ self_test.chapter }}</h1>
+                    <p class="text-muted">Taken on {{ self_test.date_taken|date:"F j, Y" }} at {{ self_test.date_taken|date:"g:i A" }}</p>
+                </div>
+
+                <!-- Performance Metrics -->
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3">
+                        <div class="card-duo p-3 text-center">
+                            <h3 class="fw-bold text-success">{{ accuracy }}%</h3>
+                            <p class="text-muted mb-0">Accuracy</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="card-duo p-3 text-center">
+                            <h3 class="fw-bold text-info">{{ efficiency }}%</h3>
+                            <p class="text-muted mb-0">Efficiency</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Stats -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card-duo p-3 mb-3">
+                            <h5 class="fw-bold mb-3">Test Overview</h5>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Total Questions:</span>
+                                <strong>{{ self_test.questions }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Attempted:</span>
+                                <strong>{{ self_test.attempted }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Correct Answers:</span>
+                                <strong class="text-success">{{ self_test.correct }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Incorrect Answers:</span>
+                                <strong class="text-danger">{{ self_test.incorrect }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Time Taken:</span>
+                                <strong>{{ time_display }}</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card-duo p-3 mb-3">
+                            <h5 class="fw-bold mb-3">Score Details</h5>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Positive Marks:</span>
+                                <strong class="text-success">+{{ self_test.plus_marks }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Negative Marks:</span>
+                                <strong class="text-danger">-{{ self_test.minus_marks }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Total Marks:</span>
+                                <strong class="text-primary">{{ self_test.total_marks }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Percentage:</span>
+                                <strong class="text-primary">{{ self_test.percentage }}%</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="text-center mt-4">
+                    <a href="/test/self-tests" class="btn-outline-primary me-2 btn-duo">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Tests
+                    </a>
+                    <a href="/omr/" class="btn-duo-primary me-2 btn-duo">
+                        <i class="fas fa-redo me-2"></i>Take New Test
+                    </a>
+                    <button type="button" class="btn-outline-danger btn-duo" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                        <i class="fas fa-trash me-2"></i>Delete Test
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this test? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-duo-secondary btn-duo" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" action="/test/self-test/delete/{{ self_test.pk }}/">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-duo-danger btn-duo">Delete Test</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card-duo {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+}
+
+.modal-content {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(16px);
+}
+</style>
+{% endblock %}

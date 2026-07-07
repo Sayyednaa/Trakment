@@ -1,0 +1,342 @@
+{% extends "base.html" %}
+{% block title %}Update Syllabus{% endblock %}
+{% block content %}
+
+<div class="py-4">
+    <div class="card-duo">
+        <div class="form-header">
+            <h2>Update Syllabus</h2>
+        </div>
+        <form action="" method="post" enctype="multipart/form-data" class="form-3d">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="Chapter">Chapter:</label>
+                <input type="text" name="Chapter" placeholder="Enter Chapter's Name" class="input-3d" value="{{ syal.Cname }}">
+            </div>
+
+            <div class="form-group">
+                <label for="Subject">Subject</label>
+                <select name="Subject" id="Subject" class="input-3d subject-select" required>
+                  <option value="" disabled selected>Select subject</option>
+                  <option value="Biology" {% if syal.Subject == 'Biology' %}selected{% endif %}>Biology</option>
+                  <option value="Chemistry" {% if syal.Subject == 'Chemistry' %}selected{% endif %}>Chemistry</option>
+                  <option value="Physics" {% if syal.Subject  == 'Physics' %}selected{% endif %}>Physics</option>
+                  <option value="English" {% if syal.Subject  == 'English' %}selected{% endif %}>English</option>
+                   <option value="Maths" {% if syal.Subject == 'Maths' %}selected{% endif %}>Maths</option>
+                  <option value="Hindi" {% if syal.Subject == 'Hindi' %}selected{% endif %}>Hindi</option>
+                  <option value="Other" {% if syal.Subject == 'Other' %}selected{% endif %}>Other</option>
+                </select>
+              </div>
+
+
+           <div class="form-group checkbox-group">
+                <label for="Lecture" class="checkbox-label">
+                    <input type="checkbox" name="Lecture" id="Lecture" {% if syal.Lecture %}checked{% endif %}>
+                    <span class="checkmark"></span>
+                    Lecture
+                </label>
+            </div>
+            <div class="form-group checkbox-group">
+                <label for="Notes" class="checkbox-label">
+                    <input type="checkbox" name="Notes" id="Notes" {% if syal.Notes %}checked{% endif %}>
+                    <span class="checkmark"></span>
+                    Notes
+                </label>
+            </div>
+            <div class="form-group checkbox-group">
+                <label for="NCERT" class="checkbox-label">
+                    <input type="checkbox" name="NCERT" id="NCERT" {% if syal.NCERT %}checked{% endif %}>
+                    <span class="checkmark"></span>
+                    NCERT
+                </label>
+            </div>
+
+
+            <div class="form-group checkbox-group">
+                <label for="DPP" class="checkbox-label">
+                    <input type="checkbox" name="DPP" id="DPP" {% if syal.DPP %}checked{% endif %}>
+                    <span class="checkmark"></span>
+                    DPPs
+                </label>
+            </div>
+            <div class="form-group checkbox-group">
+                <label for="Punch" class="checkbox-label">
+
+
+                    Punch
+                    <input type="checkbox" name="Punch" id="Punch" {% if syal.Punch %}checked{% endif %}>
+                    <span class="checkmark"></span>
+                </label>
+            </div>
+            <div class="form-group">
+                <label for="Test">Test:</label>
+                <input type="number" name="Test" placeholder="Enter No Of Tests Of This Chapter" class="input-3d" value="{{ syal.Test }}">
+            </div>
+            <div class="form-group">
+                <label for="Revision">Revision:</label>
+                <input type="number" name="Revision" placeholder="Enter No Of Revisions Of This Chapter" class="input-3d" value="{{ syal.Revision }}">
+            </div>
+            <div class="form-group">
+                <label for="Done">Done:</label>
+                <input type="number" name="Done" placeholder="How Many Times Completed All Fields" class="input-3d" value="{{ syal.Done }}">
+            </div>
+
+
+
+            <div class="button-group">
+                <button type="submit" class="btn-3d submit-3d">
+                    <span class="btn-text">Update</span>
+                    <span class="btn-icon">→</span>
+                </button>
+
+                <a href="/todo/syllabus/delete/{{syal.id}}" class="btn-3d delete-3d">
+                    <span class="btn-text">Delete</span>
+                    <span class="btn-icon">🗑</span>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3f37c9;
+        --danger-color: #f72585;
+        --danger-dark: #b5179e;
+        --light-color: #f8f9fa;
+        --dark-color: #212529;
+        --shadow-color: rgba(0, 0, 0, 0.2);
+        --transition-speed: 0.3s;
+    }
+
+    .py-4 {
+        width: 100%;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        perspective: 1000px;
+
+        padding: 20px;
+    }
+
+    
+
+    
+
+    
+
+    .form-header {
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .form-header h2 {
+        color: var(--dark-color);
+        font-size: 28px;
+        font-weight: 600;
+        margin: 0;
+        position: relative;
+        display: inline-block;
+    }
+
+    .form-header h2::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 50px;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary-color), var(--danger-color));
+        border-radius: 2px;
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+        position: relative;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: var(--dark-color);
+        font-size: 14px;
+        transition: all var(--transition-speed);
+    }
+
+    .input-3d {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: all var(--transition-speed);
+        background-color: #f8f9fa;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .input-3d:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        background-color: white;
+        box-shadow:
+            0 0 0 3px rgba(67, 97, 238, 0.2),
+            inset 0 2px 4px rgba(0, 0, 0, 0.05);
+        transform: translateY(-2px);
+    }
+
+.checkbox-group {
+    margin-bottom: 25px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    position: relative;
+    padding-left: 30px;
+    cursor: pointer;
+    user-select: none;
+    color: var(--dark-color);
+    font-weight: 500;
+}
+
+.checkbox-label input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.checkmark {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 20px;
+    width: 20px;
+    background-color: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 4px;
+    transition: all var(--transition-speed);
+}
+
+.checkbox-label:hover input ~ .checkmark {
+    background-color: #e9ecef;
+}
+
+.checkbox-label input:checked ~ .checkmark {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+    left: 6px;
+    top: 2px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.checkbox-label input:checked ~ .checkmark:after {
+    display: block;
+}
+    .button-group {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 30px;
+    }
+
+    .btn-3d {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all var(--transition-speed);
+        position: relative;
+        overflow: hidden;
+        transform-style: preserve-3d;
+    }
+
+    .btn-3d::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateZ(-1px);
+        transition: all var(--transition-speed);
+        opacity: 0;
+    }
+
+    .btn-3d:hover::before {
+        opacity: 1;
+    }
+
+    .btn-3d:hover {
+        transform: translateY(-3px) translateZ(5px);
+    }
+
+    .btn-3d:active {
+        transform: translateY(1px) translateZ(0);
+    }
+
+    .submit-3d {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        box-shadow: 0 4px 6px rgba(67, 97, 238, 0.2);
+    }
+
+    .submit-3d:hover {
+        box-shadow: 0 7px 14px rgba(67, 97, 238, 0.3);
+    }
+
+    .delete-3d {
+        background: linear-gradient(135deg, var(--danger-color), var(--danger-dark));
+        color: white;
+        box-shadow: 0 4px 6px rgba(247, 37, 133, 0.2);
+        text-decoration: none;
+    }
+
+    .delete-3d:hover {
+        box-shadow: 0 7px 14px rgba(247, 37, 133, 0.3);
+    }
+
+    .btn-text {
+        margin-right: 8px;
+    }
+
+    .btn-icon {
+        font-size: 18px;
+    }
+
+    @media (max-width: 576px) {
+        
+
+        .button-group {
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .btn-3d {
+            width: 100%;
+        }
+    }
+</style>
+
+{% endblock content %}

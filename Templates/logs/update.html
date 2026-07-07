@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="dashboard-container" style="display: flex; justify-content: center; padding-top: 2rem;">
+    <div class="card-duo" style="max-width: 600px; width: 100%; border-top: 6px solid var(--primary);">
+        <div class="card-header" style="margin-bottom: 1.5rem;">
+            <h2><i class="fas fa-edit"></i> Edit Time Log</h2>
+        </div>
+
+        <form method="post" class="duo-form">
+            {% csrf_token %}
+            
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; font-weight: 800; margin-bottom: 0.5rem; color: var(--ink);">Subject</label>
+                {{ form.subject }}
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; font-weight: 800; margin-bottom: 0.5rem; color: var(--ink);">Start Time</label>
+                {{ form.start_time }}
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; font-weight: 800; margin-bottom: 0.5rem; color: var(--ink);">End Time</label>
+                {{ form.end_time }}
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; font-weight: 800; margin-bottom: 0.5rem; color: var(--ink);">Description</label>
+                {{ form.description }}
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: space-between;">
+                <a href="{% url 'logs:list' %}" style="text-decoration: none; width: 48%;">
+                    <button type="button" class="btn-duo btn-duo-secondary" style="width: 100%;">Cancel</button>
+                </a>
+                <button type="submit" class="btn-duo" style="width: 48%;">Update Log</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .duo-form select, .duo-form input, .duo-form textarea {
+        width: 100%;
+        padding: 0.8rem;
+        border: 2px solid var(--border);
+        border-radius: var(--radius-md);
+        background: var(--surface-1);
+        color: var(--ink);
+        font-family: inherit;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+    
+    .duo-form select:focus, .duo-form input:focus, .duo-form textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        background: var(--canvas);
+    }
+</style>
+{% endblock %}

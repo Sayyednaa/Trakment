@@ -1,0 +1,446 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ chapter.Cname }} - Analytics{% endblock %}
+
+{% block content %}
+<style>
+    /* Prevent zoomed appearance on this page */
+    .mb-3 {
+        margin-bottom: 0.75rem !important;
+    }
+    .mb-4 {
+        margin-bottom: 0.9rem !important;
+    }
+    .card-duo {
+        padding: 1.2rem !important;
+        border-radius: 12px !important;
+        background: var(--canvas) !important;
+        border: 2px solid var(--border) !important;
+        box-shadow: var(--shadow-card) !important;
+    }
+    h1, .h1 {
+        font-size: 1.4rem !important;
+        font-weight: 850 !important;
+        color: var(--ink) !important;
+    }
+    h2, .h2 {
+        font-size: 1.15rem !important;
+        font-weight: 850 !important;
+        color: var(--ink) !important;
+    }
+    h3, .h3 {
+        font-size: 0.95rem !important;
+        font-weight: 850 !important;
+        color: var(--ink) !important;
+    }
+    .table th {
+        font-size: 0.75rem !important;
+        padding: 0.6rem 0.8rem !important;
+        font-weight: 800 !important;
+        text-transform: uppercase;
+        background: var(--surface-1);
+        color: var(--ink-muted);
+        border-bottom: 2px solid var(--border);
+    }
+    .table td {
+        font-size: 0.85rem !important;
+        padding: 0.6rem 0.8rem !important;
+        border-bottom: 2px solid var(--border);
+        font-weight: 700;
+        color: var(--ink);
+    }
+    .btn-duo {
+        padding: 8px 16px !important;
+        font-size: 0.8rem !important;
+        border-radius: 8px !important;
+    }
+    .btn-duo-secondary {
+        box-shadow: 0 3px 0 var(--border) !important;
+    }
+
+    /* Status Items */
+    .status-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.8rem;
+        background: var(--surface-1);
+        border-radius: 12px;
+        border: 2px solid var(--border);
+        transition: transform var(--duration-base) var(--easing);
+        position: relative;
+        text-decoration: none;
+    }
+    .status-item i {
+        font-size: 1.25rem;
+        color: var(--ink-muted);
+    }
+    .status-item span {
+        font-size: 0.75rem;
+        font-weight: 800;
+        color: var(--ink-muted);
+        text-align: center;
+    }
+    .status-item strong {
+        font-size: 1.1rem;
+        color: var(--ink);
+        font-weight: 900;
+    }
+    .status-item:hover {
+        transform: translateY(-2px);
+    }
+
+    /* Completed Status Item */
+    .status-item.status-completed {
+        background: rgba(88, 204, 2, 0.1) !important;
+        border-color: var(--primary) !important;
+    }
+    .status-item.status-completed i {
+        color: var(--primary) !important;
+    }
+    .status-item.status-completed span {
+        color: var(--primary-hover) !important;
+    }
+
+    /* Highlight Status Item */
+    .status-item.status-highlight {
+        background: rgba(28, 176, 246, 0.1) !important;
+        border-color: var(--secondary) !important;
+    }
+    .status-item.status-highlight i {
+        color: var(--secondary) !important;
+    }
+    .status-item.status-highlight span {
+        color: var(--secondary) !important;
+    }
+    .status-item.status-highlight strong {
+        color: var(--secondary) !important;
+    }
+
+    /* Progress bar styling */
+    .progress-bar-container {
+        background: var(--surface-1);
+        border-radius: 12px;
+        border: 2px solid var(--border);
+        padding: 1rem;
+    }
+    .progress-fill {
+        height: 100%;
+        background: var(--primary);
+        border-radius: 10px;
+        transition: width 0.6s ease;
+    }
+
+    /* Badges */
+    .score-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 8px;
+        font-weight: 800;
+    }
+    .score-excellent { background: rgba(88, 204, 2, 0.2); color: var(--primary-hover); }
+    .score-good { background: rgba(28, 176, 246, 0.2); color: var(--secondary); }
+    .score-average { background: rgba(255, 200, 0, 0.2); color: #B38600; }
+    .score-poor { background: rgba(255, 75, 75, 0.2); color: var(--accent-red); }
+
+    .attempt-badge {
+        background: var(--surface-2);
+        color: var(--ink);
+        padding: 0.2rem 0.4rem;
+        border-radius: 4px;
+        font-weight: 800;
+        font-size: 0.75rem;
+    }
+</style>
+
+<div class="row g-3">
+    <!-- Header/Back Navigation -->
+    <div class="col-12 d-flex flex-column flex-sm-row justify-content-between align-items-center pb-2 border-bottom gap-2">
+        <div class="text-center text-sm-start">
+            <h1 class="mb-0"><i class="fas fa-chart-bar me-2" style="color: var(--primary);"></i>{{ chapter.Cname }}</h1>
+            <p class="text-muted mb-0" style="font-weight: 700; font-size: 0.85rem;">{{ chapter.Subject }} &bull; Test Performance Analytics</p>
+        </div>
+        <a href="/todo/syllabus/" class="btn-duo btn-duo-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Syllabus
+        </a>
+    </div>
+
+    <!-- Chapter Checklist Status Grid -->
+    <div class="col-12">
+        <div class="row g-2">
+            <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                <div class="status-item {% if chapter.lecture %}status-completed{% endif %}">
+                    <i class="fas fa-video"></i>
+                    <span>Lecture</span>
+                    {% if chapter.lecture %}<i class="fas fa-check-circle position-absolute top-0 end-0 m-2" style="font-size: 0.75rem;"></i>{% endif %}
+                </div>
+            </div>
+            <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                <div class="status-item {% if chapter.notes %}status-completed{% endif %}">
+                    <i class="fas fa-sticky-note"></i>
+                    <span>Notes</span>
+                    {% if chapter.notes %}<i class="fas fa-check-circle position-absolute top-0 end-0 m-2" style="font-size: 0.75rem;"></i>{% endif %}
+                </div>
+            </div>
+            <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                <div class="status-item {% if chapter.ncert %}status-completed{% endif %}">
+                    <i class="fas fa-book"></i>
+                    <span>NCERT</span>
+                    {% if chapter.ncert %}<i class="fas fa-check-circle position-absolute top-0 end-0 m-2" style="font-size: 0.75rem;"></i>{% endif %}
+                </div>
+            </div>
+            <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                <div class="status-item {% if chapter.dpp %}status-completed{% endif %}">
+                    <i class="fas fa-file-alt"></i>
+                    <span>DPPs</span>
+                    {% if chapter.dpp %}<i class="fas fa-check-circle position-absolute top-0 end-0 m-2" style="font-size: 0.75rem;"></i>{% endif %}
+                </div>
+            </div>
+            <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                <div class="status-item {% if chapter.punch %}status-completed{% endif %}">
+                    <i class="fas fa-fist-raised"></i>
+                    <span>Punch</span>
+                    {% if chapter.punch %}<i class="fas fa-check-circle position-absolute top-0 end-0 m-2" style="font-size: 0.75rem;"></i>{% endif %}
+                </div>
+            </div>
+            <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                <div class="status-item {% if chapter.done %}status-completed{% endif %}">
+                    <i class="fas fa-star"></i>
+                    <span>All Done</span>
+                    {% if chapter.done %}<i class="fas fa-check-circle position-absolute top-0 end-0 m-2" style="font-size: 0.75rem;"></i>{% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Card -->
+    <div class="col-12">
+        <div class="progress-bar-container">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="fw-bold text-ink" style="font-size: 0.9rem;">📊 Overall Progress</span>
+                <strong id="progress-percent" style="font-size: 1.3rem; color: var(--primary); font-weight: 850;">0%</strong>
+            </div>
+            <div class="progress" style="height: 10px; background: var(--surface-2); border-radius: 5px;">
+                <div class="progress-fill" id="progress-fill" style="width: 0%;"></div>
+            </div>
+            <div class="text-center mt-2 text-muted" id="progress-details" style="font-size: 0.75rem; font-weight: 700;">
+                Calculating...
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Statistics Grid -->
+    <div class="col-12">
+        <div class="row g-2 text-center">
+            <div class="col-6 col-md-3">
+                <div class="card-duo">
+                    <h2 class="text-primary mb-1" style="font-size: 1.6rem !important;">{{ stats.total_tests }}</h2>
+                    <span class="text-muted" style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase;">Total Tests</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card-duo">
+                    <h2 class="text-success mb-1" style="font-size: 1.6rem !important;">{{ stats.avg_accuracy|floatformat:1 }}%</h2>
+                    <span class="text-muted" style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase;">Avg Accuracy</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card-duo">
+                    <h2 class="text-info mb-1" style="font-size: 1.6rem !important;">{{ stats.best_score|floatformat:1 }}%</h2>
+                    <span class="text-muted" style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase;">Best Score</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card-duo">
+                    <h2 class="mb-1 {% if improvement > 0 %}text-success{% elif improvement < 0 %}text-danger{% else %}text-primary{% endif %}" style="font-size: 1.6rem !important;">
+                        {% if improvement > 0 %}+{% endif %}{{ improvement|floatformat:1 }}%
+                    </h2>
+                    <span class="text-muted" style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase;">Improvement</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if tests %}
+    <!-- Charts Section -->
+    <div class="col-md-6 col-12">
+        <div class="card-duo h-100">
+            <h3 class="mb-3"><i class="fas fa-chart-line me-2" style="color: var(--primary);"></i>Score Progress Over Time</h3>
+            <div style="height: 180px; position: relative;">
+                <canvas id="scoreChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-12">
+        <div class="card-duo h-100">
+            <h3 class="mb-3"><i class="fas fa-chart-bar me-2" style="color: var(--secondary);"></i>Correct vs Incorrect</h3>
+            <div style="height: 180px; position: relative;">
+                <canvas id="accuracyChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- All Test Attempts Table -->
+    <div class="col-12">
+        <div class="card-duo p-0 overflow-hidden">
+            <div class="p-3 border-bottom">
+                <h2 class="m-0"><i class="fas fa-list-ul me-2" style="color: var(--secondary);"></i>All Test Attempts</h2>
+            </div>
+            <div class="table-responsive" style="overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%;">
+                <table class="table mb-0" style="border-collapse: separate; border-spacing: 0; width: 100%;">
+                    <thead>
+                        <tr>
+                            <th>Attempt</th>
+                            <th>Date</th>
+                            <th>Questions</th>
+                            <th style="text-align: center;">Correct</th>
+                            <th style="text-align: center;">Incorrect</th>
+                            <th style="text-align: center;">Score</th>
+                            <th style="text-align: center;">Percentage</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for test in tests %}
+                        <tr style="transition: background 0.2s;">
+                            <td><span class="attempt-badge">#{{ test.attempt_number }}</span></td>
+                            <td class="text-muted"><small>{{ test.date_taken|date:"d M Y, H:i" }}</small></td>
+                            <td>{{ test.questions }}</td>
+                            <td style="color: var(--primary-hover); text-align: center;">{{ test.correct }}</td>
+                            <td style="color: var(--accent-red); text-align: center;">{{ test.incorrect }}</td>
+                            <td style="text-align: center;">{{ test.total_marks }}</td>
+                            <td style="text-align: center;">
+                                <span class="score-badge {% if test.percentage >= 95 %}score-excellent {% elif test.percentage >= 80 %}score-good {% elif test.percentage >= 60 %}score-average {% else %}score-poor{% endif %}">
+                                    {{ test.percentage|floatformat:1 }}%
+                                </span>
+                            </td>
+                            <td class="text-muted">{{ test.time_taken|default:"--" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="card-duo py-5 text-center">
+            <i class="fas fa-clipboard-check text-muted mb-3" style="font-size: 3rem;"></i>
+            <h3>No test records</h3>
+            <p class="text-muted">Take a practice test on the OMR generator page to see analytics.</p>
+            <a href="/omr/" class="btn-duo btn-duo-primary mt-2">
+                <i class="fas fa-clipboard-check me-2"></i>Go to OMR Page
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- Calculations Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const completed = [
+        {{ chapter.lecture|yesno:"true,false" }},
+        {{ chapter.notes|yesno:"true,false" }},
+        {{ chapter.ncert|yesno:"true,false" }},
+        {{ chapter.dpp|yesno:"true,false" }},
+        {{ chapter.punch|yesno:"true,false" }},
+        {{ chapter.done|yesno:"true,false" }}
+    ];
+
+    const completedCount = completed.filter(x => x).length;
+    const totalCount = completed.length;
+    const percentage = Math.round((completedCount / totalCount) * 100);
+
+    document.getElementById('progress-percent').textContent = percentage + '%';
+    document.getElementById('progress-fill').style.width = percentage + '%';
+    document.getElementById('progress-details').textContent =
+        `${completedCount} of ${totalCount} tasks completed`;
+});
+</script>
+
+{% if tests %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chartData = {{ chart_data|safe }};
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const textColor = isDark ? '#ffffff' : '#475569';
+
+    // Score Progress Chart
+    new Chart(document.getElementById('scoreChart'), {
+        type: 'line',
+        data: {
+            labels: chartData.labels,
+            datasets: [{
+                label: 'Percentage Score',
+                data: chartData.scores,
+                borderColor: '#1CB0F6',
+                backgroundColor: 'rgba(28, 176, 246, 0.1)',
+                borderWidth: 3,
+                tension: 0.3,
+                fill: true,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: { color: textColor, font: { weight: '800' } }
+                },
+                x: {
+                    ticks: { color: textColor, font: { weight: '800' } }
+                }
+            }
+        }
+    });
+
+    // Accuracy Chart
+    new Chart(document.getElementById('accuracyChart'), {
+        type: 'bar',
+        data: {
+            labels: chartData.labels,
+            datasets: [
+                {
+                    label: 'Correct',
+                    data: chartData.correct,
+                    backgroundColor: '#58CC02',
+                    borderRadius: 4
+                },
+                {
+                    label: 'Incorrect',
+                    data: chartData.incorrect,
+                    backgroundColor: '#FF4B4B',
+                    borderRadius: 4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { color: textColor, font: { weight: '800' } }
+                },
+                x: {
+                    ticks: { color: textColor, font: { weight: '800' } }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endif %}
+{% endblock %}

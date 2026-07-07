@@ -1,28 +1,334 @@
-<!-- in todo/templates/todo/task_form.html -->
+{% extends "base.html" %}
+{% block title %}Update Task{% endblock %}
+{% block content %}
 
-{% extends 'base.html' %}
-{% load static %}
-{% block title %}{{ task.title|default:"New Task" }}{% endblock %}
-<link rel="stylesheet" href="{% static 'css/todo.css' %}">
+<div class="syllabus-update-container">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+  <div class="update-card">
+    <div class="card-header">
+      <h2><i class="fas fa-book-open"></i> Update Task</h2>
+      <p>Edit your Task details</p>
+    </div>
+    
+    <div class="card-body">
+      <form action="" method="post" class="syllabus-form">
+        {% csrf_token %}
+        
+        <div class="form-group">
+          <div class="input-container">
+            <input type="text" name="title" class="form-input" value="{{task.title}}" required>
+            <label class="floating-label">Task Title</label>
+            <div class="underline"></div>
+            <i class="fas fa-heading input-icon"></i>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <div class="input-container">
+            <input type="date" name="description" class="form-input" value="{{ task.description }}" required>
+            <label class="floating-label">Due Date</label>
+            <div class="underline"></div>
+            <i class="far fa-calendar-alt input-icon"></i>
+          </div>
+        </div>
+        
+        <div class="form-group checkbox-group">
+          <label class="checkbox-container">
+            <span>Completed</span>
+            <input type="checkbox" name="completed" {% if task.completed %}checked{% endif %}>
+            <span class="checkmark"></span>
+          </label>
+        </div>
+
+        <div class="button-group">
+          <button type="submit" class="submit-btn">
+            <span>Update</span>
+            <i class="fas fa-save"></i>
+          </button>
+          
+          <form action="/todo/syallbuss/delete/{{syal.id}}" method="post" class="delete-form">
+            {% csrf_token %}
+            <button type="submit" class="delete-btn">
+              <span>Delete</span>
+              <i class="fas fa-trash-alt"></i>
+            </button>
+          </form>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
 <style>
-  main{
+  :root {
+    --primary-color: #6366f1;
+    --primary-light: #818cf8;
+    --danger-color: #f43f5e;
+    --danger-dark: #e11d48;
+    --dark-color: #1e293b;
+    --light-color: #f8fafc;
+    --success-color: #10b981;
+    --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --card-shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .syllabus-update-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    {% comment %} background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%); {% endcomment %}
+    padding: 2rem;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .update-card {
+    width: 100%;
+    max-width: 500px;
+    background: white;
+    border-radius: 1rem;
+    box-shadow: var(--card-shadow);
+    overflow: hidden;
+    transition: var(--transition);
+  }
+
+  .update-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--card-shadow-hover);
+  }
+
+  .card-header {
+    padding: 1.5rem;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+    color: white;
     text-align: center;
   }
-  </style>
-{% block content %}
-  <h1 class="taskTitle">Update-{{ task.title|default:"New Task" }}</h1>
-  <form method="post" class="taskUpdate">
-    {% csrf_token %}
-    <label for="title" >Title:</label>
-    <input type="text" name="title" value="{{ task.title }}">
-    <br>
-    <label for="description">Description:</label>
-    <input type="date" name="description" value="{{ task.description }}"/>
-    <br>
-    <label for="completed">Completed:</label>
-    <input type="checkbox" name="completed" {% if task.completed %}checked{% endif %}>
-    <br>
-    <button type="submit">Save</button>
-  </form>
-{% endblock %}
+
+  .card-header h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .card-header p {
+    font-size: 0.875rem;
+    opacity: 0.9;
+  }
+
+  .card-body {
+    padding: 2rem;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+    position: relative;
+  }
+
+  .input-container {
+    position: relative;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 1rem 0 0.5rem 0;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 1rem;
+    color: var(--dark-color);
+    background: transparent;
+    padding-left: 2rem;
+  }
+
+  .form-input:focus {
+    outline: none;
+    border-bottom-color: var(--primary-color);
+  }
+
+  .floating-label {
+    position: absolute;
+    left: 2rem;
+    top: 1rem;
+    color: #94a3b8;
+    pointer-events: none;
+    transition: var(--transition);
+  }
+
+  .form-input:focus + .floating-label,
+  .form-input:not(:placeholder-shown) + .floating-label {
+    transform: translateY(-1.2rem);
+    font-size: 0.75rem;
+    color: var(--primary-color);
+  }
+
+  .underline {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--primary-color);
+    transition: var(--transition);
+  }
+
+  .form-input:focus ~ .underline {
+    width: 100%;
+  }
+
+  .input-icon {
+    position: absolute;
+    left: 0;
+    top: 1rem;
+    color: #94a3b8;
+    transition: var(--transition);
+  }
+
+  .form-input:focus ~ .input-icon {
+    color: var(--primary-color);
+  }
+
+  .checkbox-group {
+    display: flex;
+    align-items: center;
+    margin-top: 1.5rem;
+  }
+
+  .checkbox-container {
+    display: flex;
+    align-items: center;
+    position: relative;
+    padding-left: 2.5rem;
+    cursor: pointer;
+    user-select: none;
+    color: var(--dark-color);
+  }
+
+  .checkbox-container input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+  }
+
+  .checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 1.5rem;
+    width: 1.5rem;
+    background-color: #e2e8f0;
+    border-radius: 0.25rem;
+    transition: var(--transition);
+  }
+
+  .checkbox-container:hover input ~ .checkmark {
+    background-color: #cbd5e1;
+  }
+
+  .checkbox-container input:checked ~ .checkmark {
+    background-color: var(--success-color);
+  }
+
+  .checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+  }
+
+  .checkbox-container input:checked ~ .checkmark:after {
+    display: block;
+  }
+
+  .checkbox-container .checkmark:after {
+    left: 0.55rem;
+    top: 0.25rem;
+    width: 0.4rem;
+    height: 0.8rem;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  .button-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  .submit-btn, .delete-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+
+  .submit-btn {
+    background: var(--primary-color);
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3), 0 2px 4px -1px rgba(99, 102, 241, 0.1);
+  }
+
+  .submit-btn:hover {
+    background: var(--primary-light);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3), 0 4px 6px -2px rgba(99, 102, 241, 0.1);
+  }
+
+  .delete-btn {
+    background: var(--danger-color);
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(244, 63, 94, 0.3), 0 2px 4px -1px rgba(244, 63, 94, 0.1);
+  }
+
+  .delete-btn:hover {
+    background: var(--danger-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(244, 63, 94, 0.3), 0 4px 6px -2px rgba(244, 63, 94, 0.1);
+  }
+
+  .delete-form {
+    margin: 0;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 480px) {
+    .syllabus-update-container {
+      padding: 1rem;
+    }
+    
+    .card-body {
+      padding: 1.5rem;
+    }
+    
+    .button-group {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Add animation to form elements
+    const formGroups = document.querySelectorAll('.form-group');
+    formGroups.forEach((group, index) => {
+      group.style.animationDelay = `${index * 0.1}s`;
+    });
+  });
+</script>
+
+{% endblock content %}

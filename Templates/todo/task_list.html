@@ -1,66 +1,196 @@
-<!-- in todo/templates/todo/task_list.html -->
-
 {% extends 'base.html' %}
-
-{% block title %}Tasks{% endblock %}
+{% block title %}Tasks - Trakment{% endblock %}
 {% load static %}
 {% block content %}
-<div class="margin-top">
-  <link rel="stylesheet" href="{% static 'css/todo.css' %}">
-  <body>
-      <div class="contform">
-        <form action="/todo/create/" method="post" enctype="multipart/form-data">
-          {% csrf_token %}
-          <label for="title"> Title:</label>
-          <input type="text" id="title" name="title" required><br><br>
-          <label for="datetime" > Due Date:</label>
-          <input type="date" name="date" id="dt" default required>
-          <script>var date = new Date();
 
-            var day = date.getDate();
-            var month = date.getMonth() + 1;
-            var year = date.getFullYear();
-
-            if (month < 10) month = "0" + month;
-            if (day < 10) day = "0" + day;
-
-            var today = year + "-" + month + "-" + day;
-            document.getElementById("dt").value = today;
-          </script>
-
-          <button type="submit" class="btnsub">Submit</button>
-        </form>
+<div class="py-3 px-2" style="max-width: 900px; margin: 0 auto; width: 100%;">
+    
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <h1 style="font-weight: 900; color: var(--ink); margin: 0;"><i class="fas fa-tasks me-2" style="color: var(--primary);"></i>Task Manager</h1>
+        <button class="btn-duo btn-duo-primary py-2 px-4" data-bs-toggle="modal" data-bs-target="#addTaskModal">
+            <i class="fas fa-plus me-2"></i>Add Task
+        </button>
     </div>
 
+    <!-- Task List Card -->
+    <div class="card-duo p-0 overflow-hidden">
+        <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+            <h2 style="font-weight: 900; color: var(--ink); margin: 0; font-size: 1.3rem;">Your Tasks</h2>
+            <span class="badge" style="background: var(--secondary); color: white; padding: 0.25rem 0.6rem; border-radius: var(--radius-pill); font-weight: 800; font-size: 0.75rem;">
+                {{ tasks|length }} items
+            </span>
+        </div>
 
+        {% if tasks %}
+        <div class="table-responsive" style="overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%;">
+            <table class="table mb-0" style="border-collapse: separate; border-spacing: 0; width: 100%;">
+                <thead style="background: var(--surface-1); color: var(--ink); border-bottom: 2px solid var(--border);">
+                    <tr style="font-weight: 800; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;">
+                        <th style="padding: 0.6rem 0.8rem; width: 60px; text-align: center;">Done</th>
+                        <th style="padding: 0.6rem 0.8rem;">Task Title</th>
+                        <th style="padding: 0.6rem 0.8rem;">Due Date</th>
+                        <th style="padding: 0.6rem 0.8rem; text-align: center;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for i in tasks reversed %}
+                    <tr style="border-bottom: 2px solid var(--border); color: var(--ink); font-weight: 700; transition: background 0.2s;" class="task-row">
+                        <td style="padding: 0.8rem; text-align: center; vertical-align: middle;">
+                            <input type="checkbox" class="task-toggle-checkbox" data-id="{{ i.pk }}" {% if i.completed %}checked{% endif %} style="width: 1.25rem; height: 1.25rem; cursor: pointer; accent-color: var(--primary);">
+                        </td>
+                        <td class="task-title-cell" style="padding: 0.8rem; font-size: 1rem; vertical-align: middle; {% if i.completed %}text-decoration: line-through; color: var(--ink-muted);{% endif %}">
+                            {{ i.title }}
+                        </td>
+                        <td style="padding: 0.8rem; color: var(--ink-muted); vertical-align: middle; font-size: 0.9rem;">
+                            <i class="far fa-calendar-alt me-2" style="color: var(--secondary);"></i>{{ i.due|date:"Y-m-d" }}
+                        </td>
+                        <td style="padding: 0.8rem; text-align: center; vertical-align: middle;">
+                            <div class="d-inline-flex gap-2">
+                                <button class="btn-duo btn-duo-secondary py-1 px-2 btn-sm"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editTaskModal"
+                                        data-task-id="{{ i.pk }}"
+                                        data-task-title="{{ i.title }}"
+                                        data-task-date="{{ i.due|date:'Y-m-d' }}"
+                                        data-task-completed="{% if i.completed %}true{% else %}false{% endif %}">
+                                    <i class="fas fa-pencil-alt" style="font-size: 0.75rem;"></i>
+                                </button>
+                                <a href="{% url 'task_delete' i.pk %}" class="btn-duo btn-duo-danger py-1 px-2 btn-sm" data-confirm="Are you sure you want to delete this task?" data-confirm-title="Confirm Delete">
+                                    <i class="fa fa-trash" style="font-size: 0.75rem;"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 rounded m-3" style="background: var(--surface-1); border: 2px dashed var(--border);">
+            <i class="fas fa-tasks text-muted mb-3" style="font-size: 2.5rem;"></i>
+            <h3 style="font-weight: 800; color: var(--ink); font-size: 1.1rem;">No tasks found</h3>
+            <p class="mb-0" style="color: var(--ink-muted); font-size: 0.85rem;">Add your first task using the button above!</p>
+        </div>
+        {% endif %}
 
-    <table style="width:100%">
-      <tr>
-        <th>Task</th>
-        <th>Due Date</th>
-        <th>Status </th>
-        <th>Action </th>
-      </tr>
-      {% for i in tasks reversed %}
-      <tr>
+    </div>
+</div>
 
-          <td>{{i.title}}</td>
-          <td>{{i.description}}</td>
-          <td>{% if i.completed == True %}<input type="checkbox" checked> {% else %}<input type="checkbox" > {% endif %}</td>
-          <td><a href="{{i.pk}}/update/"><button class="btnup">Update</button></a>   <a href="{{i.pk}}/delete/"><button class="btndel">Delete</button></a></td>
-      </tr>
-      {% endfor %}
-    </table>
+<!-- Add Task Modal -->
+<div class="modal fade" id="addTaskModal" tabindex="-1" aria-hidden="true" style="z-index: 1055;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-duo p-4" style="background: var(--canvas); border: 2px solid var(--border);">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" style="color: var(--ink);"><i class="fas fa-plus-circle me-2" style="color: var(--primary);"></i>Add New Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="/todo/create/" method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="add_task_title" class="form-label fw-bold" style="color: var(--ink-muted);">Task Title</label>
+                        <input type="text" id="add_task_title" name="title" class="duo-input" required placeholder="What needs to be done?">
+                    </div>
+                    <div class="mb-3">
+                        <label for="add_task_date" class="form-label fw-bold" style="color: var(--ink-muted);">Due Date</label>
+                        <input type="date" id="add_task_date" name="date" class="duo-input" required>
+                    </div>
+                    <button type="submit" class="btn-duo btn-duo-primary w-100 py-3 mt-3">Add Task</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
+<!-- Edit Task Modal -->
+<div class="modal fade" id="editTaskModal" tabindex="-1" aria-hidden="true" style="z-index: 1055;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-duo p-4" style="background: var(--canvas); border: 2px solid var(--border);">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" style="color: var(--ink);"><i class="fas fa-edit me-2" style="color: var(--primary);"></i>Edit Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editTaskForm" method="post" action="">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="edit_task_title" class="form-label fw-bold" style="color: var(--ink-muted);">Task Title</label>
+                        <input type="text" id="edit_task_title" name="title" class="duo-input" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_task_date" class="form-label fw-bold" style="color: var(--ink-muted);">Due Date</label>
+                        <input type="date" id="edit_task_date" name="date" class="duo-input" required>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input type="checkbox" id="edit_task_completed" name="completed" class="form-check-input">
+                        <label for="edit_task_completed" class="form-check-label fw-bold" style="color: var(--ink);">Mark as Completed</label>
+                    </div>
+                    <button type="submit" class="btn-duo btn-duo-primary w-100 py-3 mt-3">Save Changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
-
-    <script>
-
-    $(document).ready(function(){
-        $("#check").on("change", "input:checkbox", function(){
-            $("#check").submit();
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. Checkbox toggle event handler via AJAX fetch
+    document.querySelectorAll('.task-toggle-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const taskId = this.getAttribute('data-id');
+            const titleCell = this.closest('tr').querySelector('.task-title-cell');
+            
+            fetch(`/todo/toggle/${taskId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    if (data.completed) {
+                        titleCell.style.textDecoration = 'line-through';
+                        titleCell.style.color = 'var(--ink-muted)';
+                    } else {
+                        titleCell.style.textDecoration = 'none';
+                        titleCell.style.color = 'var(--ink)';
+                    }
+                }
+            })
+            .catch(err => console.error(err));
         });
     });
-    </script>
-</div>
+
+    // 2. Edit Modal Population Handler
+    const editTaskModal = document.getElementById('editTaskModal');
+    if (editTaskModal) {
+        editTaskModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const taskId = button.getAttribute('data-task-id');
+            const taskTitle = button.getAttribute('data-task-title');
+            const taskDate = button.getAttribute('data-task-date');
+            const taskCompleted = button.getAttribute('data-task-completed') === 'true';
+
+            document.getElementById('edit_task_title').value = taskTitle;
+            document.getElementById('edit_task_date').value = taskDate;
+            document.getElementById('edit_task_completed').checked = taskCompleted;
+            document.getElementById('editTaskForm').action = `/todo/update/${taskId}/`;
+        });
+    }
+
+    // 3. Populate Add Task Modal date
+    const addDateInput = document.getElementById("add_task_date");
+    if (addDateInput) {
+        const date = new Date();
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        addDateInput.value = year + "-" + month + "-" + day;
+    }
+});
+</script>
 {% endblock %}

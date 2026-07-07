@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}{{habit.date}}{% endblock title %}
+{% block content %}
+<div class="container">
+
+    <div class="form mt-5">
+        <form action="" method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="date" class="form-label">Date</label>
+                <input type="date" class="duo-input" id="date" name="date" value="{{today}}" required>
+            </div>
+            <div class="mb-3">
+                <label for="name" class="form-label">Name</label>
+                <input type="text" class="duo-input" id="name" name="name" value="{{data.name}}"" required>
+            </div>
+            <button type="submit" class="btn-duo-secondary btn-duo">Update</button>
+
+        </form>
+        <a href="/data/delete/{{data.id}}/"><button type="submit" class="btn-duo-danger btn-duo">Delete</button></a>
+
+    </div>
+
+{% endblock content %}

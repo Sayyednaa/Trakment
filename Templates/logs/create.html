@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    :root {
+        --primary: #4361ee;
+        --primary-dark: #3a56d4;
+        --secondary: #3f37c9;
+        --danger: #f72585;
+        --danger-dark: #e5177e;
+        --light: #f8f9fa;
+        --dark: #212529;
+        --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        --transition: all 0.3s ease;
+    }
+
+    .container-3d {
+        max-width: 1000px;
+        margin: 1rem auto;
+        padding: 1rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+        transform-style: preserve-3d;
+        perspective: 1000px;
+    }
+
+    .card-3d {
+        background: white;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        transform: translateZ(10px);
+        transition: var(--transition);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .card-3d:hover {
+        transform: translateZ(20px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn {
+        display: inline-block;
+        background-color: var(--primary);
+        color: white;
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        text-decoration: none;
+        transition: var(--transition);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        transform-style: preserve-3d;
+        font-size: 0.9rem;
+    }
+
+    .btn:hover {
+        background-color: var(--primary-dark);
+        transform: translateY(-2px) translateZ(5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-danger {
+        background-color: var(--danger);
+    }
+
+    .btn-danger:hover {
+        background-color: var(--danger-dark);
+    }
+
+    .log-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .log-table th {
+        text-align: left;
+        padding: 0.8rem;
+        background-color: var(--primary);
+        color: white;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .log-table td {
+        padding: 0.8rem;
+        background-color: white;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        color: purple;
+        font-size: 0.9rem;
+    }
+
+    .log-table tr {
+        transition: var(--transition);
+    }
+
+    .log-table tr:hover {
+        transform: translateX(5px);
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    h1 {
+        color: var(--dark);
+        margin-bottom: 1rem;
+        font-weight: 600;
+        font-size: 1.5rem;
+    }
+
+    .header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    /* Mobile-specific styles */
+    @media (max-width: 768px) {
+        .container-3d {
+            padding: 0.8rem;
+            margin: 0.5rem;
+            border-radius: 8px;
+        }
+
+        .log-table {
+            display: block;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .log-table thead {
+            display: none;
+        }
+
+        .log-table tr {
+            display: block;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .log-table td {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.6rem 1rem;
+            border-bottom: none;
+            position: relative;
+            padding-left: 50%;
+        }
+
+        .log-table td:before {
+            content: attr(data-label);
+            position: absolute;
+            left: 1rem;
+            width: 45%;
+            padding-right: 1rem;
+            font-weight: bold;
+            color: var(--primary);
+            text-align: left;
+        }
+
+        .action-buttons {
+            justify-content: flex-end;
+            width: 100%;
+        }
+
+        .action-buttons .btn {
+            flex: 1;
+            text-align: center;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .log-table td {
+            padding-left: 40%;
+        }
+
+        .log-table td:before {
+            width: 35%;
+        }
+
+        .btn {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+        }
+    }
+</style>
+
+<div class="container-3d">
+    <div class="header-section">
+        <h1>Time Logs</h1>
+        <a href="new/">
+            <button class="btn-duo">+ Add New Entry</button>
+        </a>
+    </div>
+
+    <table class="log-table">
+        <thead>
+            <tr>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Description</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr class="card-3d">
+                <td data-label="Start Time">{{ log.start_time|date:"Y-m-d H:i" }}</td>
+                <td data-label="End Time">{{ log.end_time|date:"Y-m-d H:i" }}</td>
+                <td data-label="Description">{{ log.description }}</td>
+                <td class="action-buttons">
+                    <a href="update/{{ log.id }}">
+                        <button class="btn-duo">Edit</button>
+                    </a>
+                    <a href="delete/{{ log.id }}">
+                        <button class="btn-duo-danger btn-duo">Delete</button>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+    // Enhance mobile touch interactions
+    document.addEventListener('DOMContentLoaded', function() {
+        const cards = document.querySelectorAll('.card-3d');
+        
+        cards.forEach(card => {
+            // Add touch feedback
+            card.addEventListener('touchstart', function() {
+                this.style.transform = 'translateZ(20px)';
+            });
+            
+            card.addEventListener('touchend', function() {
+                this.style.transform = 'translateZ(10px)';
+            });
+        });
+    });
+</script>
+{% endblock %}

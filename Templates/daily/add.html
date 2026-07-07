@@ -54,10 +54,10 @@
     <form action="" method="post">
         {% csrf_token %}
         <label for="date">Date</label>
-        <input type="date" class="form-control" id="date" name="date" value="{{ date }}">
+        <input type="date" class="duo-input" id="date" name="date" value="{{ date }}">
 
         <label for="time">Time (In Hours)</label>
-        <input type="number" class="form-control" id="time" name="duration" value="{{ time }}">
+        <input type="number" class="duo-input" id="time" name="duration" value="{{ time }}">
 
         <button type="submit">Submit</button>
     </form>

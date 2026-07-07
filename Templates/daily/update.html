@@ -1,85 +1,74 @@
 {% extends "base.html" %}
-{% block title %}Update Time{% endblock %}
+{% block title %}Update Daily Time{% endblock %}
 {% block content %}
 
-<div class="container">
-    <div class="form">
-        <form action="" method="post">
+<div class="dashboard-container" style="display: flex; justify-content: center; padding-top: 2rem;">
+    <div class="card-duo" style="max-width: 500px; width: 100%; border-top: 6px solid var(--primary);">
+        <div class="card-header" style="margin-bottom: 1.5rem;">
+            <h2><i class="fas fa-edit"></i> Edit Daily Time</h2>
+        </div>
+
+        <form action="" method="post" class="duo-form" style="margin-bottom: 1.5rem;">
             {% csrf_token %}
-            <label for="date">Date</label>
-            <input type="date" class="input-field" id="date" name="date" value="{{date}}">
-            <label for="time">Time (In Hours)</label>
-            <input type="number" class="input-field" id="time" name="duration" value="{{data.duration}}">
-            <button type="submit" class="submit-btn">Submit</button>
+            
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; font-weight: 800; margin-bottom: 0.5rem; color: var(--ink);">Date</label>
+                <input type="date" name="date" class="duo-input" required value="{{ date }}">
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; font-weight: 800; margin-bottom: 0.5rem; color: var(--ink);">Duration (Hours)</label>
+                <input type="number" name="duration" step="0.01" class="duo-input" required value="{{ data.duration }}">
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; font-weight: 800; margin-bottom: 0.5rem; color: var(--ink);">Subject (Optional)</label>
+                <select name="subject" class="duo-input">
+                    <option value="">-- No specific subject --</option>
+                    {% for sub in subjects %}
+                    <option value="{{ sub.id }}" {% if data.subject and data.subject.id == sub.id %}selected{% endif %}>
+                        {{ sub.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div style="display: flex; gap: 1rem;">
+                <a href="/time/" style="text-decoration: none; width: 50%;">
+                    <button type="button" class="btn-duo btn-duo-secondary" style="width: 100%;">Cancel</button>
+                </a>
+                <button type="submit" class="btn-duo" style="width: 50%;">Update</button>
+            </div>
         </form>
-        <br>
+
+        <hr style="border: 1px solid var(--border); margin: 1.5rem 0;">
+
         <form action="/time/delete/{{data.id}}/" method="post">
             {% csrf_token %}
-            <button type="submit" class="delete-btn">Delete</button>
+            <button type="submit" class="btn-duo" style="width: 100%; background: var(--danger); border-bottom-color: #c92a2a;">
+                <i class="fas fa-trash"></i> Delete Entry
+            </button>
         </form>
     </div>
 </div>
 
 <style>
-    .container {
-        width: 80%;
-        margin: 0 auto;
-        padding-top: 50px;
-    }
-
-    .form {
-        background-color: #f7f7f7;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-
-    label {
-        font-size: 16px;
-        color: #333;
-        margin-bottom: 5px;
-        display: block;
-    }
-
-    .input-field {
+    .duo-input {
         width: 100%;
-        padding: 10px;
-        margin-bottom: 20px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        font-size: 14px;
+        padding: 0.8rem;
+        border: 2px solid var(--border);
+        border-radius: var(--radius-md);
+        background: var(--surface-1);
+        color: var(--ink);
+        font-family: inherit;
+        font-weight: 600;
+        transition: all 0.2s ease;
     }
-
-    .input-field:focus {
-        border-color: #007bff;
+    
+    .duo-input:focus {
         outline: none;
-    }
-
-    .submit-btn {
-        padding: 10px 15px;
-        background-color: #007bff;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 16px;
-    }
-
-    .submit-btn:hover {
-        background-color: #0056b3;
-    }
-    .delete-btn {
-        padding: 10px 15px;
-        background-color: #e9184c;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 16px;
-    }
-
-    .delete-btn:hover {
-        background-color: #a02406;
+        border-color: var(--primary);
+        background: var(--canvas);
     }
 </style>
 
