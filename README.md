@@ -1,7 +1,7 @@
 <div align="center">
   <img src="https://raw.githubusercontent.com/Sayyednaa/Trakment/main/staticfiles/img/icons/icon.png" width="120" alt="Trakment Logo">
   <h1>Trakment</h1>
-  <p><strong>Your Ultimate Gamified Student & Habit Tracker</strong></p>
+  <p><strong>Your Ultimate Gamified Student Tracker</strong></p>
   
   [![Django](https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=green)](#)
   [![Bootstrap](https://img.shields.io/badge/Bootstrap-563D7C?style=for-the-badge&logo=bootstrap&logoColor=white)](#)
@@ -11,7 +11,7 @@
 
 <br>
 
-**Trakment** is an all-in-one, beautifully designed productivity dashboard built with Django. Drawing inspiration from modern, gamified interfaces (like Duolingo), Trakment brings together study analytics, habit tracking, deep focus sessions, and spiritual routines into a single, cohesive platform.
+**Trakment** is an all-in-one, beautifully designed productivity dashboard built with Django. Drawing inspiration from modern, gamified interfaces (like Duolingo), Trakment brings together study analytics, deep focus sessions, spaced repetition, and academic tracking into a single, cohesive platform.
 
 ---
 
@@ -34,10 +34,6 @@
 ### 📝 OMR & Self Tests
 - **Automated Grading Prep:** Includes an integrated Optical Mark Recognition (OMR) Setup sheet.
 - **Self-Test Analytics:** Log test scores, review mistakes, and analyze your academic performance over time.
-
-### 🕌 Salah & Habit Tracker
-- **Daily Check-Ins:** Track your five daily prayers (Fard, Sunnah, Nafl) alongside your academic habits.
-- **Visual Streaks:** Maintain momentum with gamified streaks and colorful, interactive checkboxes.
 
 ---
 
