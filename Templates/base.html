@@ -99,24 +99,14 @@
                 <span>Trakment</span>
             </a>
             <ul class="nav-menu">
+                <li class="nav-header" style="font-size: 0.75rem; font-weight: 800; color: var(--ink-muted); padding: 1rem 1.5rem 0.5rem; text-transform: uppercase; letter-spacing: 1px;">DASHBOARD</li>
                 <li class="nav-item">
                     <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/">
                         <i class="fas fa-home"></i> <span>Home</span>
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if '/leaderboard' in request.path %}active{% endif %}" href="/leaderboard/">
-                        <i class="fas fa-trophy"></i> <span>Leaderboard</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if '/chat' in request.path %}active{% endif %}" href="{% url 'chat_inbox' %}" style="position: relative;">
-                        <i class="fas fa-comment-dots"></i> <span>Chat</span>
-                        {% if request.user.is_authenticated and request.user.userprofile.has_unread_messages %}
-                        <span style="position: absolute; top: 12px; left: 35px; width: 10px; height: 10px; background-color: var(--primary); border-radius: 50%; border: 2px solid var(--surface-1);"></span>
-                        {% endif %}
-                    </a>
-                </li>
+                
+                <li class="nav-header" style="font-size: 0.75rem; font-weight: 800; color: var(--ink-muted); padding: 1.5rem 1.5rem 0.5rem; text-transform: uppercase; letter-spacing: 1px;">STUDY & ORGANIZE</li>
                 <li class="nav-item">
                     <a class="nav-link {% if '/time' in request.path %}active{% endif %}" href="/time/">
                         <i class="fas fa-clock"></i> <span>Time</span>
@@ -127,6 +117,18 @@
                         <i class="fas fa-tasks"></i> <span>Todo</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if '/todo/syllabus' in request.path %}active{% endif %}" href="/todo/syllabus/">
+                        <i class="fas fa-book"></i> <span>Syllabus</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if '/notes' in request.path %}active{% endif %}" href="/notes/">
+                        <i class="fas fa-sticky-note"></i> <span>Notes</span>
+                    </a>
+                </li>
+
+                <li class="nav-header" style="font-size: 0.75rem; font-weight: 800; color: var(--ink-muted); padding: 1.5rem 1.5rem 0.5rem; text-transform: uppercase; letter-spacing: 1px;">ASSESSMENTS</li>
                 <li class="nav-item">
                     <a class="nav-link {% if '/revision' in request.path %}active{% endif %}" href="/revision/">
                         <i class="fas fa-sync-alt"></i> <span>Revision</span>
@@ -143,16 +145,7 @@
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a class="nav-link {% if '/todo/syllabus' in request.path %}active{% endif %}" href="/todo/syllabus/">
-                        <i class="fas fa-book"></i> <span>Syllabus</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if '/notes' in request.path %}active{% endif %}" href="/notes/">
-                        <i class="fas fa-sticky-note"></i> <span>Notes</span>
-                    </a>
-                </li>
+                <li class="nav-header" style="font-size: 0.75rem; font-weight: 800; color: var(--ink-muted); padding: 1.5rem 1.5rem 0.5rem; text-transform: uppercase; letter-spacing: 1px;">PERSONAL</li>
                 <li class="nav-item">
                     <a class="nav-link {% if '/data' in request.path %}active{% endif %}" href="/data/">
                         <i class="fas fa-fire"></i> <span>Habits</span>
@@ -168,12 +161,26 @@
                         <i class="fas fa-key"></i> <span>Passwords</span>
                     </a>
                 </li>
+
+                <li class="nav-header" style="font-size: 0.75rem; font-weight: 800; color: var(--ink-muted); padding: 1.5rem 1.5rem 0.5rem; text-transform: uppercase; letter-spacing: 1px;">COMMUNITY & ACCOUNT</li>
                 <li class="nav-item">
                     <a class="nav-link {% if '/profile' in request.path %}active{% endif %}" href="/profile">
                         <i class="fas fa-user-circle"></i> <span>Profile</span>
                     </a>
                 </li>
-
+                <li class="nav-item">
+                    <a class="nav-link {% if '/leaderboard' in request.path %}active{% endif %}" href="/leaderboard/">
+                        <i class="fas fa-trophy"></i> <span>Leaderboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if '/chat' in request.path %}active{% endif %}" href="{% url 'chat_inbox' %}" style="position: relative;">
+                        <i class="fas fa-comment-dots"></i> <span>Chat</span>
+                        {% if request.user.is_authenticated and request.user.userprofile.has_unread_messages %}
+                        <span style="position: absolute; top: 12px; left: 35px; width: 10px; height: 10px; background-color: var(--primary); border-radius: 50%; border: 2px solid var(--surface-1);"></span>
+                        {% endif %}
+                    </a>
+                </li>
 
                 {% if request.user.is_staff %}
                  <li class="nav-item">
