@@ -1,0 +1,61 @@
+{% extends 'subscriptions/business_base.html' %}
+
+{% block business_content %}
+<div class="card clean-card">
+    <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold mb-0">All Payments</h5>
+            
+            <form method="get" class="d-flex gap-2">
+                <select name="status" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Statuses</option>
+                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
+                    <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
+                </select>
+            </form>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="custom-thead text-uppercase small fw-bold">
+                    <tr>
+                        <th class="ps-3">User</th>
+                        <th>Plan</th>
+                        <th>UTR ID</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th class="text-end pe-3">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in payments %}
+                    <tr>
+                        <td class="ps-3 fw-bold">{{ payment.user.username }}</td>
+                        <td>{{ payment.plan.name }}</td>
+                        <td class="text-muted"><small>{{ payment.utr_id }}</small></td>
+                        <td>
+                            {% if payment.status == 'pending' %}
+                                <span class="badge bg-warning text-dark">Pending</span>
+                            {% elif payment.status == 'approved' %}
+                                <span class="badge bg-success">Approved</span>
+                            {% else %}
+                                <span class="badge bg-danger">Rejected</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-muted small">{{ payment.created_at|date:"M d, Y" }}</td>
+                        <td class="text-end pe-3">
+                            <a href="{% url 'business_payment_review' payment.id %}" class="btn btn-sm btn-primary-solid py-1 px-3">Review</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4 fw-bold">No payments found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

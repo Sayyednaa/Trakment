@@ -2,7 +2,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from .models import Diary
 from django.utils import timezone
 from datetime import datetime
+from django.contrib.auth.decorators import login_required
 
+@login_required(login_url='/login')
 def home(request):
     today = timezone.now().date().strftime('%Y-%m-%d')
     if request.method == 'POST':
@@ -20,10 +22,12 @@ def home(request):
     diaries = Diary.objects.filter(user=request.user).order_by('-date', '-created_at')
     return render(request, 'diary/diary.html', {'today': today, 'diary': diaries})
 
+@login_required(login_url='/login')
 def view_diary(request, id):
     diary = get_object_or_404(Diary, id=id, user=request.user)
     return render(request, 'diary/view_diary.html', {'diary': diary})
 
+@login_required(login_url='/login')
 def delete(request, id):
     diary = get_object_or_404(Diary, id=id, user=request.user)
     diary.delete() # This now triggers the soft delete from SoftDeleteModel

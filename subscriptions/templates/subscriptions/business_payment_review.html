@@ -1,0 +1,100 @@
+{% extends 'subscriptions/business_base.html' %}
+
+{% block business_content %}
+<div class="mb-4">
+    <a href="{% url 'business_payments' %}" style="text-decoration: none; color: var(--ink-muted); font-weight: 700;">
+        <i class="fas fa-arrow-left me-2"></i> Back to Payments
+    </a>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-7">
+        <div class="card clean-card h-100">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4">Payment Evidence</h5>
+                
+                {% if payment.screenshot %}
+                    <div class="text-center bg-secondary bg-opacity-10 rounded p-2" style="border: 2px dashed var(--border);">
+                        <a href="{{ payment.screenshot.url }}" target="_blank">
+                            <img src="{{ payment.screenshot.url }}" alt="Screenshot" class="img-fluid rounded" style="max-height: 400px; object-fit: contain;">
+                        </a>
+                        <p class="text-muted small mt-2 fw-bold"><i class="fas fa-search-plus"></i> Click to enlarge</p>
+                    </div>
+                {% else %}
+                    <div class="text-center bg-secondary bg-opacity-10 rounded p-5 d-flex flex-column align-items-center justify-content-center" style="border: 2px dashed var(--border); min-height: 300px;">
+                        <i class="fas fa-image text-muted fs-1 mb-3"></i>
+                        <h6 class="text-muted fw-bold">No Screenshot Provided</h6>
+                        <p class="small text-muted mb-0">You will need to verify the UTR directly in your bank statement.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-5">
+        <div class="card clean-card h-100">
+            <div class="card-body p-4 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0">Review Action</h5>
+                    {% if payment.status == 'pending' %}
+                        <span class="badge bg-warning text-dark">Pending</span>
+                    {% elif payment.status == 'approved' %}
+                        <span class="badge bg-success">Approved</span>
+                    {% else %}
+                        <span class="badge bg-danger">Rejected</span>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-4">
+                    <label class="text-muted small fw-bold text-uppercase">User</label>
+                    <p class="fs-5 fw-bold mb-3">{{ payment.user.username }}</p>
+                    
+                    <label class="text-muted small fw-bold text-uppercase">Requested Plan</label>
+                    <p class="fs-5 fw-bold text-primary mb-3">{{ payment.plan.name|title }} (₹{{ payment.plan.price }})</p>
+                    
+                    <label class="text-muted small fw-bold text-uppercase">UTR Transaction ID</label>
+                    <div class="bg-secondary bg-opacity-10 p-3 rounded border mb-3">
+                        <code class="fs-5 fw-bold" style="word-break: break-all; color: var(--ink);">{{ payment.utr_id }}</code>
+                    </div>
+                    
+                    <label class="text-muted small fw-bold text-uppercase">Date Submitted</label>
+                    <p class="fw-bold mb-3">{{ payment.created_at|date:"M d, Y H:i" }}</p>
+                </div>
+                
+                <hr>
+                
+                {% if payment.status == 'pending' %}
+                <form method="post" class="mt-auto">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label class="text-muted small fw-bold text-uppercase mb-2">Admin Notes (Optional)</label>
+                        <textarea name="admin_notes" class="form-control" rows="2" placeholder="e.g. Mismatched amount..."></textarea>
+                    </div>
+                    
+                    <div class="d-flex gap-3">
+                        <button type="submit" name="action" value="reject" class="btn btn-outline-danger fw-bold flex-grow-1 py-3" onclick="return confirm('Are you sure you want to REJECT this payment?');">
+                            Reject
+                        </button>
+                        <button type="submit" name="action" value="approve" class="btn btn-success fw-bold flex-grow-1 py-3" style="box-shadow: 0 4px 0 #15803d;" onclick="return confirm('Approve this payment? This will immediately activate the user\'s subscription.');">
+                            <i class="fas fa-check-circle me-2"></i> Approve
+                        </button>
+                    </div>
+                </form>
+                {% else %}
+                <div class="mt-auto pt-3">
+                    <label class="text-muted small fw-bold text-uppercase mb-2">Admin Notes</label>
+                    <p class="bg-secondary bg-opacity-10 p-3 rounded border text-muted fw-bold">
+                        {{ payment.admin_notes|default:"No notes provided." }}
+                    </p>
+                    <div class="alert alert-info fw-bold mb-0">
+                        <i class="fas fa-info-circle me-2"></i> This payment has already been processed and cannot be changed.
+                    </div>
+                </div>
+                {% endif %}
+                
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

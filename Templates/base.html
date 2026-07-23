@@ -72,7 +72,7 @@
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
     <!-- Custom Duolingo Styles -->
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=2">
 
     <!-- Theme Preference Initialization -->
     <script>
@@ -190,7 +190,12 @@
                 
                 {% if request.user.is_superuser %}
                 <li class="nav-item">
-                    <a class="nav-link" href="/admin/"><i class="fas fa-user-circle"></i> <span>Admin</span></a>
+                    <a class="nav-link {% if '/subscriptions/dashboard/' in request.path %}active{% endif %}" href="/subscriptions/dashboard/">
+                        <i class="fas fa-chart-pie"></i> <span>Business Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/"><i class="fas fa-cogs"></i> <span>Django Admin</span></a>
                 </li>
                 {% endif %}
 

@@ -268,11 +268,17 @@ def user_profile(request):
     from .leaderboard_utils import calculate_user_points_all_time
     all_time_points = calculate_user_points_all_time(user)
     
+    from subscriptions.models import Payment
+    sub = getattr(request.user, 'subscription', None)
+    payments = Payment.objects.filter(user=request.user).order_by('-created_at')
+    
     context = {
         'study_hrs': round(float(study_hrs), 1),
         'tasks_done': tasks_done,
         'avg_score': avg_score,
         'all_time_points': all_time_points,
+        'subscription': sub,
+        'payments': payments,
     }
     
     return render(request, 'user/profile.html', context)
@@ -321,10 +327,54 @@ def public_profile(request, username):
     profile_user = get_object_or_404(User, username=username)
     all_time_points = calculate_user_points_all_time(profile_user)
     
-    return render(request, 'user/public_profile.html', {
+    # --- ADMIN ACTIONS ---
+    is_admin = request.user.is_superuser
+    
+    if is_admin and request.method == 'POST':
+        action = request.POST.get('action')
+        
+        # Blocking
+        if action == 'block':
+            days = int(request.POST.get('block_days', 0))
+            if days == -1: # Permanent
+                profile_user.userprofile.blocked_until = timezone.now() + timezone.timedelta(days=36500)
+                messages.warning(request, f'User {username} blocked permanently.')
+            elif days > 0:
+                profile_user.userprofile.blocked_until = timezone.now() + timezone.timedelta(days=days)
+                messages.warning(request, f'User {username} blocked for {days} days.')
+            profile_user.userprofile.save()
+            
+        elif action == 'unblock':
+            profile_user.userprofile.blocked_until = None
+            profile_user.userprofile.save()
+            messages.success(request, f'User {username} has been unblocked.')
+            
+        # Subscription Modification
+        elif action == 'modify_sub':
+            sub = getattr(profile_user, 'subscription', None)
+            if sub and sub.is_valid:
+                days = int(request.POST.get('sub_days', 0))
+                sub.end_date = sub.end_date + timezone.timedelta(days=days)
+                sub.save()
+                word = "added to" if days > 0 else "removed from"
+                messages.success(request, f'{abs(days)} days {word} {username}\'s subscription.')
+            else:
+                messages.error(request, 'User does not have an active subscription to modify.')
+                
+        return redirect('public_profile', username=username)
+        
+    # Gather extended context if superuser
+    context = {
         'profile_user': profile_user,
-        'all_time_points': all_time_points
-    })
+        'all_time_points': all_time_points,
+    }
+    
+    if is_admin:
+        from subscriptions.models import Payment
+        context['payments'] = Payment.objects.filter(user=profile_user).order_by('-created_at')
+        context['subscription'] = getattr(profile_user, 'subscription', None)
+
+    return render(request, 'user/public_profile.html', context)
 
 @login_required
 def chat_inbox(request):

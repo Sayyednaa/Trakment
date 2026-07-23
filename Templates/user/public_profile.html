@@ -59,7 +59,16 @@
 </style>
 
 <div class="profile-container">
-    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show fw-bold" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Admin section moved below -->
     <!-- User Header -->
     <div style="text-align: center; margin-bottom: 2rem;">
         {% if profile_user.userprofile.profile_photo %}
@@ -90,6 +99,103 @@
         <a href="{% url 'chat_thread' username=profile_user.username %}" class="btn-duo btn-duo-primary" style="padding: 10px 30px; font-size: 1.1rem; width: 100%; max-width: 300px; display: inline-block;">
             <i class="fas fa-comment-dots"></i> Message
         </a>
+    </div>
+    {% endif %}
+
+    {% if request.user.is_superuser %}
+    <div class="card clean-card mt-5 border-danger" style="border-width: 2px;">
+        <div class="card-header bg-danger bg-opacity-10 text-danger fw-bold border-0 py-3">
+            <i class="fas fa-shield-alt me-2"></i> Admin Actions
+        </div>
+        <div class="card-body p-4">
+            
+            <h6 class="fw-bold mb-3">User Blocking</h6>
+            {% if profile_user.userprofile.blocked_until %}
+                <div class="alert alert-danger fw-bold mb-3">
+                    Blocked until: {{ profile_user.userprofile.blocked_until|date:"M d, Y H:i" }}
+                </div>
+                <form method="post" class="mb-4">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="unblock">
+                    <button class="btn btn-success fw-bold w-100">Unblock User</button>
+                </form>
+            {% else %}
+                <form method="post" class="mb-4 d-flex gap-2">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="block">
+                    <select name="block_days" class="form-select fw-bold">
+                        <option value="1">Block for 1 Day</option>
+                        <option value="7">Block for 1 Week</option>
+                        <option value="30">Block for 1 Month</option>
+                        <option value="-1">Block Permanently</option>
+                    </select>
+                    <button class="btn btn-danger fw-bold px-4">Block</button>
+                </form>
+            {% endif %}
+
+            <hr class="my-4">
+
+            <h6 class="fw-bold mb-3">Subscription Management</h6>
+            {% if subscription and subscription.is_valid %}
+                <div class="alert alert-info fw-bold mb-3">
+                    Plan: {{ subscription.plan.name|title }}<br>
+                    Expires: {{ subscription.end_date|date:"M d, Y H:i" }}
+                </div>
+                <form method="post" class="d-flex gap-2 mb-4">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="modify_sub">
+                    <select name="sub_days" class="form-select fw-bold">
+                        <option value="7">Add 7 Days</option>
+                        <option value="30">Add 30 Days</option>
+                        <option value="365">Add 1 Year</option>
+                        <option value="-7">Subtract 7 Days</option>
+                        <option value="-30">Subtract 30 Days</option>
+                    </select>
+                    <button class="btn btn-primary fw-bold px-4">Apply</button>
+                </form>
+            {% else %}
+                <div class="alert alert-secondary fw-bold mb-4">
+                    No active subscription to modify.
+                </div>
+            {% endif %}
+            
+            <hr class="my-4">
+            
+            <h6 class="fw-bold mb-3">Payment History</h6>
+            <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
+                <table class="table table-sm table-hover align-middle">
+                    <thead class="custom-thead text-uppercase small fw-bold">
+                        <tr>
+                            <th>Date</th>
+                            <th>Plan</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in payments %}
+                        <tr>
+                            <td class="small">{{ payment.created_at|date:"M d, Y" }}</td>
+                            <td class="small">{{ payment.plan.name }}</td>
+                            <td class="small">
+                                {% if payment.status == 'pending' %}
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                {% elif payment.status == 'approved' %}
+                                    <span class="badge bg-success">Approved</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Rejected</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center text-muted py-3 small fw-bold">No payments found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
     </div>
     {% endif %}
 </div>

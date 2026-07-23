@@ -3,7 +3,9 @@ from .models import Habit, HabitEntry
 from collections import defaultdict
 from datetime import datetime, timedelta
 import json
+from django.contrib.auth.decorators import login_required
 
+@login_required(login_url='/login')
 def habit_list(request):
     """Displays all user habits and allows creating new ones."""
     if request.method == 'POST':
@@ -51,6 +53,7 @@ def habit_list(request):
     return render(request, 'habit/list.html', {'habits': habit_data})
 
 
+@login_required(login_url='/login')
 def habit_detail(request, habit_id):
     """Main dashboard view for a specific habit tracking."""
     habit = get_object_or_404(Habit, id=habit_id, user=request.user)
@@ -215,6 +218,7 @@ def habit_detail(request, habit_id):
     })
 
 
+@login_required(login_url='/login')
 def habit_update(request, habit_id, entry_id):
     """Update habit entry."""
     habit = get_object_or_404(Habit, id=habit_id, user=request.user)
@@ -231,6 +235,7 @@ def habit_update(request, habit_id, entry_id):
     return render(request, 'habit/habit_update.html', {'entry': entry, 'habit': habit, 'today': today})
 
 
+@login_required(login_url='/login')
 def habit_delete(request, habit_id, entry_id):
     """Delete habit entry."""
     habit = get_object_or_404(Habit, id=habit_id, user=request.user)

@@ -1,0 +1,61 @@
+{% extends 'subscriptions/business_base.html' %}
+
+{% block business_content %}
+<div class="card clean-card">
+    <div class="card-body p-4">
+        <h5 class="fw-bold mb-4">User Management</h5>
+        
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="custom-thead text-uppercase small fw-bold">
+                    <tr>
+                        <th class="ps-3">User</th>
+                        <th>Email</th>
+                        <th>Join Date</th>
+                        <th>Current Plan</th>
+                        <th>Status</th>
+                        <th class="text-end pe-3">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <tr>
+                        <td class="ps-3 fw-bold">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-secondary bg-opacity-10 text-secondary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px;">
+                                    {{ u.username|first|upper }}
+                                </div>
+                                {{ u.username }}
+                            </div>
+                        </td>
+                        <td class="text-muted"><small>{{ u.email|default:"-" }}</small></td>
+                        <td class="text-muted small">{{ u.date_joined|date:"M d, Y" }}</td>
+                        <td>
+                            {% if u.subscription and u.subscription.is_valid %}
+                                <span class="fw-bold text-primary">{{ u.subscription.plan.name|title }}</span>
+                            {% else %}
+                                <span class="text-muted">None</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if u.subscription and u.subscription.is_valid %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-3">
+                            <a href="{% url 'public_profile' u.username %}" class="btn btn-sm btn-outline-secondary py-1" target="_blank">View Profile</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4 fw-bold">No users found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -59,6 +59,7 @@ class UserProfile(models.Model):
     profile_photo = models.ImageField(upload_to='profiles/', null=True, blank=True)
     target_date = models.DateField(default=date(2026, 4, 3))
     target_study_hours = models.DecimalField(max_digits=5, decimal_places=2, default=8.00)
+    blocked_until = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.user.username}'s Profile"

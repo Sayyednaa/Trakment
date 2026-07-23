@@ -344,6 +344,21 @@ h2 { font-size: 32px; }
     transform: translateY(-2px);
 }
 
+.clean-card {
+    background-color: var(--surface-1);
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--border);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+/* Override default bootstrap card background when combined with clean-card */
+.card.clean-card {
+    background-color: var(--surface-1);
+    border: 2px solid var(--border);
+}
+
 /* Utilities */
 .text-primary { color: var(--primary) !important; }
 .text-secondary { color: var(--secondary) !important; }

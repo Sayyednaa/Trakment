@@ -208,6 +208,24 @@
             <div class="settings-arrow"><i class="fas fa-sync-alt"></i></div>
         </div>
     </div>
+    <!-- Subscription & Billing -->
+    <div class="section-title">SUBSCRIPTION & BILLING</div>
+    <div class="settings-group">
+        <div class="settings-item" data-bs-toggle="modal" data-bs-target="#subscriptionModal">
+            <div class="settings-icon"><i class="fas fa-crown"></i></div>
+            <div class="settings-text">
+                <div class="settings-title">Manage Subscription</div>
+                <div class="settings-desc">
+                    {% if subscription and subscription.is_valid %}
+                        {{ subscription.plan.get_name_display }} - Active
+                    {% else %}
+                        No Active Plan
+                    {% endif %}
+                </div>
+            </div>
+            <div class="settings-arrow"><i class="fas fa-chevron-right"></i></div>
+        </div>
+    </div>
     
     <!-- Support -->
     <div class="section-title">SUPPORT</div>
@@ -240,6 +258,91 @@
         </a>
     </div>
      
+</div>
+
+<!-- Subscription Modal -->
+<div class="modal fade" id="subscriptionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content card-duo p-4" style="background: var(--canvas); border: 2px solid var(--border);">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold"><i class="fas fa-crown me-2 text-secondary"></i>Subscription Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-5 mb-4 mb-md-0">
+                        <div class="card clean-card h-100">
+                            <div class="card-body p-4">
+                                <h5 class="fw-bold mb-3">Current Plan</h5>
+                                
+                                {% if subscription and subscription.is_valid %}
+                                    <div class="d-flex align-items-center mb-3">
+                                        <i class="fas fa-check-circle text-success fs-3 me-3"></i>
+                                        <div>
+                                            <h6 class="mb-0 fw-bold">{{ subscription.plan.get_name_display }}</h6>
+                                            <p class="text-muted mb-0 small">Active</p>
+                                        </div>
+                                    </div>
+                                    <p class="mb-3 small"><strong>Expires:</strong> <br>{{ subscription.end_date|date:"M d, Y H:i" }}</p>
+                                    
+                                    <a href="{% url 'pricing' %}" class="btn-primary-solid btn-sm w-100 text-center" style="display:block; text-decoration:none;">Upgrade Plan</a>
+                                {% else %}
+                                    <div class="d-flex align-items-center mb-3">
+                                        <i class="fas fa-times-circle text-danger fs-3 me-3"></i>
+                                        <div>
+                                            <h6 class="mb-0 fw-bold">No Active Plan</h6>
+                                            <p class="text-muted mb-0 small">Expired or not subscribed</p>
+                                        </div>
+                                    </div>
+                                    <a href="{% url 'pricing' %}" class="btn-primary-solid btn-sm w-100 text-center" style="display:block; text-decoration:none;">View Plans</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-7">
+                        <div class="card clean-card h-100">
+                            <div class="card-body p-4">
+                                <h5 class="fw-bold mb-3">Payment History</h5>
+                                <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th class="small">Date</th>
+                                                <th class="small">Plan</th>
+                                                <th class="small">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for payment in payments %}
+                                            <tr>
+                                                <td class="small">{{ payment.created_at|date:"M d, Y" }}</td>
+                                                <td class="small">{{ payment.plan.name }}</td>
+                                                <td class="small">
+                                                    {% if payment.status == 'pending' %}
+                                                        <span class="badge bg-warning text-dark">Pending</span>
+                                                    {% elif payment.status == 'approved' %}
+                                                        <span class="badge bg-success">Approved</span>
+                                                    {% else %}
+                                                        <span class="badge bg-danger">Rejected</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% empty %}
+                                            <tr>
+                                                <td colspan="3" class="text-center text-muted py-3 small">No payments found.</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Personal Information Modal -->

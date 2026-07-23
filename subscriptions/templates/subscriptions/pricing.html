@@ -1,0 +1,255 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    .pricing-header {
+        margin-bottom: 4rem;
+    }
+    .pricing-header h1 {
+        font-weight: 900;
+        letter-spacing: -1px;
+        color: var(--ink);
+    }
+    .pricing-card {
+        border-radius: 24px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+    }
+    .pricing-card.basic {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        box-shadow: none;
+        opacity: 0.9;
+        transform: scale(0.95);
+    }
+    .pricing-card.basic:hover {
+        opacity: 1;
+        transform: scale(0.98);
+    }
+    .pricing-card.premium {
+        background: var(--surface-1);
+        border: 2px solid var(--primary);
+        box-shadow: 0 20px 40px rgba(88, 204, 2, 0.15);
+        transform: scale(1.05);
+        z-index: 2;
+    }
+    .pricing-card.yearly {
+        background: var(--surface-1);
+        border: 1px solid var(--border);
+    }
+    
+    .popular-badge {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--primary);
+        color: white;
+        padding: 6px 20px;
+        border-bottom-left-radius: 12px;
+        border-bottom-right-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .price-amount {
+        font-size: 3.5rem;
+        font-weight: 900;
+        line-height: 1;
+        color: var(--ink);
+    }
+    
+    .price-period {
+        font-size: 1rem;
+        color: var(--ink-muted);
+        font-weight: 600;
+    }
+    
+    .pricing-features li {
+        margin-bottom: 1rem;
+        font-weight: 600;
+        color: var(--ink-muted);
+        display: flex;
+        align-items: center;
+    }
+    
+    .pricing-features li i.fa-check {
+        color: var(--primary);
+        margin-right: 12px;
+        font-size: 1.1rem;
+    }
+    
+    .pricing-features li.disabled {
+        color: #94a3b8;
+        text-decoration: line-through;
+    }
+    .pricing-features li.disabled i {
+        color: #cbd5e1;
+    }
+    
+    .btn-pricing {
+        padding: 14px;
+        border-radius: 16px;
+        font-weight: 800;
+        font-size: 1.1rem;
+        text-align: center;
+        text-decoration: none;
+        display: block;
+        transition: all 0.2s;
+    }
+    
+    .btn-pricing-outline {
+        border: 2px solid var(--border);
+        color: var(--ink);
+        background: transparent;
+    }
+    
+    .btn-pricing-outline:hover {
+        border-color: var(--ink-muted);
+        background: var(--surface-2);
+        color: var(--ink);
+    }
+    
+    .btn-pricing-solid {
+        background: var(--primary);
+        color: white;
+        box-shadow: 0 4px 0 #46a302;
+    }
+    
+    .btn-pricing-solid:hover {
+        background: #65e003;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 0 #46a302;
+        color: white;
+    }
+    
+    .btn-pricing-solid:active {
+        transform: translateY(2px);
+        box-shadow: 0 2px 0 #46a302;
+    }
+</style>
+
+<div class="container py-5 px-3">
+    <div class="text-center pricing-header">
+        <div class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill mb-3 fw-bold" style="letter-spacing: 1px;">INVEST IN YOUR SUCCESS</div>
+        <h1 class="display-4">Supercharge your studies.</h1>
+        <p class="lead text-muted mx-auto mt-3" style="max-width: 600px; font-weight: 500;">
+            Join thousands of top-performing students. Stop leaving your grades to chance and start mastering your time today.
+        </p>
+    </div>
+
+    <div class="row justify-content-center align-items-center g-4">
+        
+        <!-- Basic Plan -->
+        <div class="col-lg-3 col-md-6">
+            {% for plan in plans %}
+            {% if plan.name == 'basic' %}
+            <div class="card pricing-card basic h-100 p-4">
+                <div class="card-body p-0 d-flex flex-column">
+                    <h4 class="fw-bold text-muted mb-2">Basic</h4>
+                    <p class="small fw-bold text-muted mb-4">For casual tracking.</p>
+                    
+                    <div class="mb-4">
+                        <span class="price-amount">₹{{ plan.price }}</span><span class="price-period">/mo</span>
+                    </div>
+                    
+                    <ul class="list-unstyled pricing-features flex-grow-1 text-start">
+                        <li><i class="fas fa-check"></i> Essential Time Tracker</li>
+                        <li><i class="fas fa-check"></i> Basic Syllabus Manager</li>
+                        <li><i class="fas fa-check"></i> Digital Notes Vault</li>
+                        <li class="disabled"><i class="fas fa-times"></i> Global Leaderboard</li>
+                        <li class="disabled"><i class="fas fa-times"></i> Community Chat</li>
+                        <li class="disabled"><i class="fas fa-times"></i> Advanced Habit Analytics</li>
+                    </ul>
+                    
+                    <a href="{% url 'checkout' plan.id %}" class="btn-pricing btn-pricing-outline w-100 mt-4">Get Started</a>
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+        
+        <!-- Premium+ Plan (Center Stage) -->
+        <div class="col-lg-4 col-md-8 position-relative">
+            {% for plan in plans %}
+            {% if plan.name == 'premium' %}
+            <div class="card pricing-card premium h-100 p-4 p-lg-5">
+                <div class="popular-badge">Most Popular</div>
+                <div class="card-body p-0 d-flex flex-column text-center">
+                    <h3 class="fw-bold text-primary mb-2">Premium+</h3>
+                    <p class="fw-bold text-muted mb-4">The ultimate competitive edge.</p>
+                    
+                    <div class="mb-4">
+                        <span class="price-amount" style="color: var(--primary);">₹{{ plan.price }}</span><span class="price-period">/mo</span>
+                    </div>
+                    
+                    <div class="bg-primary bg-opacity-10 rounded-3 p-3 mb-4 text-start">
+                        <p class="mb-0 fw-bold" style="color: var(--primary); font-size: 0.9rem;">
+                            <i class="fas fa-bolt me-2"></i> Unlocks everything you need to crush your exams.
+                        </p>
+                    </div>
+                    
+                    <ul class="list-unstyled pricing-features flex-grow-1 text-start">
+                        <li><i class="fas fa-check"></i> Everything in Basic</li>
+                        <li><i class="fas fa-check"></i> <strong>Global Leaderboard Access</strong></li>
+                        <li><i class="fas fa-check"></i> <strong>Secure Community Chat</strong></li>
+                        <li><i class="fas fa-check"></i> <strong>Advanced Habit Tracking</strong></li>
+                        <li><i class="fas fa-check"></i> Priority Email Support</li>
+                    </ul>
+                    
+                    <a href="{% url 'checkout' plan.id %}" class="btn-pricing btn-pricing-solid w-100 mt-4">Unlock Premium Now</a>
+                    <p class="text-muted small mt-3 fw-bold mb-0">Cancel anytime. No hidden fees.</p>
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+        
+        <!-- Yearly Plan (Anchoring) -->
+        <div class="col-lg-3 col-md-6">
+            {% for plan in plans %}
+            {% if plan.name == 'yearly' %}
+            <div class="card pricing-card yearly h-100 p-4">
+                <div class="card-body p-0 d-flex flex-column">
+                    <h4 class="fw-bold text-dark mb-2">Yearly</h4>
+                    <p class="small fw-bold text-muted mb-4">Best long-term value.</p>
+                    
+                    <div class="mb-4">
+                        <span class="price-amount">₹{{ plan.price }}</span><span class="price-period">/yr</span>
+                    </div>
+                    
+                    <div class="badge bg-success bg-opacity-10 text-success py-2 px-3 rounded-3 mb-4 fw-bold text-start">
+                        Save ₹189 compared to monthly!
+                    </div>
+                    
+                    <ul class="list-unstyled pricing-features flex-grow-1 text-start">
+                        <li><i class="fas fa-check"></i> <strong>All Premium+ Features</strong></li>
+                        <li><i class="fas fa-check"></i> 1 Full Year Validity</li>
+                        <li><i class="fas fa-check"></i> 2 Months Free (Included)</li>
+                        <li><i class="fas fa-check"></i> VIP Support</li>
+                    </ul>
+                    
+                    <a href="{% url 'checkout' plan.id %}" class="btn-pricing btn-pricing-outline w-100 mt-4">Save With Yearly</a>
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+        
+    </div>
+    
+    <!-- Trust Indicators -->
+    <div class="text-center mt-5 pt-4">
+        <p class="text-muted fw-bold mb-4">Trusted by top students across the country</p>
+        <div class="d-flex justify-content-center gap-4 align-items-center opacity-50 flex-wrap">
+            <i class="fas fa-graduation-cap fs-2"></i>
+            <i class="fas fa-university fs-2"></i>
+            <i class="fas fa-book-open fs-2"></i>
+            <i class="fas fa-award fs-2"></i>
+        </div>
+    </div>
+</div>
+{% endblock %}

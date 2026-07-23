@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    .checkout-wrapper {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    .checkout-card {
+        border-radius: 24px;
+        overflow: hidden;
+        background: var(--surface-1);
+        border: 1px solid var(--border);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    }
+    .checkout-header {
+        background: var(--surface-2);
+        padding: 2rem;
+        border-bottom: 1px solid var(--border);
+        text-align: center;
+    }
+    .plan-summary {
+        background: var(--primary);
+        color: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .plan-summary::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 150px;
+        height: 150px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+    }
+    .qr-container {
+        background: white;
+        padding: 1rem;
+        border-radius: 16px;
+        display: inline-block;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+        border: 2px solid var(--border);
+        position: relative;
+    }
+    .qr-container::before {
+        content: 'SCAN WITH ANY UPI APP';
+        position: absolute;
+        top: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--ink);
+        color: white;
+        font-size: 0.7rem;
+        font-weight: 800;
+        padding: 4px 12px;
+        border-radius: 20px;
+        white-space: nowrap;
+    }
+    .upi-logos {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 1.5rem;
+        opacity: 0.7;
+    }
+    .upi-logos i {
+        font-size: 1.5rem;
+        color: var(--ink-muted);
+    }
+    .checkout-input {
+        background: var(--surface-2);
+        border: 2px solid var(--border);
+        border-radius: 14px;
+        padding: 12px 16px;
+        font-weight: 600;
+        color: var(--ink);
+        width: 100%;
+        transition: all 0.2s;
+    }
+    .checkout-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        background: var(--surface-1);
+        box-shadow: 0 0 0 4px rgba(88, 204, 2, 0.1);
+    }
+    .checkout-btn {
+        background: var(--primary);
+        color: white;
+        font-weight: 800;
+        font-size: 1.1rem;
+        padding: 16px;
+        border-radius: 16px;
+        border: none;
+        width: 100%;
+        box-shadow: 0 4px 0 #46a302;
+        transition: all 0.2s;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .checkout-btn:hover {
+        background: #65e003;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 0 #46a302;
+    }
+    .checkout-btn:active {
+        transform: translateY(2px);
+        box-shadow: 0 2px 0 #46a302;
+    }
+    .trust-badge {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        color: var(--ink-muted);
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-top: 1.5rem;
+    }
+</style>
+
+<div class="container py-5">
+    <div class="checkout-wrapper">
+        
+        <div class="mb-4">
+            <a href="{% url 'pricing' %}" style="text-decoration: none; color: var(--ink-muted); font-weight: 700;">
+                <i class="fas fa-arrow-left me-2"></i> Back to Plans
+            </a>
+        </div>
+
+        <div class="checkout-card row g-0">
+            <!-- Left Side: Order Summary & QR -->
+            <div class="col-md-5 p-4 p-md-5 border-end border-light" style="background: var(--surface-2);">
+                <h4 class="fw-bold mb-4 text-ink">Order Summary</h4>
+                
+                <div class="plan-summary">
+                    <p class="mb-1 fw-bold text-white-50" style="font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">Selected Plan</p>
+                    <h3 class="fw-bold mb-0 text-white">{{ plan.get_name_display }}</h3>
+                    <div class="mt-3 d-flex justify-content-between align-items-end">
+                        <span class="text-white-50 fw-bold">Total Amount</span>
+                        <h2 class="mb-0 fw-bold text-white">₹{{ plan.price }}</h2>
+                    </div>
+                </div>
+
+                <div class="text-center mt-5 pt-3">
+                    <div class="qr-container">
+                        <!-- Placeholder QR Code. Admin will need to replace this image in production -->
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa={{ upi_id }}%26pn=Trakment%26am={{ plan.price }}%26cu=INR" alt="UPI QR Code" style="width: 180px; height: 180px;">
+                        <p class="mt-3 mb-0 fw-bold" style="color: var(--ink); font-size: 0.95rem;">{{ upi_id }}</p>
+                    </div>
+                    
+                    <div class="upi-logos">
+                        <i class="fab fa-google-pay"></i>
+                        <i class="fab fa-amazon-pay"></i>
+                        <span class="fw-bold" style="color: var(--ink-muted); font-size: 1.2rem;">UPI</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Side: Form -->
+            <div class="col-md-7 p-4 p-md-5">
+                <h4 class="fw-bold mb-2">Payment Verification</h4>
+                <p class="text-muted fw-bold mb-4" style="font-size: 0.9rem;">Scan the QR code to pay, then submit your transaction details below.</p>
+                
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-muted small text-uppercase" style="letter-spacing: 1px;">UPI Transaction ID (UTR) <span class="text-danger">*</span></label>
+                        <input type="text" name="utr_id" class="checkout-input" required placeholder="e.g. 3123456789012">
+                        <small class="text-muted mt-2 d-block fw-bold" style="font-size: 0.8rem;"><i class="fas fa-info-circle me-1"></i> You can find this 12-digit number in your UPI app's transaction history.</small>
+                    </div>
+                    
+                    <div class="mb-5">
+                        <label class="form-label fw-bold text-muted small text-uppercase" style="letter-spacing: 1px;">Payment Screenshot (Optional)</label>
+                        <input type="file" name="screenshot" class="checkout-input" accept="image/*">
+                        <small class="text-muted mt-2 d-block fw-bold" style="font-size: 0.8rem;">Speeds up the verification process.</small>
+                    </div>
+                    
+                    <button type="submit" class="checkout-btn">
+                        <i class="fas fa-check-circle me-2"></i> Verify Payment
+                    </button>
+                    
+                    <div class="trust-badge">
+                        <i class="fas fa-shield-alt text-success"></i> 100% Secure & Manual Verification
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

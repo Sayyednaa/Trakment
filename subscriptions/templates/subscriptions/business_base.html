@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    .business-tabs {
+        display: flex;
+        overflow-x: auto;
+        white-space: nowrap;
+        background: var(--surface-1);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        margin-bottom: 2rem;
+        padding: 0.5rem;
+    }
+    
+    .business-tabs::-webkit-scrollbar {
+        height: 6px;
+    }
+    .business-tabs::-webkit-scrollbar-thumb {
+        background-color: var(--border);
+        border-radius: 10px;
+    }
+    
+    .business-nav-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1.5rem;
+        color: var(--ink-muted);
+        text-decoration: none;
+        font-weight: 700;
+        border-radius: 12px;
+        transition: all 0.2s;
+        margin-right: 0.5rem;
+    }
+    
+    .business-nav-item:last-child {
+        margin-right: 0;
+    }
+    
+    .business-nav-item:hover {
+        background: var(--surface-2);
+        color: var(--ink);
+    }
+    
+    .business-nav-item.active {
+        background: rgba(88, 204, 2, 0.15);
+        color: var(--primary);
+    }
+    
+    .business-nav-item i {
+        margin-right: 8px;
+        font-size: 1.1rem;
+    }
+    
+    /* Table Dark Mode Fixes */
+    .table {
+        color: var(--ink);
+        border-color: var(--border);
+    }
+    .table-hover tbody tr:hover {
+        background-color: var(--surface-2);
+        color: var(--ink);
+    }
+    .table > :not(caption) > * > * {
+        background-color: transparent;
+        color: var(--ink);
+        border-bottom-color: var(--border);
+    }
+    .custom-thead th {
+        background-color: var(--surface-2) !important;
+        color: var(--ink-muted) !important;
+        border-bottom: 2px solid var(--border) !important;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
+</style>
+
+<div class="container py-4">
+    <div class="mb-4">
+        <h2 class="fw-bold mb-0">Business Dashboard</h2>
+        <p class="text-muted fw-bold small">Manage subscriptions and payments</p>
+    </div>
+
+    <!-- Horizontal Tabs -->
+    <div class="business-tabs">
+        <a href="{% url 'business_overview' %}" class="business-nav-item {% if active_tab == 'overview' %}active{% endif %}">
+            <i class="fas fa-chart-line"></i> Overview
+        </a>
+        <a href="{% url 'business_payments' %}" class="business-nav-item {% if active_tab == 'payments' %}active{% endif %}">
+            <i class="fas fa-receipt"></i> Payments
+            {% if pending_payments %}
+            <span class="badge bg-danger ms-2">{{ pending_payments }}</span>
+            {% endif %}
+        </a>
+        <a href="{% url 'business_users' %}" class="business-nav-item {% if active_tab == 'users' %}active{% endif %}">
+            <i class="fas fa-users"></i> User Management
+        </a>
+    </div>
+    
+    <!-- Content Area -->
+    <div class="business-content">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show fw-bold" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        {% block business_content %}{% endblock %}
+    </div>
+</div>
+{% endblock %}
