@@ -65,3 +65,4 @@ all_models.txt
 schema_diff.json
 duolingo-DESIGN.md
 temp_landing.html
+.env

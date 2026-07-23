@@ -31,7 +31,7 @@ DEBUG = os.environ.get('DJANGO_DEBUG', 'False').lower() == 'true'
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
 
-CSRF_TRUSTED_ORIGINS = ['https://*.127.0.0.1', 'https://sayyednaa.pythonanywhere.com']
+CSRF_TRUSTED_ORIGINS = ['https://*.127.0.0.1', 'https://trakment.pythonanywhere.com']
 LOGIN_URL = '/login'
 
 # Application definition
