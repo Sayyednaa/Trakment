@@ -1,59 +1,151 @@
-from django.shortcuts import render, redirect
-from .models import data
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Habit, HabitEntry
 from collections import defaultdict
 from datetime import datetime, timedelta
-from django.http import JsonResponse
-import csv
 import json
-import os
-import numpy as np
-from django.conf import settings
+
+def habit_list(request):
+    """Displays all user habits and allows creating new ones."""
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        habit_type = request.POST.get('habit_type') # 'good' or 'bad'
+        is_good = True if habit_type == 'good' else False
+        if name:
+            Habit.objects.create(name=name, user=request.user, is_good_habit=is_good)
+        return redirect('habit_list')
+
+    habits = Habit.objects.filter(user=request.user).order_by('-id')
+    
+    habit_data = []
+    today = datetime.today().date()
+    for habit in habits:
+        entries = habit.entries.order_by('-date')
+        all_dates = list(entries.values_list('date', flat=True))
+        
+        current_streak = 0
+        
+        if habit.is_good_habit:
+            if all_dates:
+                if (today - all_dates[0]).days <= 1:
+                    current_streak = 1
+                    for i in range(len(all_dates) - 1):
+                        if (all_dates[i] - all_dates[i+1]).days == 1:
+                            current_streak += 1
+                        else:
+                            break
+        else:
+            # Bad Habit Logic
+            if all_dates:
+                current_streak = (today - all_dates[0]).days
+            else:
+                current_streak = (today - habit.created_at.date()).days # Fallback
+
+        habit_data.append({
+            'id': habit.id,
+            'name': habit.name,
+            'is_good': habit.is_good_habit,
+            'total_entries': len(all_dates),
+            'current_streak': current_streak,
+        })
+
+    return render(request, 'habit/list.html', {'habits': habit_data})
 
 
-def home(request):
-    """Main dashboard view for habit tracking."""
+def habit_detail(request, habit_id):
+    """Main dashboard view for a specific habit tracking."""
+    habit = get_object_or_404(Habit, id=habit_id, user=request.user)
     today_form = datetime.now().strftime('%Y-%m-%d')
 
     if request.method == 'POST':
-        name = request.POST.get('name')
         date = request.POST.get('date')
-        data.objects.create(name=name, date=date, user=request.user)
-        return redirect('/data/')
+        if not HabitEntry.objects.filter(habit=habit, date=date).exists():
+            HabitEntry.objects.create(habit=habit, date=date)
+        return redirect('habit_detail', habit_id=habit.id)
 
-    habit = data.objects.filter(user=request.user)
-    all_dates = list(data.objects.values_list('date', flat=True))
+    entries = habit.entries.order_by('-date')
+    all_dates = list(entries.values_list('date', flat=True))
 
-    # Organize data: {Month: {Year: Count}}
     month_year_counts = defaultdict(lambda: defaultdict(int))
     for date in all_dates:
         month = date.strftime("%b")
         year = date.strftime("%Y")
         month_year_counts[month][year] += 1
 
-    # Prepare chart data
     all_years = sorted({year for counts in month_year_counts.values() for year in counts})
     chart_data = [["Month"] + all_years]
 
-    # Ensure proper month sorting
     month_order = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
     for month in month_order:
         row = [month] + [month_year_counts[month].get(year, 0) for year in all_years]
         chart_data.append(row)
 
     # Streak Calculations
-    all_dates = list(data.objects.values_list('date', flat=True).order_by('-date'))
     today = datetime.today().date()
     longest_streak = 0
-    current_streak = (today - all_dates[0]).days if all_dates else 0
+    longest_start = "N/A"
+    longest_end = "N/A"
+    current_streak = 0
 
-    for i in range(len(all_dates) - 1):
-        gap = (all_dates[i] - all_dates[i + 1]).days - 1
-        if gap > longest_streak:
-            longest_streak = gap
-            longest_start = (all_dates[i + 1] + timedelta(days=1)).strftime('%Y-%m-%d')
-            longest_end = (all_dates[i] - timedelta(days=1)).strftime('%Y-%m-%d')
+    if habit.is_good_habit:
+        if all_dates:
+            if (today - all_dates[0]).days <= 1:
+                current_streak = 1
+                for i in range(len(all_dates) - 1):
+                    if (all_dates[i] - all_dates[i+1]).days == 1:
+                        current_streak += 1
+                    else:
+                        break
 
-    # Yearly Average Calculation
+            temp_streak = 1
+            temp_end = all_dates[0]
+            longest_streak = 1
+            longest_end = all_dates[0].strftime('%Y-%m-%d')
+            longest_start = all_dates[0].strftime('%Y-%m-%d')
+
+            for i in range(len(all_dates) - 1):
+                gap = (all_dates[i] - all_dates[i + 1]).days
+                if gap == 1:
+                    temp_streak += 1
+                else:
+                    if temp_streak > longest_streak:
+                        longest_streak = temp_streak
+                        longest_end = temp_end.strftime('%Y-%m-%d')
+                        longest_start = all_dates[i].strftime('%Y-%m-%d')
+                    temp_streak = 1
+                    temp_end = all_dates[i+1]
+            
+            if temp_streak > longest_streak:
+                longest_streak = temp_streak
+                longest_end = temp_end.strftime('%Y-%m-%d')
+                longest_start = all_dates[-1].strftime('%Y-%m-%d')
+    else:
+        # BAD HABIT STREAK LOGIC
+        if all_dates:
+            current_streak = (today - all_dates[0]).days
+            
+            if len(all_dates) >= 2:
+                # Find the maximum gap between any two entries
+                for i in range(len(all_dates) - 1):
+                    gap = (all_dates[i] - all_dates[i + 1]).days
+                    if gap > longest_streak:
+                        longest_streak = gap
+                        longest_end = all_dates[i].strftime('%Y-%m-%d')
+                        longest_start = all_dates[i + 1].strftime('%Y-%m-%d')
+                        
+                # Also check if the current streak is the longest
+                if current_streak > longest_streak:
+                    longest_streak = current_streak
+                    longest_end = today.strftime('%Y-%m-%d')
+                    longest_start = all_dates[0].strftime('%Y-%m-%d')
+            else:
+                # Only 1 entry, longest streak is the current streak
+                longest_streak = current_streak
+                longest_end = today.strftime('%Y-%m-%d')
+                longest_start = all_dates[0].strftime('%Y-%m-%d')
+        else:
+            current_streak = (today - habit.created_at.date()).days
+            longest_streak = current_streak
+
     year_month_counts = defaultdict(lambda: defaultdict(int))
     for date in all_dates:
         year = date.strftime("%Y")
@@ -62,7 +154,6 @@ def home(request):
 
     yearly_averages = {year: round(sum(months.values()) / 12, 2) for year, months in year_month_counts.items()}
 
-    # Additional Data Processing
     weekday_counts = defaultdict(int)
     yearly_counts = defaultdict(int)
     month_year_counts = defaultdict(lambda: defaultdict(int))
@@ -76,7 +167,6 @@ def home(request):
         yearly_counts[year] += 1
         weekday_counts[weekday] += 1
 
-    # Create JSON chart data
     chart_data = [["Month"] + all_years]
     for month_num in range(1, 13):
         row = [month_num] + [month_year_counts[month_num].get(year, 0) for year in all_years]
@@ -84,48 +174,37 @@ def home(request):
 
     weekday_counts = defaultdict(int)
     for date in all_dates:
-        weekday = date.strftime("%A")  # Get full weekday name (Monday, Tuesday, etc.)
+        weekday = date.strftime("%A") 
         weekday_counts[weekday] += 1
 
-    # Ensure all days exist (even if count is 0)
     all_weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     weekday_activity = {day: weekday_counts.get(day, 0) for day in all_weekdays}
 
     cumulative_sum = 0
     cumulative_data = []
-    for date in sorted(all_dates):  # Ensure dates are sorted
-        cumulative_sum += 1  # Assuming each date represents one entry
+    for date in sorted(all_dates): 
+        cumulative_sum += 1 
         cumulative_data.append((date.strftime("%Y-%m-%d"), cumulative_sum))
 
     yearly_totals = defaultdict(int)
-
     for date in all_dates:
-        year = date.strftime("%Y")  # Extract year
-        yearly_totals[year] += 1  # Count occurrences
-
-    # Step 2: Convert to JSON
-    yearly_totals_json = json.dumps(yearly_totals)
-
+        year = date.strftime("%Y") 
+        yearly_totals[year] += 1
 
     monthly_distribution = defaultdict(int)
-
     for date in all_dates:
-        month_name = date.strftime("%b")  # Get month name (e.g., "Jan", "Feb")
-        monthly_distribution[month_name] += 1  # Count occurrences
-
-    # Step 2: Convert to JSON
-    monthly_distribution_json = json.dumps(monthly_distribution)
-
+        month_name = date.strftime("%b")
+        monthly_distribution[month_name] += 1
 
     return render(request, 'habit/home.html', {
-        "yearly_totals": yearly_totals_json,
-        "monthly_distribution": monthly_distribution_json,
+        "habit_obj": habit,
+        "yearly_totals": json.dumps(yearly_totals),
+        "monthly_distribution": json.dumps(monthly_distribution),
         "weekday_activity": json.dumps(weekday_activity),
         "cumulative_data": json.dumps(cumulative_data),
-
         "all_years": json.dumps(all_years),
         "chart_data": json.dumps(chart_data),
-        "habit": habit,
+        "entries": entries,
         "today": today_form,
         "yearly_averages": yearly_averages,
         "longest_streak": longest_streak,
@@ -136,21 +215,24 @@ def home(request):
     })
 
 
-def update(request, id):
+def habit_update(request, habit_id, entry_id):
     """Update habit entry."""
-    entry = data.objects.filter(user=request.user).get(id=id)
+    habit = get_object_or_404(Habit, id=habit_id, user=request.user)
+    entry = get_object_or_404(HabitEntry, id=entry_id, habit=habit)
     today = entry.date.strftime('%Y-%m-%d')
 
     if request.method == 'POST':
-        entry.name = request.POST.get('name')
-        entry.date = request.POST.get('date')
-        entry.save()
-        return redirect('/data/')
+        date = request.POST.get('date')
+        if date:
+            entry.date = date
+            entry.save()
+        return redirect('habit_detail', habit_id=habit.id)
 
-    return render(request, 'habit/habit_update.html', {'data': entry, 'today': today})
+    return render(request, 'habit/habit_update.html', {'entry': entry, 'habit': habit, 'today': today})
 
 
-def delete(request, id):
+def habit_delete(request, habit_id, entry_id):
     """Delete habit entry."""
-    data.objects.filter(user=request.user).get(id=id).delete()
-    return redirect('/data/')
+    habit = get_object_or_404(Habit, id=habit_id, user=request.user)
+    get_object_or_404(HabitEntry, id=entry_id, habit=habit).delete()
+    return redirect('habit_detail', habit_id=habit.id)

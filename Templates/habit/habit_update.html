@@ -1,25 +1,29 @@
 {% extends "base.html" %}
 
-{% block title %}{{habit.date}}{% endblock title %}
-{% block content %}
-<div class="container">
+{% block title %}Update Entry | {{habit.name}}{% endblock title %}
 
-    <div class="form mt-5">
+{% block content %}
+<link rel="stylesheet" href="/static/css/style.css">
+
+<div class="container py-5 d-flex justify-content-center">
+    <div class="card-duo w-100" style="max-width: 600px;">
+        <div class="text-center mb-4">
+            <h2 style="font-weight: 900; color: var(--ink);"><i class="fas fa-edit text-primary"></i> Update {{habit.name}} Entry</h2>
+            <p style="color: var(--ink-muted); font-weight: 600;">Edit or remove your habit entry.</p>
+        </div>
+
         <form action="" method="post">
             {% csrf_token %}
-            <div class="mb-3">
-                <label for="date" class="form-label">Date</label>
-                <input type="date" class="duo-input" id="date" name="date" value="{{today}}" required>
+            <div class="mb-4">
+                <label for="date" class="form-label fw-bold">Date</label>
+                <input type="date" class="duo-input" id="date" name="date" value="{{today}}" max="{{today}}" required>
             </div>
-            <div class="mb-3">
-                <label for="name" class="form-label">Name</label>
-                <input type="text" class="duo-input" id="name" name="name" value="{{data.name}}"" required>
+            
+            <div class="d-flex gap-3 mt-5">
+                <a href="{% url 'habit_delete' habit.id entry.id %}" class="btn-duo btn-duo-danger w-50 text-center text-decoration-none py-3">Delete</a>
+                <button type="submit" class="btn-duo btn-duo-primary w-50 py-3">Update Entry</button>
             </div>
-            <button type="submit" class="btn-duo-secondary btn-duo">Update</button>
-
         </form>
-        <a href="/data/delete/{{data.id}}/"><button type="submit" class="btn-duo-danger btn-duo">Delete</button></a>
-
     </div>
-
+</div>
 {% endblock content %}

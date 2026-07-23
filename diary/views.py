@@ -27,4 +27,4 @@ def view_diary(request, id):
 def delete(request, id):
     diary = get_object_or_404(Diary, id=id, user=request.user)
     diary.delete() # This now triggers the soft delete from SoftDeleteModel
-    return redirect('/diary')
+    return redirect('/diary/')

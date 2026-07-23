@@ -1,254 +1,306 @@
 {% extends "base.html" %}
 
-{% block title %}Data{% endblock title %}
+{% block title %}{{ habit_obj.name }}{% endblock title %}
 
 {% block content %}
 <link rel="stylesheet" href="/static/css/style.css">
 
-<div class="container">
-    <div class="form mt-5">
+<div class="container py-4" style="max-width: 1400px;">
+    <!-- Welcome Banner -->
+    <div class="welcome-banner mb-4" style="background: linear-gradient(135deg, rgba(88,204,2,0.1) 0%, rgba(28,176,246,0.1) 100%); border: 2px solid var(--primary); border-radius: var(--radius-lg); padding: 2rem;">
+        <h1 style="font-size: 2.5rem; font-weight: 900; color: var(--ink); margin-bottom: 0.5rem;">{% if habit_obj.is_good_habit %}<i class="fas fa-check-circle text-success"></i>{% else %}<i class="fas fa-times-circle text-danger"></i>{% endif %} {{ habit_obj.name }} Dashboard</h1>
+        <p style="font-size: 1.1rem; color: var(--ink-muted); font-weight: 600; margin: 0;"><a href="{% url 'habit_list' %}" class="text-primary text-decoration-none"><i class="fas fa-arrow-left"></i> Back to all habits</a></p>
+    </div>
+
+        <!-- Streaks Grid -->
+    <div class="d-flex flex-row gap-4 mb-5 w-100">
+        
+        <!-- Current Streak / Gap Card -->
+        <div class="card-duo stat-card flex-fill w-50 d-flex flex-column justify-content-between p-4" style="border-bottom: 5px solid {% if habit_obj.is_good_habit %}var(--accent-purple){% else %}var(--error-red){% endif %}; background: var(--surface-1);">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="fw-bold text-uppercase" style="color: var(--ink-muted); font-size: 0.85rem; letter-spacing: 1px;">
+                    {% if habit_obj.is_good_habit %}Current Streak{% else %}Current Gap (Days Free){% endif %}
+                </div>
+                <div class="icon-wrapper d-flex align-items-center justify-content-center" style="background: {% if habit_obj.is_good_habit %}rgba(206, 130, 255, 0.15){% else %}rgba(255, 75, 75, 0.15){% endif %}; width: 45px; height: 45px; border-radius: 50%;">
+                    {% if habit_obj.is_good_habit %}
+                    <i class="fas fa-fire" style="color: var(--accent-purple); font-size: 1.25rem; line-height: 1;"></i>
+                    {% else %}
+                    <i class="fas fa-shield-alt" style="color: var(--error-red); font-size: 1.25rem; line-height: 1;"></i>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="d-flex align-items-baseline gap-2">
+                <span style="font-size: 3.5rem; font-weight: 900; color: var(--ink); line-height: 1;">{{ current_streak|default:'0' }}</span>
+                <span style="color: var(--ink-muted); font-weight: 600; font-size: 1.1rem;">Days</span>
+            </div>
+        </div>
+        
+        <!-- Longest Streak / Gap Card -->
+        <div class="card-duo stat-card flex-fill w-50 d-flex flex-column justify-content-between p-4" style="border-bottom: 5px solid {% if habit_obj.is_good_habit %}var(--accent-yellow){% else %}var(--error-red){% endif %}; background: var(--surface-1);">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="fw-bold text-uppercase" style="color: var(--ink-muted); font-size: 0.85rem; letter-spacing: 1px;">
+                    {% if habit_obj.is_good_habit %}Longest Streak{% else %}Longest Gap{% endif %}
+                </div>
+                <div class="icon-wrapper d-flex align-items-center justify-content-center" style="background: {% if habit_obj.is_good_habit %}rgba(255, 200, 0, 0.15){% else %}rgba(255, 75, 75, 0.15){% endif %}; width: 45px; height: 45px; border-radius: 50%;">
+                    <i class="fas fa-trophy" style="color: {% if habit_obj.is_good_habit %}var(--accent-yellow){% else %}var(--error-red){% endif %}; font-size: 1.25rem; line-height: 1;"></i>
+                </div>
+            </div>
+            <div class="d-flex flex-column">
+                <div class="d-flex align-items-baseline gap-2">
+                    <span style="font-size: 3.5rem; font-weight: 900; color: var(--ink); line-height: 1;">{{ longest_streak|default:'0' }}</span>
+                    <span style="color: var(--ink-muted); font-weight: 600; font-size: 1.1rem;">Days</span>
+                </div>
+                {% if longest_streak_range.0 %}
+                <div class="mt-3 py-2 px-3 rounded-pill" style="background: rgba(0,0,0,0.04); font-size: 0.85rem; font-weight: 700; color: var(--ink-muted); display: inline-flex; align-items: center; width: fit-content; gap: 8px;">
+                    <i class="fas fa-calendar-alt"></i> 
+                    {{ longest_streak_range.0 }} <span style="opacity: 0.5;">-</span> {{ longest_streak_range.1 }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+    </div>
+
+    <!-- Add Entry Form -->
+    <div class="card-duo mb-5">
+        <h3 class="mb-3" style="font-weight: 800; color: var(--ink);"><i class="fas fa-plus-circle text-success"></i> Log {{ habit_obj.name }}</h3>
         <form action="" method="post">
             {% csrf_token %}
-            <div class="mb-3">
-                <label for="date" class="form-label">Date</label>
-                <input type="date" class="duo-input" id="date" name="date" value="{{today}}" required>
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <label for="date" class="form-label fw-bold">Did you complete this today?</label>
+                    <input type="date" class="duo-input" id="date" name="date" value="{{today}}" max="{{today}}" required>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn-duo btn-duo-success w-100 py-3">Log Entry</button>
+                </div>
             </div>
-            <div class="mb-3">
-                <label for="name" class="form-label">Name</label>
-                <input type="text" class="duo-input" id="name" name="name" required>
-            </div>
-            <button type="submit" class="btn-duo-success btn-duo">Add</button>
         </form>
     </div>
 
-    <div class="streak">
-        <h5>Current Streak: {{ current_streak }}</h5>
-        <h5>Longest Streak: {{ longest_streak }} ({{ longest_streak_range.0 }} - {{ longest_streak_range.1 }})</h5>
+    <!-- Charts Section -->
+    <h3 class="mb-4" style="font-weight: 900; color: var(--ink);"><i class="fas fa-chart-pie"></i> Habit Analytics</h3>
+    <div class="grid-layout grid-2 mb-5" style="gap: 4rem;">
+        <div class="card-duo" style="margin-bottom: 2rem;">
+            <h4 style="font-weight: 800; color: var(--ink); margin-bottom: 1rem;">Entry Distribution by Month</h4>
+            <div id="entry_distribution_chart" style="width: 100%; height: 300px;"></div>
+        </div>
+        <div class="card-duo" style="margin-bottom: 2rem;">
+            <h4 style="font-weight: 800; color: var(--ink); margin-bottom: 1rem;">Yearly Growth</h4>
+            <div id="yearly_growth_chart" style="width: 100%; height: 300px;"></div>
+        </div>
+        <div class="card-duo" style="margin-bottom: 2rem;">
+            <h4 style="font-weight: 800; color: var(--ink); margin-bottom: 1rem;">Weekday Activity</h4>
+            <div id="weekday_activity_chart" style="width: 100%; height: 300px;"></div>
+        </div>
+        <div class="card-duo" style="margin-bottom: 2rem;">
+            <h4 style="font-weight: 800; color: var(--ink); margin-bottom: 1rem;">Cumulative Sum</h4>
+            <div id="cumulative_sum_chart" style="width: 100%; height: 300px;"></div>
+        </div>
+        <div class="card-duo" style="margin-bottom: 2rem;">
+            <h4 style="font-weight: 800; color: var(--ink); margin-bottom: 1rem;">Year-wise Monthly Entries</h4>
+            <div id="chart_div" style="width: 100%; height: 300px;"></div>
+        </div>
+        <div class="card-duo" style="margin-bottom: 2rem;">
+            <h4 style="font-weight: 800; color: var(--ink); margin-bottom: 1rem;">Yearly Avg Entries</h4>
+            <div id="curve_chart" style="width: 100%; height: 300px;"></div>
+        </div>
     </div>
 
-    <div class="graphs">
-        <iframe src="https://sayyednaa.github.io/2026/" height="300" width="500" title="Iframe Example"></iframe>
-
-        <h2>Year-wise Monthly Entries</h2>
-        <div id="chart_div" style="width: 100%; height: 100%"></div>
-
-        <h2>Yearly Average Entries Per Month</h2>
-        <div id="curve_chart" style="width: 100%; height: 100%"></div>
-        <h2>Weekday Activity</h2>
-        <div id="weekday_activity_chart" style="width: 100%; height: 100%"></div>
-
-        <h2>Cumulative Sum Over Time</h2>
-        <div id="cumulative_sum_chart" style="width: 100%; height: 100%"></div>
-        <h2>Entry Distribution by Month</h2>
-        <div id="entry_distribution_chart" style="width: 100%; height: 100%"></div>
-
-        <h2>Yearly Growth</h2>
-        <div id="yearly_growth_chart" style="width: 100%; height: 100%"></div>
-
-
-
-
-    </div>
-
-<div class="scripts">
-    <script type="text/javascript">
-        google.charts.load('current', { packages: ['corechart'] });
-        google.charts.setOnLoadCallback(drawEntryDistribution);
-
-        function drawEntryDistribution() {
-            var rawData = JSON.parse('{{ monthly_distribution|safe }}');  // Safely parse Django JSON
-
-            var dataArray = [['Month', 'Entries']];
-            for (var month in rawData) {
-                dataArray.push([month, rawData[month]]);
-            }
-
-            // Ensure at least one valid row exists (avoid empty chart)
-            if (dataArray.length < 2) {
-                console.error("Not enough data for Entry Distribution chart.");
-                return;
-            }
-
-            var data = google.visualization.arrayToDataTable(dataArray);
-
-            var options = {
-                title: 'Entry Distribution by Month',
-                hAxis: { title: 'Month' },
-                vAxis: { title: 'Number of Entries' },
-                bars: 'vertical',
-                legend: { position: 'none' },
-                colors: ['#4285F4']
-            };
-
-            var chart = new google.visualization.ColumnChart(document.getElementById('entry_distribution_chart'));
-            chart.draw(data, options);
-        }
-    </script>
-
-    <script type="text/javascript">
-        google.charts.load('current', { packages: ['corechart', 'bar'] });
-        google.charts.setOnLoadCallback(drawYearlyGrowth);
-
-        function drawYearlyGrowth() {
-            var rawData = JSON.parse('{{ yearly_totals|safe }}');  // Safely parse Django JSON
-
-            var dataArray = [['Year', 'Entries']];
-            for (var year in rawData) {
-                dataArray.push([year, rawData[year]]);
-            }
-
-            // Ensure at least one valid row exists (avoid empty chart)
-            if (dataArray.length < 2) {
-                console.error("Not enough data for Yearly Growth chart.");
-                return;
-            }
-
-            var data = google.visualization.arrayToDataTable(dataArray);
-
-            var options = {
-                title: 'Yearly Growth',
-                hAxis: { title: 'Year' },
-                vAxis: { title: 'Number of Entries' },
-                curveType: 'function',  // Smooth line chart
-                legend: { position: 'bottom' },
-                pointSize: 5
-            };
-
-            var chart = new google.visualization.LineChart(document.getElementById('yearly_growth_chart'));
-            chart.draw(data, options);
-        }
-    </script>
-
-    <script type="text/javascript">
-        google.charts.load('current', {packages: ['corechart']});
-        google.charts.setOnLoadCallback(drawWeekdayActivity);
-
-        function drawWeekdayActivity() {
-            var rawData = JSON.parse('{{ weekday_activity|safe }}');  // Parse JSON safely
-
-            var dataArray = [['Day', 'Entries']];
-            for (var day in rawData) {
-                dataArray.push([day, rawData[day]]);
-            }
-
-            var data = google.visualization.arrayToDataTable(dataArray);
-
-            var options = {
-                title: 'Weekday Activity',
-                bars: 'horizontal',
-                legend: { position: 'none' },
-                hAxis: { title: 'Entries' },
-                vAxis: { title: 'Day' }
-            };
-
-            var chart = new google.visualization.BarChart(document.getElementById('weekday_activity_chart'));
-            chart.draw(data, options);
-        }
-    </script>
-    <script type="text/javascript">
-        google.charts.load('current', { packages: ['corechart'] });
-        google.charts.setOnLoadCallback(drawCumulativeSum);
-
-        function drawCumulativeSum() {
-            var rawData = JSON.parse('{{ cumulative_data|safe }}');  // Parse JSON safely
-
-            var dataArray = [['Date', 'Cumulative Sum']];
-            for (var i = 0; i < rawData.length; i++) {
-                dataArray.push([new Date(rawData[i][0]), rawData[i][1]]);
-            }
-
-            var data = google.visualization.arrayToDataTable(dataArray);
-
-            var options = {
-                title: 'Cumulative Sum Over Time',
-                curveType: 'function',
-                legend: { position: 'bottom' },
-                hAxis: { title: 'Date' },
-                vAxis: { title: 'Total Entries' }
-            };
-
-            var chart = new google.visualization.LineChart(document.getElementById('cumulative_sum_chart'));
-            chart.draw(data, options);
-        }
-    </script>
-
-
-</div>
-    <!-- Load Google Charts -->
-    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-
-    <script type="text/javascript">
-        google.charts.load('current', { packages: ['corechart', 'bar', 'calendar'] });
-        google.charts.setOnLoadCallback(drawCharts);
-
-        function drawCharts() {
-            drawYearlyMonthlyEntries();
-            drawYearlyAverageEntries();
-        }
-
-        // 🚀 Yearly Monthly Entries
-        function drawYearlyMonthlyEntries() {
-            var chartData = JSON.parse('{{ chart_data|safe }}');
-            var data = google.visualization.arrayToDataTable(chartData);
-
-            var options = {
-                title: "Year-wise Monthly Entries",
-                hAxis: { title: "Month" },
-                vAxis: { title: "Number of Entries" },
-                curveType: "function",
-                legend: { position: "bottom" },
-                pointSize: 5
-            };
-
-            var chart = new google.visualization.LineChart(document.getElementById("chart_div"));
-            chart.draw(data, options);
-        }
-
-        // 🚀 Yearly Average Entries
-        function drawYearlyAverageEntries() {
-            var data = google.visualization.arrayToDataTable([
-                ['Year', 'Avg Entries'],
-                {% for year, avg in yearly_averages.items %}
-                    ['{{ year }}', {{ avg }}],
-                {% endfor %}
-            ]);
-
-            var options = {
-                title: 'Average Entries per Month for Each Year',
-                curveType: 'function',
-                legend: { position: 'bottom' },
-                hAxis: { title: 'Year' },
-                vAxis: { title: 'Avg Entries per Month' }
-            };
-
-            var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
-            chart.draw(data, options);
-        }
-    </script>
-
-    <div class="table">
-        <table class="table table-striped mt-5">
-            <thead>
+    <!-- Data Table -->
+    <h3 class="mb-4" style="font-weight: 900; color: var(--ink);"><i class="fas fa-list"></i> Habit History</h3>
+    <div class="card-duo mb-5 p-0 overflow-hidden">
+        <table class="table table-hover mb-0" style="background: transparent;">
+            <thead style="background: var(--surface-2);">
                 <tr>
-                    <th>SR</th>
-                    <th>Date</th>
-                    <th>Name</th>
-                    <th>Action</th>
+                    <th class="ps-4 py-3 border-0">SR</th>
+                    <th class="py-3 border-0">Date</th>
+                    
+                    <th class="pe-4 py-3 border-0 text-end">Action</th>
                 </tr>
             </thead>
             <tbody>
-                {% for habit in habit reversed %}
+                {% for entry in entries %}
                 <tr>
-                    <td>{{ forloop.counter }}</td>
-                    <td>{{ habit.date }}</td>
-                    <td>{{ habit.name }}</td>
-                    <td>
-                        <a href="update/{{ habit.id }}" class="btn-duo-primary btn-duo">Update</a>
+                    <td class="ps-4 border-0 align-middle fw-bold" style="color: var(--ink-muted);">{{ forloop.counter }}</td>
+                    <td class="border-0 align-middle fw-bold">{{ entry.date }}</td>
+                    
+                    <td class="pe-4 border-0 align-middle text-end">
+                        <button type="button" class="btn-duo btn-duo-primary btn-sm px-4" data-bs-toggle="modal" data-bs-target="#editEntryModal" data-entry-id="{{ entry.id }}" data-entry-date="{{ entry.date|date:'Y-m-d' }}">Edit</button>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+
 </div>
+
+
+    <!-- Edit Entry Modal -->
+    <div class="modal fade" id="editEntryModal" tabindex="-1" aria-labelledby="editEntryModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content card-duo" style="border: 3px solid var(--primary);">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="editEntryModalLabel" style="font-weight: 900; color: var(--ink);"><i class="fas fa-edit text-primary"></i> Edit Entry</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editEntryForm" method="post" action="">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label for="editDate" class="form-label fw-bold">Date</label>
+                            <input type="date" class="duo-input" id="editDate" name="date" max="{{today}}" required>
+                        </div>
+                        <div class="d-flex gap-3 mt-4">
+                            <a href="#" id="deleteEntryBtn" class="btn-duo btn-duo-danger w-50 text-center text-decoration-none py-2">Delete</a>
+                            <button type="submit" class="btn-duo btn-duo-primary w-50 py-2">Update</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS for Edit Modal -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var editModal = document.getElementById('editEntryModal');
+            if (editModal) {
+                editModal.addEventListener('show.bs.modal', function (event) {
+                    var button = event.relatedTarget;
+                    var entryId = button.getAttribute('data-entry-id');
+                    var entryDate = button.getAttribute('data-entry-date');
+                    
+                    var form = document.getElementById('editEntryForm');
+                    var deleteBtn = document.getElementById('deleteEntryBtn');
+                    var dateInput = document.getElementById('editDate');
+                    
+                    // Update form action and delete URL
+                    form.action = "/data/habit/{{ habit_obj.id }}/update/" + entryId + "/";
+                    deleteBtn.href = "/data/habit/{{ habit_obj.id }}/delete/" + entryId + "/";
+                    
+                    // Set the date
+                    dateInput.value = entryDate;
+                });
+            }
+        });
+    </script>
+
+<!-- ApexCharts Implementation -->
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        // 1. Entry Distribution (Bar Chart)
+        var monthlyDistRaw = JSON.parse('{{ monthly_distribution|safe }}');
+        var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        var distData = months.map(m => monthlyDistRaw[m] || 0);
+        
+        var distOptions = {
+            series: [{ name: 'Entries', data: distData }],
+            chart: { type: 'bar', height: 300, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
+            colors: ['#1cb0f6'],
+            plotOptions: { bar: { borderRadius: 4, horizontal: false } },
+            dataLabels: { enabled: false },
+            xaxis: { categories: months },
+            grid: { borderColor: '#f1f1f1' }
+        };
+        new ApexCharts(document.querySelector("#entry_distribution_chart"), distOptions).render();
+
+        // 2. Yearly Growth (Line Chart)
+        var yearlyTotalsRaw = JSON.parse('{{ yearly_totals|safe }}');
+        var years = Object.keys(yearlyTotalsRaw).sort();
+        var yearlyData = years.map(y => yearlyTotalsRaw[y]);
+        
+        var growthOptions = {
+            series: [{ name: 'Total Entries', data: yearlyData }],
+            chart: { type: 'area', height: 300, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
+            colors: ['#ffc800'],
+            dataLabels: { enabled: false },
+            stroke: { curve: 'smooth', width: 3 },
+            fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.7, opacityTo: 0.1, stops: [0, 90, 100] } },
+            xaxis: { categories: years },
+            grid: { borderColor: '#f1f1f1' }
+        };
+        new ApexCharts(document.querySelector("#yearly_growth_chart"), growthOptions).render();
+
+        // 3. Weekday Activity (Horizontal Bar Chart)
+        var weekdayRaw = JSON.parse('{{ weekday_activity|safe }}');
+        var days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+        var weekdayData = days.map(d => weekdayRaw[d] || 0);
+        
+        var weekdayOptions = {
+            series: [{ name: 'Entries', data: weekdayData }],
+            chart: { type: 'bar', height: 300, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
+            colors: ['#ce82ff'],
+            plotOptions: { bar: { borderRadius: 4, horizontal: true } },
+            dataLabels: { enabled: false },
+            xaxis: { categories: days },
+            grid: { borderColor: '#f1f1f1' }
+        };
+        new ApexCharts(document.querySelector("#weekday_activity_chart"), weekdayOptions).render();
+
+        // 4. Cumulative Sum (Area Chart)
+        var cumulativeRaw = JSON.parse('{{ cumulative_data|safe }}');
+        var cumDates = cumulativeRaw.map(d => d[0]);
+        var cumValues = cumulativeRaw.map(d => d[1]);
+        
+        var cumOptions = {
+            series: [{ name: 'Cumulative Entries', data: cumValues }],
+            chart: { type: 'area', height: 300, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
+            colors: ['#ff4b4b'],
+            dataLabels: { enabled: false },
+            stroke: { curve: 'stepline', width: 2 },
+            fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.5, opacityTo: 0.1 } },
+            xaxis: { categories: cumDates, labels: { show: false }, tooltip: { enabled: false } },
+            grid: { borderColor: '#f1f1f1' }
+        };
+        new ApexCharts(document.querySelector("#cumulative_sum_chart"), cumOptions).render();
+
+        // 5. Year-wise Monthly Entries (Multi-line Chart)
+        var chartDataRaw = JSON.parse('{{ chart_data|safe }}');
+        var ywmYears = chartDataRaw[0].slice(1);
+        var ywmSeries = ywmYears.map((yr, idx) => {
+            return {
+                name: yr,
+                data: chartDataRaw.slice(1).map(row => row[idx + 1])
+            };
+        });
+        
+        var ywmOptions = {
+            series: ywmSeries,
+            chart: { type: 'line', height: 300, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
+            colors: ['#1cb0f6', '#ffc800', '#ce82ff', '#ff4b4b', '#58cc02'],
+            dataLabels: { enabled: false },
+            stroke: { curve: 'smooth', width: 3 },
+            xaxis: { categories: months },
+            legend: { position: 'bottom' },
+            grid: { borderColor: '#f1f1f1' }
+        };
+        new ApexCharts(document.querySelector("#chart_div"), ywmOptions).render();
+
+        // 6. Yearly Average Entries (Line/Bar Chart)
+        var avgYears = [];
+        var avgData = [];
+        {% for year, avg in yearly_averages.items %}
+            avgYears.push('{{ year }}');
+            avgData.push({{ avg }});
+        {% endfor %}
+        
+        var avgOptions = {
+            series: [{ name: 'Avg Entries/Month', data: avgData }],
+            chart: { type: 'bar', height: 300, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
+            colors: ['#58cc02'],
+            plotOptions: { bar: { borderRadius: 4, columnWidth: '50%' } },
+            dataLabels: { enabled: false },
+            xaxis: { categories: avgYears },
+            grid: { borderColor: '#f1f1f1' }
+        };
+        new ApexCharts(document.querySelector("#curve_chart"), avgOptions).render();
+
+    });
+</script>
+
 {% endblock content %}
