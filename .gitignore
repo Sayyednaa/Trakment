@@ -52,6 +52,9 @@ venv.bak/
 !password/*.py
 !Salah_Tracker/*.py
 !revision/*.py
+!subscriptions/*.py
+!*/signals.py
+!*/middleware.py
 
 # Ignore backups
 backup_before_changes.csv
