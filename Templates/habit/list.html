@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}My Habits{% endblock title %}
+
+{% block content %}
+<link rel="stylesheet" href="/static/css/style.css">
+
+<div class="container py-4" style="max-width: 1400px;">
+    <!-- Welcome Banner -->
+    <div class="welcome-banner mb-5" style="background: linear-gradient(135deg, rgba(88,204,2,0.1) 0%, rgba(28,176,246,0.1) 100%); border: 2px solid var(--primary); border-radius: var(--radius-lg); padding: 2rem;">
+        <h1 style="font-size: 2.5rem; font-weight: 900; color: var(--ink); margin-bottom: 0.5rem;"><i class="fas fa-fire text-primary"></i> My Habits</h1>
+        <p style="font-size: 1.1rem; color: var(--ink-muted); font-weight: 600; margin: 0;">Track your daily routines and build powerful streaks.</p>
+    </div>
+
+    <!-- Create New Habit -->
+    <div class="card-duo mb-5">
+        <h3 class="mb-3" style="font-weight: 800; color: var(--ink);"><i class="fas fa-plus-circle text-success"></i> Create a New Habit</h3>
+        <form action="" method="post">
+            {% csrf_token %}
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <input type="text" class="duo-input" id="name" name="name" placeholder="e.g., Smoking, Gym, Reading" required>
+                </div>
+                <div class="col-md-3">
+                    <select class="duo-input" name="habit_type" style="height: 100%;">
+                        <option value="bad" selected>Bad Habit (Gap)</option>
+                        <option value="good">Good Habit (Streak)</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn-duo btn-duo-success w-100 py-3">Create Habit</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Habit Cards Grid -->
+    <h3 class="mb-4" style="font-weight: 900; color: var(--ink);"><i class="fas fa-th-large"></i> Your Habits</h3>
+    <div class="d-flex flex-row flex-wrap" style="gap: 2rem;">
+        {% for habit in habits %}
+        <a href="{% url 'habit_detail' habit.id %}" class="text-decoration-none" style="flex: 1 1 calc(33.333% - 2rem); min-width: 300px;">
+            <div class="card-duo h-100 d-flex flex-column justify-content-between" style="border-bottom: 5px solid {% if habit.is_good %}var(--primary){% else %}var(--error-red){% endif %}; transition: transform 0.2s; {% if not habit.is_good %}background-color: rgba(255, 75, 75, 0.03);{% endif %}">
+                <div>
+                    <h3 style="font-weight: 800; color: var(--ink); margin-bottom: 0.5rem;">
+                        {% if habit.is_good %}<i class="fas fa-check-circle text-success" style="font-size: 1.2rem;"></i>{% else %}<i class="fas fa-times-circle text-danger" style="font-size: 1.2rem;"></i>{% endif %}
+                        {{ habit.name }}
+                    </h3>
+                    <div style="font-size: 0.9rem; color: var(--ink-muted); font-weight: 600; margin-bottom: 1.5rem;">Total Entries: {{ habit.total_entries }}</div>
+                </div>
+                
+                <div class="d-flex align-items-center justify-content-between">
+                    <span style="font-size: 1.1rem; font-weight: 700; color: {% if habit.is_good %}var(--accent-purple){% else %}var(--error-red){% endif %};">
+                        {% if habit.is_good %}
+                        <i class="fas fa-fire"></i> {{ habit.current_streak }} Day Streak
+                        {% else %}
+                        <i class="fas fa-shield-alt"></i> {{ habit.current_streak }} Days Free
+                        {% endif %}
+                    </span>
+                    <i class="fas fa-arrow-right {% if habit.is_good %}text-primary{% else %}text-danger{% endif %}"></i>
+                </div>
+            </div>
+        </a>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info text-center py-4" style="border-radius: var(--radius-lg); font-weight: 600;">
+                You haven't created any habits yet. Start by creating one above!
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock content %}

@@ -436,6 +436,11 @@
     if (isFocusRunning) {
       document.getElementById('btn-pause-focus').click(); 
     }
+    if (document.fullscreenElement) {
+      if (document.exitFullscreen) { document.exitFullscreen(); }
+      else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
+      else if (document.msExitFullscreen) { document.msExitFullscreen(); }
+    }
     const totalMinutes = Math.max(1, Math.round(getFocusElapsedSeconds() / 60)); 
     document.getElementById('focus-final-time').innerText = totalMinutes;
     document.getElementById('focus-save-duration').value = totalMinutes;
@@ -647,7 +652,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const textColor = isDark ? '#ffffff' : '#777777';
   
   // 1. Study Time Area Chart
-  const studyLabels = [{% for entry in daily_durations %}'{{ entry.date }}',{% endfor %}];
+  const studyLabels = [{% for entry in daily_durations %}'{{ entry.date|date:"M j" }}',{% endfor %}];
   const studyData = [{% for entry in daily_durations %}{{ entry.duration|floatformat:1 }},{% endfor %}];
   
   if (document.getElementById('studyAreaChart') && studyLabels.length > 0) {
