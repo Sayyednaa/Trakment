@@ -58,6 +58,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Home{% endblock title %}</title>
+    {% block seo_meta %}{% endblock %}
 
     <!-- Font & Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -100,76 +101,89 @@
             <ul class="nav-menu">
                 <li class="nav-item">
                     <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/">
-                        <i class="fas fa-home"></i> <span class="d-none d-lg-inline">Home</span>
+                        <i class="fas fa-home"></i> <span>Home</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if '/leaderboard' in request.path %}active{% endif %}" href="/leaderboard/">
+                        <i class="fas fa-trophy"></i> <span>Leaderboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if '/chat' in request.path %}active{% endif %}" href="{% url 'chat_inbox' %}" style="position: relative;">
+                        <i class="fas fa-comment-dots"></i> <span>Chat</span>
+                        {% if request.user.is_authenticated and request.user.userprofile.has_unread_messages %}
+                        <span style="position: absolute; top: 12px; left: 35px; width: 10px; height: 10px; background-color: var(--primary); border-radius: 50%; border: 2px solid var(--surface-1);"></span>
+                        {% endif %}
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {% if '/time' in request.path %}active{% endif %}" href="/time/">
-                        <i class="fas fa-clock"></i> <span class="d-none d-lg-inline">Time</span>
+                        <i class="fas fa-clock"></i> <span>Time</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {% if '/todo' in request.path and '/todo/syllabus' not in request.path %}active{% endif %}" href="/todo/">
-                        <i class="fas fa-tasks"></i> <span class="d-none d-lg-inline">Todo</span>
+                        <i class="fas fa-tasks"></i> <span>Todo</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {% if '/revision' in request.path %}active{% endif %}" href="/revision/">
-                        <i class="fas fa-sync-alt"></i> <span class="d-none d-lg-inline">Revision</span>
+                        <i class="fas fa-sync-alt"></i> <span>Revision</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {% if '/omr' in request.path %}active{% endif %}" href="/omr/">
-                        <i class="fas fa-check-square"></i> <span class="d-none d-lg-inline">OMR</span>
+                        <i class="fas fa-check-square"></i> <span>OMR</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {% if '/test' in request.path %}active{% endif %}" href="/test/">
-                        <i class="fas fa-clipboard-check"></i> <span class="d-none d-lg-inline">Test</span>
+                        <i class="fas fa-clipboard-check"></i> <span>Test</span>
                     </a>
                 </li>
 
                 <li class="nav-item">
                     <a class="nav-link {% if '/todo/syllabus' in request.path %}active{% endif %}" href="/todo/syllabus/">
-                        <i class="fas fa-book"></i> <span class="d-none d-lg-inline">Syllabus</span>
+                        <i class="fas fa-book"></i> <span>Syllabus</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {% if '/notes' in request.path %}active{% endif %}" href="/notes/">
-                        <i class="fas fa-sticky-note"></i> <span class="d-none d-lg-inline">Notes</span>
+                        <i class="fas fa-sticky-note"></i> <span>Notes</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {% if '/diary' in request.path %}active{% endif %}" href="/diary/">
-                        <i class="fas fa-book-open"></i> <span class="d-none d-lg-inline">Diary</span>
+                        <i class="fas fa-book-open"></i> <span>Diary</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {% if '/password' in request.path %}active{% endif %}" href="/password/">
-                        <i class="fas fa-key"></i> <span class="d-none d-lg-inline">Passwords</span>
+                        <i class="fas fa-key"></i> <span>Passwords</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {% if '/profile' in request.path %}active{% endif %}" href="/profile">
-                        <i class="fas fa-user-circle"></i> <span class="d-none d-lg-inline">Profile</span>
+                        <i class="fas fa-user-circle"></i> <span>Profile</span>
                     </a>
                 </li>
 
 
                 {% if request.user.is_staff %}
                  <li class="nav-item">
-                    <a class="nav-link {% if '/salah' in request.path %}active{% endif %}" href="/salah/"><i class="fas fa-pray"></i> <span class="d-none d-lg-inline">Prayers</span></a>
+                    <a class="nav-link {% if '/salah' in request.path %}active{% endif %}" href="/salah/"><i class="fas fa-pray"></i> <span>Prayers</span></a>
                 </li>
                 {% endif %}
                 
                 {% if request.user.is_superuser %}
                 <li class="nav-item">
-                    <a class="nav-link" href="/admin/"><i class="fas fa-user-circle"></i> <span class="d-none d-lg-inline">Admin</span></a>
+                    <a class="nav-link" href="/admin/"><i class="fas fa-user-circle"></i> <span>Admin</span></a>
                 </li>
                 {% endif %}
 
                 <li class="nav-item mt-auto">
-                    <a class="nav-link" href="/logout"><i class="fas fa-sign-out-alt"></i> <span class="d-none d-lg-inline">Logout</span></a>
+                    <a class="nav-link" href="/logout"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>
                 </li>
             </ul>
         </aside>

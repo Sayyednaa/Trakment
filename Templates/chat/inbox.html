@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Chat - Trakment{% endblock title %}
+
+{% block content %}
+<style>
+    .chat-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 1rem;
+    }
+    .chat-header {
+        font-size: 1.5rem;
+        font-weight: 900;
+        color: var(--ink);
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .conversation-card {
+        background: var(--surface-1);
+        border: 2px solid var(--border);
+        border-radius: 16px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        text-decoration: none;
+        color: var(--ink);
+        transition: transform 0.1s ease, border-color 0.2s;
+    }
+    .conversation-card:hover {
+        transform: translateY(-2px);
+        border-color: var(--primary);
+    }
+    .avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: var(--surface-2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        font-size: 1.5rem;
+        color: var(--ink-muted);
+        flex-shrink: 0;
+        object-fit: cover;
+    }
+    .info {
+        flex: 1;
+        overflow: hidden;
+    }
+    .name {
+        font-weight: 800;
+        font-size: 1.1rem;
+        margin-bottom: 0.2rem;
+    }
+    .last-msg {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--ink-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .meta {
+        text-align: right;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--ink-muted);
+    }
+    .unread-badge {
+        background: var(--primary);
+        color: white;
+        padding: 0.2rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 800;
+        margin-top: 0.5rem;
+        display: inline-block;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--ink-muted);
+    }
+    .empty-state i {
+        font-size: 4rem;
+        color: var(--border);
+        margin-bottom: 1rem;
+    }
+</style>
+
+<div class="chat-container">
+    <div class="chat-header">
+        <i class="fas fa-comment-dots" style="color: var(--primary);"></i> Messages
+    </div>
+
+    {% if inbox %}
+        {% for item in inbox %}
+        <a href="{% url 'chat_thread' username=item.partner.username %}" class="conversation-card">
+            {% if item.partner.userprofile.profile_photo %}
+                <img src="{{ item.partner.userprofile.profile_photo.url }}" alt="avatar" class="avatar">
+            {% else %}
+                <div class="avatar"><i class="fas fa-user"></i></div>
+            {% endif %}
+            
+            <div class="info">
+                <div class="name">
+                    {% if item.partner.first_name %}{{ item.partner.first_name }}{% else %}{{ item.partner.username }}{% endif %}
+                </div>
+                <div class="last-msg">
+                    {% if item.latest_msg.sender == request.user %}You: {% endif %}
+                    {{ item.latest_msg.content }}
+                </div>
+            </div>
+            
+            <div class="meta">
+                <div>{{ item.latest_msg.timestamp|timesince }} ago</div>
+                {% if item.latest_msg.receiver == request.user and not item.latest_msg.is_read %}
+                    <div class="unread-badge">New</div>
+                {% endif %}
+            </div>
+        </a>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <i class="far fa-comments"></i>
+            <h3 style="font-weight: 800; color: var(--ink);">No messages yet</h3>
+            <p style="font-weight: 600;">Visit the leaderboard to find friends and start chatting!</p>
+            <a href="{% url 'leaderboard' %}" class="btn-duo btn-duo-primary mt-3">Go to Leaderboard</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock content %}

@@ -1,0 +1,232 @@
+## Table `subjects`
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `id` | `text` | Primary |
+| `name` | `text` |  |
+| `user_id` | `uuid` |  |
+| `created_at` | `timestamptz` |  |
+| `normalized_name` | `text` |  |
+| `updated_at` | `timestamptz` |  Nullable |
+| `deleted_at` | `timestamptz` |  Nullable |
+
+## Table `tests`
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `id` | `text` | Primary |
+| `test_date` | `date` |  |
+| `created_at` | `timestamptz` |  |
+| `user_id` | `uuid` |  |
+| `name` | `text` |  Nullable |
+| `updated_at` | `timestamptz` |  Nullable |
+| `deleted_at` | `timestamptz` |  Nullable |
+
+## Table `test_data`
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `id` | `text` | Primary |
+| `created_at` | `timestamptz` |  |
+| `test_id` | `text` |  |
+| `subject_id` | `text` |  |
+| `marks` | `numeric` |  |
+| `user_id` | `uuid` |  |
+| `updated_at` | `timestamptz` |  Nullable |
+| `deleted_at` | `timestamptz` |  Nullable |
+
+## Table `diary`
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `id` | `text` | Primary |
+| `created_at` | `timestamptz` |  |
+| `title` | `varchar` |  |
+| `content` | `varchar` |  |
+| `user_id` | `uuid` |  |
+| `date` | `date` |  Nullable |
+| `updated_at` | `timestamptz` |  Nullable |
+| `deleted_at` | `timestamptz` |  Nullable |
+
+## Table `notes`
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `id` | `text` | Primary |
+| `content` | `text` |  |
+| `user_id` | `uuid` |  |
+| `created_at` | `timestamptz` |  |
+| `updated_at` | `timestamptz` |  Nullable |
+| `deleted_at` | `timestamptz` |  Nullable |
+
+## Table `password`
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `id` | `text` | Primary |
+| `platform` | `varchar` |  |
+| `username` | `varchar` |  |
+| `pass` | `text` |  |
+| `user_id` | `uuid` |  Nullable |
+| `created_at` | `timestamptz` |  |
+| `iv` | `text` |  Nullable |
+| `updated_at` | `timestamptz` |  Nullable |
+| `deleted_at` | `timestamptz` |  Nullable |
+
+## Table `revision_lecture`
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `id` | `text` | Primary |
+| `subject_id` | `text` |  |
+| `topic` | `varchar` |  |
+| `date` | `date` |  |
+| `user_id` | `uuid` |  |
+| `revision_plan` | `text` |  Nullable |
+| `updated_at` | `timestamptz` |  Nullable |
+| `deleted_at` | `timestamptz` |  Nullable |
+
+## Table `revision`
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `id` | `text` | Primary |
+| `lecture_id` | `text` |  |
+| `date` | `date` |  |
+| `completed` | `bool` |  |
+| `user_id` | `uuid` |  |
+| `updated_at` | `timestamptz` |  Nullable |
+| `deleted_at` | `timestamptz` |  Nullable |
+
+## Table `syllabus`
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `id` | `text` | Primary |
+| `chapter` | `text` |  |
+| `user_id` | `uuid` |  |
+| `dpp` | `bool` |  Nullable |
+| `done` | `bool` |  Nullable |
+| `lecture` | `bool` |  Nullable |
+| `ncert` | `bool` |  Nullable |
+| `notes` | `bool` |  Nullable |
+| `punch` | `bool` |  Nullable |
+| `revision` | `bool` |  Nullable |
+| `test` | `numeric` |  Nullable |
+| `subject_id` | `text` |  |
+| `average_accuracy` | `float8` |  Nullable |
+| `best_score` | `int8` |  Nullable |
+| `last_test_date` | `date` |  Nullable |
+| `completed` | `bool` |  Nullable |
+| `normalized_chapter` | `text` |  |
+| `updated_at` | `timestamptz` |  Nullable |
+| `deleted_at` | `timestamptz` |  Nullable |
+
+## Table `self_test`
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `id` | `text` | Primary |
+| `chapter_id` | `text` |  |
+| `questions` | `int8` |  |
+| `attempted` | `int8` |  |
+| `correct` | `int8` |  |
+| `incorrect` | `int8` |  |
+| `plus_marks` | `int8` |  |
+| `minus_marks` | `int8` |  |
+| `total_marks` | `int8` |  |
+| `percentage` | `float8` |  |
+| `date_taken` | `date` |  |
+| `user_id` | `uuid` |  |
+| `time` | `int4` |  Nullable |
+| `updated_at` | `timestamptz` |  Nullable |
+| `deleted_at` | `timestamptz` |  Nullable |
+
+## Table `todo`
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `id` | `text` | Primary |
+| `title` | `varchar` |  |
+| `due` | `date` |  |
+| `completed` | `bool` |  |
+| `user_id` | `uuid` |  |
+| `updated_at` | `timestamptz` |  Nullable |
+| `deleted_at` | `timestamptz` |  Nullable |
+
+## Table `profile`
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `id` | `text` | Primary |
+| `created_at` | `timestamptz` |  |
+| `user_id` | `uuid` |  Unique |
+| `full_name` | `varchar` |  Nullable |
+| `username` | `varchar` |  Nullable Unique |
+| `avatar` | `text` |  Nullable |
+| `study_target` | `int2` |  Nullable |
+| `target` | `date` |  Nullable |
+| `notification` | `bool` |  Nullable |
+| `points` | `int4` |  Nullable |
+| `usage_seconds` | `int4` |  |
+| `updated_at` | `timestamptz` |  Nullable |
+| `deleted_at` | `timestamptz` |  Nullable |
+| `trial_start_date` | `date` |  Nullable |
+| `trial_end_date` | `date` |  Nullable |
+| `is_premium` | `bool` |  Nullable |
+| `premium_expiry` | `date` |  Nullable |
+
+## Table `notifications`
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `id` | `text` | Primary |
+| `created_at` | `timestamptz` |  |
+| `user_id` | `uuid` |  Nullable |
+| `title` | `varchar` |  |
+| `content` | `text` |  Nullable |
+| `updated_at` | `timestamptz` |  Nullable |
+| `deleted_at` | `timestamptz` |  Nullable |
+
+## Table `time`
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `id` | `text` | Primary |
+| `created_at` | `timestamptz` |  |
+| `user_id` | `uuid` |  |
+| `duration` | `int8` |  |
+| `date` | `date` |  |
+| `subject_id` | `text` |  |
+| `focus_session` | `bool` |  Nullable |
+| `updated_at` | `timestamptz` |  Nullable |
+| `deleted_at` | `timestamptz` |  Nullable |
+

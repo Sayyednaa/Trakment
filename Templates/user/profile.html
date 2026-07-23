@@ -37,12 +37,12 @@
         width: 40px;
         height: 40px;
         border-radius: 50%;
-        background: var(--surface-2);
+        background: rgba(88, 204, 2, 0.15); /* Greenish background */
         display: flex;
         align-items: center;
         justify-content: center;
         margin-bottom: 1rem;
-        color: var(--secondary);
+        color: var(--primary); /* App theme green */
     }
     
     .metric-value {
@@ -96,12 +96,12 @@
         width: 45px;
         height: 45px;
         border-radius: 12px;
-        background: var(--surface-2);
+        background: rgba(88, 204, 2, 0.15); /* Greenish background */
         display: flex;
         align-items: center;
         justify-content: center;
         margin-right: 1rem;
-        color: var(--secondary);
+        color: var(--primary); /* App theme green */
         font-size: 1.2rem;
     }
     
@@ -170,6 +170,11 @@
             <div class="metric-icon"><i class="fas fa-chart-line"></i></div>
             <div class="metric-value">{{ avg_score }}%</div>
             <div class="metric-label">Avg Score</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-icon"><i class="fas fa-trophy"></i></div>
+            <div class="metric-value">{{ all_time_points }}</div>
+            <div class="metric-label">Total XP</div>
         </div>
     </div>
     

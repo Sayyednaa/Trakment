@@ -59,7 +59,7 @@
     --shadow-elevated: 0 4px 16px rgba(0,0,0,0.5);
     
     /* Ensuring nav active state looks right on dark mode */
-    --nav-active-bg: rgba(28, 176, 246, 0.15);
+    --nav-active-bg: rgba(88, 204, 2, 0.15);
 }
 
 body {
@@ -179,7 +179,7 @@ h2 { font-size: 32px; }
 }
 
 :root {
-    --nav-active-bg: rgba(28, 176, 246, 0.1);
+    --nav-active-bg: rgba(88, 204, 2, 0.1);
 }
 
 .nav-link:hover {
@@ -189,8 +189,8 @@ h2 { font-size: 32px; }
 
 .nav-link.active {
     background-color: var(--nav-active-bg);
-    color: var(--secondary);
-    border: 2px solid rgba(28, 176, 246, 0.2);
+    color: var(--primary);
+    border: 2px solid rgba(88, 204, 2, 0.2);
 }
 
 .nav-link i {
@@ -200,7 +200,7 @@ h2 { font-size: 32px; }
 }
 
 .nav-link.active i {
-    color: var(--secondary);
+    color: var(--primary);
 }
 
 /* Duolingo Buttons */

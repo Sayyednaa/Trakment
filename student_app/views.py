@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.db.models import Sum, Count, Avg
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from todo.models import Todo, Syllabus
 from daily.models import Time
@@ -82,13 +82,16 @@ def home(request):
     # Fetch stats
     current_total, percent_change, all_time_avg = calculate_study_time_change(user)
     
-    tasks = Todo.objects.filter(user=user, completed=False).order_by('due')[:3]
+    today_start = timezone.make_aware(datetime.combine(today_date, datetime.min.time()))
+    tomorrow_start = today_start + timedelta(days=1)
+    
+    tasks = Todo.objects.filter(user=user, completed=False, due__gte=today_start, due__lt=tomorrow_start).order_by('due')
     recent_notes = Note.objects.filter(user=user).order_by('-created_at')[:3]
     from test_app.models import TestData
     recent_tests = TestData.objects.filter(user=user).select_related('test').order_by('-test__test_date')[:3]
     time_entries = Time.objects.filter(user=user).order_by('-date')[:3]
     
-    pending_revisions = Revision.objects.filter(user=user, completed=False).order_by('date')[:3]
+    pending_revisions = Revision.objects.filter(user=user, completed=False, date__gte=today_start, date__lt=tomorrow_start).order_by('date')
     
     daily_fard = DailyFard.objects.filter(user=user, date=today_date).order_by("fard__name")
     fard_with_times = [(f, get_daily_fard_time(f)) for f in daily_fard]
@@ -262,10 +265,14 @@ def user_profile(request):
     avg_score = SelfTest.objects.filter(user=user).aggregate(Avg('percentage'))['percentage__avg'] or 0
     avg_score = round(float(avg_score), 1)
     
+    from .leaderboard_utils import calculate_user_points_all_time
+    all_time_points = calculate_user_points_all_time(user)
+    
     context = {
         'study_hrs': round(float(study_hrs), 1),
         'tasks_done': tasks_done,
         'avg_score': avg_score,
+        'all_time_points': all_time_points,
     }
     
     return render(request, 'user/profile.html', context)
@@ -298,3 +305,74 @@ def privacy_policy(request):
 
 def terms_of_service(request):
     return render(request, 'main/terms_of_service.html')
+
+from .leaderboard_utils import get_global_leaderboard
+
+@login_required
+def leaderboard(request):
+    rankings = get_global_leaderboard()
+    return render(request, 'main/leaderboard.html', {'rankings': rankings})
+
+@login_required
+def public_profile(request, username):
+    from django.shortcuts import get_object_or_404
+    from .leaderboard_utils import calculate_user_points_all_time
+    
+    profile_user = get_object_or_404(User, username=username)
+    all_time_points = calculate_user_points_all_time(profile_user)
+    
+    return render(request, 'user/public_profile.html', {
+        'profile_user': profile_user,
+        'all_time_points': all_time_points
+    })
+
+@login_required
+def chat_inbox(request):
+    from core.models import Message
+    from django.db.models import Q, Max
+    
+    user = request.user
+    
+    # Get all messages where user is sender or receiver
+    messages = Message.objects.filter(Q(sender=user) | Q(receiver=user)).order_by('-timestamp')
+    
+    # Get distinct conversational partners and the latest message
+    conversations = {}
+    for msg in messages:
+        partner = msg.receiver if msg.sender == user else msg.sender
+        if partner not in conversations:
+            conversations[partner] = msg
+            
+    # Convert to list and sort by latest message timestamp
+    inbox = [{'partner': p, 'latest_msg': m} for p, m in conversations.items()]
+    inbox.sort(key=lambda x: x['latest_msg'].timestamp, reverse=True)
+    
+    return render(request, 'chat/inbox.html', {'inbox': inbox})
+
+@login_required
+def chat_thread(request, username):
+    from django.shortcuts import get_object_or_404
+    from core.models import Message
+    from django.db.models import Q
+    
+    partner = get_object_or_404(User, username=username)
+    user = request.user
+    
+    if request.method == 'POST':
+        content = request.POST.get('content')
+        if content and content.strip():
+            Message.objects.create(sender=user, receiver=partner, content=content.strip())
+            return redirect('chat_thread', username=username)
+            
+    # Mark messages as read
+    Message.objects.filter(sender=partner, receiver=user, is_read=False).update(is_read=True)
+    
+    chat_msgs = Message.objects.filter(
+        (Q(sender=user) & Q(receiver=partner)) | 
+        (Q(sender=partner) & Q(receiver=user))
+    ).order_by('timestamp')
+    
+    return render(request, 'chat/thread.html', {
+        'partner': partner,
+        'chat_messages': chat_msgs
+    })

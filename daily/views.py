@@ -1,7 +1,7 @@
 import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Sum, Avg
-from django.utils.timezone import now
+from django.utils.timezone import now, make_aware
 from django.db.models.functions import TruncMonth, TruncDay, ExtractWeek, ExtractYear
 from .models import Time
 from revision.models import Subject
@@ -104,9 +104,9 @@ def add(request):
         subject_id = request.POST.get('subject')
         
         if date_str:
-            date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+            date_obj = make_aware(datetime.strptime(date_str, "%Y-%m-%d"))
         else:
-            date_obj = datetime.now()
+            date_obj = now()
             
         subject = get_object_or_404(Subject, id=subject_id, user=request.user) if subject_id else None
             
@@ -139,7 +139,7 @@ def update(request, id):
         subject_id = request.POST.get('subject')
         
         if date_str:
-            entry.date = datetime.strptime(date_str, "%Y-%m-%d")
+            entry.date = make_aware(datetime.strptime(date_str, "%Y-%m-%d"))
         entry.duration = float(duration) if duration else 0.0
         
         if subject_id:
