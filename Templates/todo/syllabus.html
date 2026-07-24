@@ -98,9 +98,14 @@
             <h1 style="color: var(--ink); margin: 0;"><i class="fas fa-book me-2" style="color: var(--primary);"></i>Syllabus Tracker</h1>
             <p class="text-muted mb-0" style="font-weight: 600; font-size: 0.8rem;">Track your progress across multiple chapters</p>
         </div>
-        <button class="btn-duo btn-duo-primary" data-bs-toggle="modal" data-bs-target="#addSyllabusModal">
-            <i class="fas fa-plus me-2"></i>Add Chapter
-        </button>
+        <div class="d-flex gap-2">
+            <button class="btn-duo btn-duo-secondary" data-bs-toggle="modal" data-bs-target="#importSyllabusModal">
+                <i class="fas fa-file-import me-1 text-primary"></i>Import Syllabus
+            </button>
+            <button class="btn-duo btn-duo-primary" data-bs-toggle="modal" data-bs-target="#addSyllabusModal">
+                <i class="fas fa-plus me-1"></i>Add Chapter
+            </button>
+        </div>
     </div>
 
     <!-- Stats & Charts Section -->
@@ -287,16 +292,70 @@
             </div>
 
             {% else %}
-            <div class="text-center py-4 rounded m-3" style="background: var(--surface-1); border: 2px dashed var(--border);">
-                <i class="fas fa-book-open text-muted mb-2" style="font-size: 2rem;"></i>
-                <h3 style="font-weight: 800; color: var(--ink); font-size: 1rem;">No chapters tracked</h3>
-                <p class="mb-0" style="color: var(--ink-muted); font-size: 0.85rem;">Click the button at the top to add your first chapter!</p>
+            <div class="text-center py-4 rounded m-3 p-3" style="background: var(--surface-1); border: 2px dashed var(--border);">
+                <i class="fas fa-book-open text-muted mb-2" style="font-size: 2.5rem;"></i>
+                <h3 style="font-weight: 800; color: var(--ink); font-size: 1.1rem;">No chapters tracked yet</h3>
+                <p class="mb-3" style="color: var(--ink-muted); font-size: 0.85rem;">Add chapters manually or import a pre-built syllabus template!</p>
+                
+                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                    <button class="btn-duo btn-duo-secondary" data-bs-toggle="modal" data-bs-target="#importSyllabusModal">
+                        <i class="fas fa-file-import me-1 text-primary"></i>Import Pre-built Syllabus
+                    </button>
+                    <button class="btn-duo btn-duo-primary" data-bs-toggle="modal" data-bs-target="#addSyllabusModal">
+                        <i class="fas fa-plus me-1"></i>Add Chapter
+                    </button>
+                </div>
             </div>
             {% endif %}
         </div>
     </div>
 
 </div>
+
+<!-- Import Syllabus Modal -->
+<div class="modal fade" id="importSyllabusModal" tabindex="-1" aria-hidden="true" style="z-index: 1055;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-duo p-4" style="background: var(--canvas); border: 2px solid var(--border);">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" style="color: var(--ink);"><i class="fas fa-file-import me-2" style="color: var(--primary);"></i>Import Pre-built Syllabus</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {% if presets %}
+                <p class="text-muted small mb-3">Select a pre-built syllabus template created by admin to import directly into your account.</p>
+                <form action="/todo/syllabus/import-preset/" method="post">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label for="preset_id" class="form-label fw-bold" style="color: var(--ink-muted);">Select Syllabus Preset</label>
+                        <select class="duo-input" id="preset_id" name="preset_id" required>
+                            <option value="" disabled selected>-- Choose a Syllabus --</option>
+                            {% for p in presets %}
+                            <option value="{{ p.id }}">{{ p.title }} {% if p.description %}({{ p.description }}){% endif %}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% if not is_premium_plus %}
+                    <div class="alert alert-warning py-2 px-3 small fw-bold mb-3">
+                        <i class="fas fa-crown me-1 text-warning"></i> Premium+ Feature: Importing requires a Premium+ plan (₹99/mo or above). You will be prompted to upgrade when importing.
+                    </div>
+                    {% endif %}
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn-duo btn-duo-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn-duo btn-duo-primary"><i class="fas fa-download me-1"></i> Import Now</button>
+                    </div>
+                </form>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-info-circle text-muted fs-2 mb-2"></i>
+                    <p class="text-muted mb-0 fw-bold">No pre-built syllabus presets are currently available.</p>
+                    <p class="text-muted small mb-0">Admin will publish pre-built syllabuses soon!</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <!-- Add Chapter Modal -->
 <div class="modal fade" id="addSyllabusModal" tabindex="-1" aria-hidden="true" style="z-index: 1055;">

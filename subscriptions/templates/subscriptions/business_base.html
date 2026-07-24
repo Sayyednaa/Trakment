@@ -78,8 +78,8 @@
 
 <div class="container py-4">
     <div class="mb-4">
-        <h2 class="fw-bold mb-0">Business Dashboard</h2>
-        <p class="text-muted fw-bold small">Manage subscriptions and payments</p>
+        <h2 class="fw-bold mb-0">Admin Dashboard</h2>
+        <p class="text-muted fw-bold small">Manage subscriptions, syllabus presets, plans and payments</p>
     </div>
 
     <!-- Horizontal Tabs -->
@@ -95,6 +95,12 @@
         </a>
         <a href="{% url 'business_users' %}" class="business-nav-item {% if active_tab == 'users' %}active{% endif %}">
             <i class="fas fa-users"></i> User Management
+        </a>
+        <a href="{% url 'business_syllabuses' %}" class="business-nav-item {% if active_tab == 'syllabuses' %}active{% endif %}">
+            <i class="fas fa-book-open"></i> Syllabus Presets
+        </a>
+        <a href="{% url 'business_plans' %}" class="business-nav-item {% if active_tab == 'plans' %}active{% endif %}">
+            <i class="fas fa-tags"></i> Plan Management
         </a>
     </div>
     

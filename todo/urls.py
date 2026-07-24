@@ -11,4 +11,5 @@ urlpatterns = [
     path('syllabus/add/', views.syal_add, name='syal_add'),
     path('syllabus/update/<int:id>/', views.syal_update, name='syal_update'),
     path('syllabus/delete/<int:id>/', views.syal_delete, name='syal_delete'),
-]
+    path('syllabus/import-preset/', views.import_syllabus_preset, name='import_syllabus_preset'),
+]

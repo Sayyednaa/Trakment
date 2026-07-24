@@ -1,8 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-0LJ2LQZE4M"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-0LJ2LQZE4M');
+    </script>
+
     <link rel="manifest" href="/static/js/manifest.json">
     {% load static %}
+
     <script>
 (function () {
   const getCellValue = (tr, idx) => {
@@ -191,7 +202,7 @@
                 {% if request.user.is_superuser %}
                 <li class="nav-item">
                     <a class="nav-link {% if '/subscriptions/dashboard/' in request.path %}active{% endif %}" href="/subscriptions/dashboard/">
-                        <i class="fas fa-chart-pie"></i> <span>Business Dashboard</span>
+                        <i class="fas fa-chart-pie"></i> <span>Admin Dashboard</span>
                     </a>
                 </li>
                 <li class="nav-item">

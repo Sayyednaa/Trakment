@@ -11,21 +11,23 @@ class SubscriptionMiddleware:
         if request.user.is_authenticated and not request.user.is_staff:
             # First, check if the user has any subscription record.
             # If not, let's create a 1-day free trial.
+            free_plan, _ = Plan.objects.get_or_create(
+                name='free_trial', 
+                defaults={'price': 0, 'duration_days': 1, 'description': '1-Day Free Trial'}
+            )
             sub, created = UserSubscription.objects.get_or_create(
                 user=request.user,
                 defaults={
                     'start_date': timezone.now(),
-                    'end_date': timezone.now() + timezone.timedelta(days=1),
-                    'is_active': True
+                    'end_date': timezone.now() + timezone.timedelta(days=free_plan.duration_days),
+                    'is_active': True,
+                    'plan': free_plan
                 }
             )
             if created:
-                free_plan, _ = Plan.objects.get_or_create(
-                    name='free_trial', 
-                    defaults={'price': 0, 'duration_days': 1, 'description': '1-Day Free Trial'}
-                )
                 sub.plan = free_plan
                 sub.save()
+
 
             path = request.path
             

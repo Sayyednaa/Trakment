@@ -62,3 +62,20 @@ class Todo(SoftDeleteModel):
 
     def __str__(self):
         return self.title
+
+
+class SyllabusPreset(models.Model):
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    csv_file = models.FileField(upload_to='syllabus_presets/', blank=True, null=True)
+    csv_link = models.CharField(max_length=500, blank=True, null=True, help_text="Direct URL to CSV file if hosted externally")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Syllabus Preset"
+        verbose_name_plural = "Syllabus Presets"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.title
+

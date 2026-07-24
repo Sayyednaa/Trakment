@@ -377,7 +377,13 @@
                     <li class="missing"><i class="fas fa-times-circle feature-icon"></i> Secure Community Chat</li>
                 </ul>
                 
-                <a href="{% url 'checkout' plan.id %}" class="btn-plan btn-plan-outline">Get Started</a>
+                {% if current_user_plan_price > plan.price %}
+                <button class="btn-plan btn-plan-outline opacity-50" disabled style="cursor: not-allowed;"><i class="fas fa-ban me-1"></i> Higher Plan Active</button>
+                {% elif current_user_plan_price == plan.price %}
+                <button class="btn-plan btn-plan-outline opacity-75" disabled><i class="fas fa-check-circle me-1"></i> Current Active Plan</button>
+                {% else %}
+                <a href="{% url 'checkout' plan.id %}" class="btn-plan btn-plan-outline">Start Free Trial</a>
+                {% endif %}
             </div>
             {% endif %}
             {% endfor %}
@@ -404,7 +410,13 @@
                     <li><i class="fas fa-check-circle feature-icon" style="color: var(--primary);"></i> Priority Email Support</li>
                 </ul>
                 
+                {% if current_user_plan_price > plan.price %}
+                <button class="btn-plan btn-plan-solid opacity-50" disabled style="cursor: not-allowed;"><i class="fas fa-ban me-1"></i> Higher Plan Active</button>
+                {% elif current_user_plan_price == plan.price %}
+                <button class="btn-plan btn-plan-solid opacity-75" disabled><i class="fas fa-check-circle me-1"></i> Current Active Plan</button>
+                {% else %}
                 <a href="{% url 'checkout' plan.id %}" class="btn-plan btn-plan-solid">Unlock Premium</a>
+                {% endif %}
             </div>
             {% endif %}
             {% endfor %}
@@ -434,7 +446,13 @@
                     <li><i class="fas fa-check-circle feature-icon" style="color: var(--secondary);"></i> VIP Support Access</li>
                 </ul>
                 
+                {% if current_user_plan_price > plan.price %}
+                <button class="btn-plan btn-plan-outline opacity-50" disabled style="cursor: not-allowed; border-color: var(--secondary); color: var(--secondary);"><i class="fas fa-ban me-1"></i> Higher Plan Active</button>
+                {% elif current_user_plan_price == plan.price %}
+                <button class="btn-plan btn-plan-outline opacity-75" disabled style="border-color: var(--secondary); color: var(--secondary);"><i class="fas fa-check-circle me-1"></i> Current Active Plan</button>
+                {% else %}
                 <a href="{% url 'checkout' plan.id %}" class="btn-plan btn-plan-outline" style="border-color: var(--secondary); color: var(--secondary);">Get Yearly Plan</a>
+                {% endif %}
             </div>
             {% endif %}
             {% endfor %}

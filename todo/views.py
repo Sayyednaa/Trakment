@@ -126,6 +126,17 @@ def syalfun(request):
     tc = Syllabus.objects.filter(user=request.user).count()
     data = Syllabus.objects.filter(user=request.user).select_related('subject')
     subjects = Subject.objects.filter(user=request.user)
+    
+    # Check if user has Premium+ (₹99 or above)
+    is_premium_plus = (
+        hasattr(request.user, 'subscription') and 
+        request.user.subscription.is_valid() and 
+        request.user.subscription.plan and 
+        request.user.subscription.plan.price >= 99
+    )
+    
+    from .models import SyllabusPreset
+    presets = SyllabusPreset.objects.all()
 
     context = {
         'data': data,
@@ -135,8 +146,96 @@ def syalfun(request):
         'totals_json': totals_json,
         'completeds_json': completeds_json,
         'subjects': subjects,
+        'is_premium_plus': is_premium_plus,
+        'presets': presets,
     }
     return render(request, 'todo/syllabus.html', context)
+
+
+import csv
+import io
+import os
+import urllib.request
+from .models import SyllabusPreset
+
+@login_required
+def import_syllabus_preset(request):
+    if request.method == 'POST':
+        preset_id = request.POST.get('preset_id')
+        
+        is_premium_plus = (
+            hasattr(request.user, 'subscription') and 
+            request.user.subscription.is_valid() and 
+            request.user.subscription.plan and 
+            request.user.subscription.plan.price >= 99
+        )
+        
+        if not is_premium_plus:
+            messages.error(request, 'Importing pre-built syllabus templates is exclusively for Premium+ (₹99/mo or above) subscribers.')
+            return redirect('/todo/syllabus/')
+            
+        preset = get_object_or_404(SyllabusPreset, id=preset_id)
+        csv_text = None
+        
+        if preset.csv_file:
+            try:
+                preset.csv_file.open('r')
+                csv_text = preset.csv_file.read()
+                if isinstance(csv_text, bytes):
+                    csv_text = csv_text.decode('utf-8-sig')
+                preset.csv_file.close()
+            except Exception as e:
+                csv_text = None
+                
+        if not csv_text and preset.csv_link:
+            link = preset.csv_link.strip()
+            if os.path.exists(link):
+                try:
+                    with open(link, 'r', encoding='utf-8-sig') as f:
+                        csv_text = f.read()
+                except Exception as e:
+                    csv_text = None
+            elif link.startswith('http://') or link.startswith('https://'):
+                try:
+                    req = urllib.request.Request(link, headers={'User-Agent': 'Mozilla/5.0'})
+                    with urllib.request.urlopen(req) as resp:
+                        csv_text = resp.read().decode('utf-8-sig')
+                except Exception as e:
+                    csv_text = None
+
+        if not csv_text:
+            messages.error(request, 'Could not read CSV file for this syllabus preset.')
+            return redirect('/todo/syllabus/')
+
+        try:
+            reader = csv.DictReader(io.StringIO(csv_text))
+            imported_count = 0
+            for row in reader:
+                chapter_name = row.get('Chapter', '').strip()
+                subject_name = row.get('Subject', '').strip()
+                
+                if chapter_name and subject_name:
+                    subj_obj, _ = Subject.objects.get_or_create(
+                        user=request.user,
+                        name=subject_name.title(),
+                        defaults={'normalized_name': subject_name.lower()}
+                    )
+                    
+                    syll_obj, created = Syllabus.objects.get_or_create(
+                        user=request.user,
+                        subject=subj_obj,
+                        chapter=chapter_name,
+                        defaults={'normalized_chapter': chapter_name.lower()}
+                    )
+                    if created:
+                        imported_count += 1
+                        
+            messages.success(request, f'Successfully imported {imported_count} chapters from "{preset.title}"!')
+        except Exception as e:
+            messages.error(request, f'Error parsing syllabus CSV file: {str(e)}')
+            
+    return redirect('/todo/syllabus/')
+
 
 
 from django.http import JsonResponse
