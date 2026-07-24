@@ -14,461 +14,425 @@
 
 {% block content %}
 <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
 <style>
     /* Base Layout Overrides */
-    footer { display: none !important; }
+    footer:not(.landing-footer) { display: none !important; }
     .main-content { margin-left: 0 !important; padding: 0 !important; overflow-x: hidden; }
     .main-content > .container-fluid { padding: 0 !important; }
     
-    :root {
-        --primary-color: #4f46e5;
-        --secondary-color: #0ea5e9;
-        --text-main: #0f172a;
-        --text-muted: #64748b;
-        --bg-main: #f8fafc;
-        --card-bg: #ffffff;
-        --border-color: #e2e8f0;
-    }
-
-    [data-theme="dark"] {
-        --primary-color: #6366f1;
-        --secondary-color: #38bdf8;
-        --text-main: #f8fafc;
-        --text-muted: #94a3b8;
-        --bg-main: #0f172a;
-        --card-bg: #1e293b;
-        --border-color: #334155;
-    }
-
-    body {
+    /* Duolingo Inspired Theme Variables */
+    .landing-wrapper {
+        --duo-green: #58cc02;
+        --duo-green-shadow: #58a700;
+        --duo-green-hover: #46a302;
+        --duo-blue: #1cb0f6;
+        --duo-blue-shadow: #1899d6;
+        --duo-orange: #ff9600;
+        --duo-orange-shadow: #cc7800;
+        --duo-bg: #ffffff;
+        --duo-bg-soft: #f7f7f7;
+        --duo-border: #e5e5e5;
+        --duo-border-dark: #cecece;
+        --duo-text: #4b4b4b;
+        --duo-muted: #777777;
         font-family: 'Outfit', sans-serif;
-        background-color: var(--bg-main);
+        background: var(--duo-bg);
+        color: var(--duo-text);
+        min-height: 100vh;
+        transition: background 0.3s, color 0.3s;
     }
 
-    /* Clean Card Classes */
-    .clean-card {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 16px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    .landing-wrapper[data-landing-theme="dark"] {
+        --duo-bg: #131f24;
+        --duo-bg-soft: #18282e;
+        --duo-border: #37464f;
+        --duo-border-dark: #27343a;
+        --duo-text: #ffffff;
+        --duo-muted: #afafaf;
     }
 
-    .clean-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 20px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
-    }
-
-    /* Header & Navigation */
+    /* Typography */
+    h1, h2, h3, h4, h5, h6 { font-weight: 800; color: var(--duo-text); }
+    
+    /* Navbar */
     .landing-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         padding: 1rem 2rem;
-        background: var(--card-bg);
-        border-bottom: 1px solid var(--border-color);
+        background: var(--duo-bg);
+        border-bottom: 2px solid var(--duo-border);
         position: sticky;
         top: 0;
         z-index: 1000;
-        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
     }
-
+    
     .logo {
         font-size: 1.8rem;
         font-weight: 900;
         display: flex;
         align-items: center;
-        gap: 0.8rem;
-        color: var(--text-main);
+        gap: 0.6rem;
+        color: var(--duo-green);
         text-decoration: none;
-    }
-
-    .nav-links {
-        display: flex;
-        gap: 2.5rem;
-        align-items: center;
+        letter-spacing: -0.5px;
     }
     
-    .nav-links a {
-        color: var(--text-muted);
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 1.05rem;
-        transition: all 0.3s ease;
-        position: relative;
-    }
-
-    .nav-links a::after {
-        content: '';
-        position: absolute;
-        width: 0;
-        height: 2px;
-        bottom: -4px;
-        left: 0;
-        background: var(--primary-color);
-        transition: width 0.3s ease;
-    }
+    .nav-links { display: flex; gap: 2rem; align-items: center; }
+    .nav-links a { color: var(--duo-muted); text-decoration: none; font-weight: 700; text-transform: uppercase; font-size: 0.95rem; letter-spacing: 0.5px; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--duo-text); }
     
-    .nav-links a:hover { color: var(--text-main); }
-    .nav-links a:hover::after { width: 100%; }
+    .theme-toggle-btn {
+        background: none; border: none; color: var(--duo-muted); font-size: 1.5rem; cursor: pointer; transition: 0.2s;
+    }
+    .theme-toggle-btn:hover { color: var(--duo-text); }
 
-    .btn-primary-solid {
-        background: var(--primary-color);
+    /* 3D Buttons */
+    .btn-duo {
+        background: var(--duo-green);
         color: white !important;
-        padding: 0.6rem 1.8rem;
-        border-radius: 8px;
-        font-weight: 600;
-        border: none;
-        transition: background-color 0.2s ease, transform 0.1s ease;
+        border: 2px solid var(--duo-green-shadow);
+        border-bottom: 4px solid var(--duo-green-shadow);
+        border-radius: 16px;
+        padding: 12px 24px;
+        font-weight: 800;
+        font-size: 1.1rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.1s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
     }
 
-    .btn-primary-solid:hover {
-        background: #4338ca;
-        transform: translateY(-1px);
+    .btn-duo:hover {
+        background: var(--duo-green-hover);
+        border-color: var(--duo-green-shadow);
+    }
+
+    .btn-duo:active {
+        transform: translateY(4px);
+        border-bottom: 0px solid var(--duo-green-shadow);
+        margin-bottom: 4px;
+    }
+
+    .btn-duo-outline {
+        background: transparent;
+        color: var(--duo-blue) !important;
+        border: 2px solid var(--duo-border-dark);
+        border-bottom: 4px solid var(--duo-border-dark);
+        border-radius: 16px;
+        padding: 12px 24px;
+        font-weight: 800;
+        font-size: 1.1rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.1s ease;
+        text-decoration: none;
+    }
+
+    .btn-duo-outline:hover {
+        background: var(--duo-bg-soft);
+    }
+
+    .btn-duo-outline:active {
+        transform: translateY(4px);
+        border-bottom: 0px solid var(--duo-border-dark);
+        margin-bottom: 4px;
     }
     
-    [data-theme="dark"] .btn-primary-solid:hover {
-        background: #4f46e5;
+    /* Floating animation for cards */
+    @keyframes floatCard {
+        0% { transform: translateY(0); }
+        50% { transform: translateY(-6px); }
+        100% { transform: translateY(0); }
     }
+
+    /* Bounce Entrance */
+    @keyframes bounceIn {
+        0% { opacity: 0; transform: scale(0.8) translateY(30px); }
+        60% { opacity: 1; transform: scale(1.05) translateY(-10px); }
+        100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    
+    .bounce-enter {
+        animation: bounceIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        opacity: 0; /* starts hidden */
+    }
+
+    /* 3D Cards */
+    .duo-card {
+        background: var(--duo-bg);
+        border: 2px solid var(--duo-border);
+        border-bottom: 4px solid var(--duo-border);
+        border-radius: 20px;
+        padding: 24px;
+        transition: transform 0.2s, border-color 0.2s;
+    }
+    .duo-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--duo-blue);
+    }
+    
+    .loading-spinner {
+        animation: spin 1s linear infinite;
+        display: inline-block;
+    }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
 
     /* Hero Section */
     .hero {
         text-align: center;
-        padding: 6rem 1rem 8rem;
-        background-color: var(--card-bg);
-        background-image: 
-            linear-gradient(var(--border-color) 1px, transparent 1px),
-            linear-gradient(90deg, var(--border-color) 1px, transparent 1px);
-        background-size: 40px 40px;
-        background-position: center center;
-        border-bottom: 1px solid var(--border-color);
-        margin-bottom: 4rem;
+        padding: 6rem 1rem 4rem;
+        position: relative;
     }
-    
-    .hero-content {
-        max-width: 900px;
-        margin: 0 auto;
-        background: var(--card-bg);
-        padding: 2rem;
-        border-radius: 16px;
-        box-shadow: 0 0 40px 20px var(--card-bg); /* Soft fade into the grid */
-    }
-
     .hero-title {
-        font-size: 4.5rem;
+        font-size: 4rem;
         font-weight: 900;
         line-height: 1.1;
+        letter-spacing: -2px;
         margin-bottom: 1.5rem;
-        color: var(--text-main);
-        letter-spacing: -1.5px;
     }
-
-    .text-highlight {
-        color: var(--primary-color);
-    }
-
+    .text-highlight { color: var(--duo-green); }
     .hero-subtitle {
-        font-size: 1.4rem;
-        color: var(--text-muted);
-        margin-bottom: 3rem;
-        max-width: 800px;
-        margin-left: auto;
-        margin-right: auto;
+        font-size: 1.3rem;
+        color: var(--duo-muted);
+        max-width: 600px;
+        margin: 0 auto 3rem;
         line-height: 1.6;
-        font-weight: 400;
+        font-weight: 600;
     }
+    .hero-cta-row {
+        display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2rem;
+    }
+    .trust-row {
+        display: flex; justify-content: center; gap: 2.5rem; flex-wrap: wrap; margin-top: 2rem; color: var(--duo-muted); font-weight: 700; font-size: 0.95rem;
+    }
+    .trust-row i { color: var(--duo-orange); margin-right: 0.4rem; font-size: 1.2rem; }
 
-    /* Features Grid */
-    .features-section { padding: 4rem 1rem; max-width: 1200px; margin: 0 auto; }
+    /* Stats Strip */
+    .stats-strip {
+        display: flex; justify-content: center; gap: 4rem; flex-wrap: wrap; padding: 3rem 1rem; background: var(--duo-bg-soft); border-top: 2px solid var(--duo-border); border-bottom: 2px solid var(--duo-border);
+    }
+    .stat-item { text-align: center; }
+    .stat-num { font-size: 2.5rem; font-weight: 900; color: var(--duo-blue); letter-spacing: -1px; }
+    .stat-label { color: var(--duo-muted); font-weight: 700; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; }
+
+    /* Features Section */
+    .section-title { font-size: 2.8rem; font-weight: 900; text-align: center; margin-bottom: 1rem; letter-spacing: -1px; }
+    .section-subtitle { text-align: center; color: var(--duo-muted); max-width: 600px; margin: 0 auto 4rem; font-size: 1.2rem; font-weight: 600; }
+    .features-section { padding: 6rem 1rem; max-width: 1200px; margin: 0 auto; }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
     
-    .section-title {
-        font-size: 3rem;
-        font-weight: 800;
-        text-align: center;
-        margin-bottom: 4rem;
-        color: var(--text-main);
-    }
-
-    .features-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-        gap: 2rem;
-    }
-
-    .feature-card {
-        padding: 2.5rem;
-        text-align: left;
-    }
-
     .feature-icon-wrapper {
-        width: 64px;
-        height: 64px;
-        border-radius: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.8rem;
-        color: white;
-        margin-bottom: 1.5rem;
-        background: var(--primary-color);
-        box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
+        width: 64px; height: 64px; border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: white; margin-bottom: 1.5rem; background: var(--duo-blue); border-bottom: 4px solid var(--duo-blue-shadow);
     }
+    .feature-icon-wrapper.orange { background: var(--duo-orange); border-bottom: 4px solid var(--duo-orange-shadow); }
+    .feature-icon-wrapper.green { background: var(--duo-green); border-bottom: 4px solid var(--duo-green-shadow); }
     
-    .feature-icon-wrapper.purple { background: var(--primary-color); }
-    .feature-icon-wrapper.orange { background: var(--secondary-color); box-shadow: 0 4px 10px rgba(14, 165, 233, 0.2); }
+    .duo-card h3 { font-size: 1.5rem; font-weight: 800; margin-bottom: 0.8rem; }
+    .duo-card p { color: var(--duo-muted); font-size: 1.05rem; line-height: 1.5; font-weight: 600; }
 
-    .feature-card h3 { font-size: 1.5rem; font-weight: 700; color: var(--text-main); margin-bottom: 1rem; }
-    .feature-card p { color: var(--text-muted); font-size: 1.05rem; line-height: 1.6; }
+    /* CTA Band */
+    .cta-band {
+        text-align: center; padding: 5rem 1rem; background: var(--duo-green); border-bottom: 4px solid var(--duo-green-shadow); color: white; margin-top: 2rem;
+    }
+    .cta-band h2 { font-size: 3rem; font-weight: 900; margin-bottom: 1rem; color: white; }
+    .cta-band p { opacity: 0.9; max-width: 600px; margin: 0 auto 2.5rem; font-size: 1.2rem; font-weight: 600; }
+    .btn-cta-white {
+        background: white; color: var(--duo-green) !important; border: 2px solid #e5e5e5; border-bottom: 4px solid #cecece; padding: 12px 30px; border-radius: 16px; font-weight: 900; font-size: 1.2rem; text-decoration: none; text-transform: uppercase; transition: all 0.1s; display: inline-block;
+    }
+    .btn-cta-white:active { transform: translateY(4px); border-bottom: 0px; margin-bottom: 4px; }
 
-    /* Forms */
-    .form-control {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        padding: 12px 20px;
-        color: var(--text-main);
-        font-family: inherit;
-    }
-    [data-theme="dark"] .form-control { background: rgba(0,0,0,0.1); }
-    .form-control:focus {
-        background: var(--card-bg);
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-        outline: none;
-    }
+    /* Form Elements */
+    .form-control { background: var(--duo-bg); border: 2px solid var(--duo-border); border-radius: 16px; padding: 14px 18px; color: var(--duo-text); font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 1rem; }
+    .form-control:focus { border-color: var(--duo-blue); outline: none; }
+    .form-label { font-weight: 800; margin-bottom: 8px; color: var(--duo-text); }
 
-    /* Mobile Nav */
-    .landing-hamburger {
-        display: none;
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 10px;
-        z-index: 1001;
-    }
-    .landing-hamburger span {
-        display: block; width: 24px; height: 2px; background: var(--text-main);
-        margin: 5px 0; transition: all 0.3s;
-    }
+    /* Footer */
+    .landing-footer { padding: 3rem 1rem; text-align: center; border-top: 2px solid var(--duo-border); margin-top: 3rem; background: var(--duo-bg-soft); }
+    .landing-footer a { color: var(--duo-muted); font-size: 1.8rem; margin: 0 1rem; transition: 0.2s; }
+    .landing-footer a:hover { color: var(--duo-blue); transform: scale(1.1); display: inline-block; }
 
-    @media (max-width: 991px) {
-        .hero-title { font-size: 3.5rem; }
-    }
+    /* Hamburger Menu */
+    .landing-hamburger { display: none; background: none; border: none; cursor: pointer; }
+    .landing-hamburger span { display: block; width: 26px; height: 3px; background: var(--duo-text); margin: 6px 0; border-radius: 3px; transition: 0.3s; }
 
     @media (max-width: 768px) {
         .landing-hamburger { display: block; }
         .nav-links {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: var(--card-bg);
-            border-bottom: 1px solid var(--border-color);
-            flex-direction: column;
-            padding: 1.5rem;
-            gap: 1.5rem;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-10px);
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            position: absolute; top: 100%; left: 0; right: 0; background: var(--duo-bg); border-bottom: 2px solid var(--duo-border); flex-direction: column; padding: 1.5rem; gap: 1.5rem; opacity: 0; visibility: hidden; transform: translateY(-10px); transition: 0.2s;
         }
-        .nav-links.active {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
+        .nav-links.active { opacity: 1; visibility: visible; transform: translateY(0); }
         .hero-title { font-size: 2.8rem; }
-        .hero-subtitle { font-size: 1.1rem; padding: 0 1rem; }
+        .stats-strip { flex-direction: column; gap: 2rem; }
     }
 </style>
 
 <div class="landing-wrapper">
     <header class="landing-header">
         <a href="/" class="logo">
-            <img src="{% static 'img/icons/icon.png' %}" alt="Trakment Logo" style="height: 40px; border-radius: 50%;">
-            Trakment
+            <img src="/static/img/icons/icon.png" alt="Trakment Logo" style="height:42px; border-radius:12px;">
+            trakment
         </a>
         <button class="landing-hamburger" id="mobile-menu-btn" aria-label="Toggle navigation">
             <span></span><span></span><span></span>
         </button>
         <nav class="nav-links" id="nav-menu">
             <a href="#features">Features</a>
+            <a href="/subscriptions/pricing/">Pricing</a>
             <a href="#feedback">Feedback</a>
-            <a href="/login" class="fw-bold">Log in</a>
-            <a href="/signup" class="btn-primary-solid">Sign up free</a>
+            <a href="/login" class="btn-duo-outline" style="border-width: 2px; padding: 8px 16px;">Log in</a>
+            <a href="/signup" class="btn-duo" style="padding: 8px 16px;">Sign up</a>
+            <button id="landing-theme-toggle" class="theme-toggle-btn" aria-label="Toggle Dark Mode">
+                <i class="fas fa-moon"></i>
+            </button>
         </nav>
     </header>
 
     <main>
         <section class="hero">
-            <div class="hero-content">
-                <h1 class="hero-title" data-aos="fade-up" data-aos-duration="800">
-                    Master your studies with <br>
-                    <span class="text-highlight">Ultimate Precision</span>
-                </h1>
-                <p class="hero-subtitle" data-aos="fade-up" data-aos-duration="800" data-aos-delay="100">
-                    Trakment is the streamlined platform for serious students. Track your time, conquer your syllabus, analyze your tests, and organize your tasks without the clutter.
-                </p>
-                <div data-aos="fade-up" data-aos-duration="800" data-aos-delay="200">
-                    <a href="/signup" class="btn-primary-solid" style="font-size: 1.1rem; padding: 0.8rem 2rem; display: inline-block;">Start Tracking Today</a>
-                </div>
+            <h1 class="hero-title" data-aos="fade-up">Master your studies <br>the <span class="text-highlight">fun way!</span></h1>
+            <p class="hero-subtitle" data-aos="fade-up" data-aos-delay="100">
+                Track your hours, conquer your syllabus, and smash your goals without the boring spreadsheets. The #1 study tracker for ambitious students.
+            </p>
+            <div class="hero-cta-row" data-aos="fade-up" data-aos-delay="150">
+                <a href="/signup" class="btn-duo">Get Started <i class="fas fa-arrow-right ms-2"></i></a>
+                <a href="/login" class="btn-duo-outline">I already have an account</a>
+            </div>
+            <div class="trust-row" data-aos="fade-up" data-aos-delay="200">
+                <span><i class="fas fa-fire"></i> Build a study streak</span>
+                <span><i class="fas fa-gem"></i> Earn rewards</span>
+                <span><i class="fas fa-crown"></i> Top the leaderboard</span>
+            </div>
+        </section>
+
+        <section class="stats-strip">
+            <div class="stat-item" data-aos="fade-up">
+                <div class="stat-num">10K+</div>
+                <div class="stat-label">Happy Students</div>
+            </div>
+            <div class="stat-item" data-aos="fade-up" data-aos-delay="100">
+                <div class="stat-num">4.8★</div>
+                <div class="stat-label">App Rating</div>
+            </div>
+            <div class="stat-item" data-aos="fade-up" data-aos-delay="200">
+                <div class="stat-num">1M+</div>
+                <div class="stat-label">Hours Tracked</div>
             </div>
         </section>
 
         <section id="features" class="features-section">
-            <h2 class="section-title" data-aos="fade-up">Powerful tools for top performers</h2>
+            <h2 class="section-title" data-aos="fade-up">Study smarter, not harder</h2>
+            <p class="section-subtitle" data-aos="fade-up">Everything you need to stay on track, all in one playful dashboard.</p>
             
             <div class="features-grid">
-                <article class="feature-card clean-card" data-aos="fade-up" data-aos-delay="100">
-                    <div class="feature-icon-wrapper purple">
-                        <i class="fas fa-chart-pie"></i>
-                    </div>
+                <article class="duo-card bounce-enter" style="animation-delay: 0.1s;">
+                    <div class="feature-icon-wrapper"><i class="fas fa-chart-pie"></i></div>
                     <h3>Smart Analytics</h3>
-                    <p>Visualize your progress with stunning interactive charts. Gain deep insights into your study habits and optimize your daily routines for peak performance.</p>
+                    <p>Visualize your progress with colorful charts. See exactly where your time goes and level up your routine.</p>
                 </article>
-
-                <article class="feature-card clean-card" data-aos="fade-up" data-aos-delay="200">
-                    <div class="feature-icon-wrapper orange">
-                        <i class="fas fa-stopwatch"></i>
-                    </div>
+                <article class="duo-card bounce-enter" style="animation-delay: 0.2s;">
+                    <div class="feature-icon-wrapper orange"><i class="fas fa-stopwatch"></i></div>
                     <h3>Time Mastery</h3>
-                    <p>Log your study sessions with precision. Our advanced time tracker helps you identify your most productive hours and eliminates procrastination.</p>
+                    <p>Log sessions with our fun timer. Build an unbreakable study streak and watch your productivity soar.</p>
                 </article>
-
-                <article class="feature-card clean-card" data-aos="fade-up" data-aos-delay="300">
-                    <div class="feature-icon-wrapper">
-                        <i class="fas fa-book-open"></i>
-                    </div>
+                <article class="duo-card bounce-enter" style="animation-delay: 0.3s;">
+                    <div class="feature-icon-wrapper green"><i class="fas fa-book-open"></i></div>
                     <h3>Syllabus Tracker</h3>
-                    <p>Never lose track of your curriculum. Mark topics as complete, monitor overall coverage percentages, and strategically plan your exam prep.</p>
+                    <p>Mark topics complete and watch the progress bar fill up. It's like completing a skill tree for your exams!</p>
                 </article>
-
-                <article class="feature-card clean-card" data-aos="fade-up" data-aos-delay="400">
-                    <div class="feature-icon-wrapper">
-                        <i class="fas fa-flask"></i>
-                    </div>
+                <article class="duo-card bounce-enter" style="animation-delay: 0.4s;">
+                    <div class="feature-icon-wrapper"><i class="fas fa-flask"></i></div>
                     <h3>Test Diagnostics</h3>
-                    <p>Upload scores to instantly reveal your strengths and weaknesses. Our algorithm provides actionable feedback to dramatically improve your next test.</p>
+                    <p>Log your test scores and get immediate feedback on what you need to review next. No more guessing.</p>
                 </article>
-
-                <article class="feature-card clean-card" data-aos="fade-up" data-aos-delay="500">
-                    <div class="feature-icon-wrapper purple">
-                        <i class="fas fa-list-check"></i>
-                    </div>
-                    <h3>Task Automation</h3>
-                    <p>Manage assignments, prioritize daily goals, and set reminders. Trakment's intuitive interface ensures deadlines are always met with zero stress.</p>
+                <article class="duo-card bounce-enter" style="animation-delay: 0.5s;">
+                    <div class="feature-icon-wrapper orange"><i class="fas fa-list-check"></i></div>
+                    <h3>Daily Quests</h3>
+                    <p>Turn your boring to-do list into daily quests. Check them off and feel that sweet sense of accomplishment.</p>
                 </article>
-
-                <article class="feature-card clean-card" data-aos="fade-up" data-aos-delay="600">
-                    <div class="feature-icon-wrapper orange">
-                        <i class="fas fa-pen-nib"></i>
-                    </div>
+                <article class="duo-card bounce-enter" style="animation-delay: 0.6s;">
+                    <div class="feature-icon-wrapper green"><i class="fas fa-pen-nib"></i></div>
                     <h3>Digital Vault</h3>
-                    <p>Securely store your revision notes, formulas, and critical insights. Access your personalized knowledge base instantly from any device.</p>
+                    <p>Keep your notes, formulas, and cheat sheets safe in your personal vault. Access them anywhere, anytime.</p>
                 </article>
             </div>
         </section>
 
-        <section id="pricing" class="features-section bg-light py-5 rounded-4 my-5 mx-3">
-            <div class="text-center mb-5">
-                <h2 class="section-title mb-2">Simple, transparent pricing</h2>
-                <p class="text-muted fs-5">Invest in your education. Cancel anytime.</p>
-            </div>
-            
-            <div class="row justify-content-center px-3 gap-4">
-                <div class="col-md-5 col-lg-3 clean-card p-4 text-center d-flex flex-column">
-                    <h4 class="fw-bold text-muted mb-3">Basic Plan</h4>
-                    <h2 class="display-5 fw-bold mb-3">₹49<span class="fs-6 text-muted">/mo</span></h2>
-                    <p class="text-muted small mb-4">Perfect for getting organized.</p>
-                    <ul class="list-unstyled text-start mb-4 flex-grow-1">
-                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Time Tracking</li>
-                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Syllabus Manager</li>
-                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Digital Notes</li>
-                    </ul>
-                    <a href="/subscriptions/pricing" class="btn btn-outline-primary w-100 py-2 rounded-3 fw-bold mt-auto border-2">Start Free Trial</a>
-                </div>
-
-                <div class="col-md-5 col-lg-3 clean-card p-4 text-center d-flex flex-column border-primary" style="transform: scale(1.05); box-shadow: 0 10px 25px rgba(79, 70, 229, 0.2);">
-                    <div class="bg-primary text-white py-1 px-3 rounded-pill d-inline-block mx-auto mb-3 text-uppercase small fw-bold">Most Popular</div>
-                    <h4 class="fw-bold text-primary mb-3">Premium+</h4>
-                    <h2 class="display-5 fw-bold mb-3">₹99<span class="fs-6 text-muted">/mo</span></h2>
-                    <p class="text-muted small mb-4">For serious competitive aspirants.</p>
-                    <ul class="list-unstyled text-start mb-4 flex-grow-1">
-                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i> All Basic Features</li>
-                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Global Leaderboard</li>
-                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Secure Chat</li>
-                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Habit Tracker</li>
-                    </ul>
-                    <a href="/subscriptions/pricing" class="btn-primary-solid w-100 py-2 mt-auto">Upgrade Now</a>
-                </div>
-                
-                <div class="col-md-5 col-lg-3 clean-card p-4 text-center d-flex flex-column">
-                    <h4 class="fw-bold text-muted mb-3">Yearly</h4>
-                    <h2 class="display-5 fw-bold mb-3">₹999<span class="fs-6 text-muted">/yr</span></h2>
-                    <p class="text-muted small mb-4">Best value for long-term prep.</p>
-                    <ul class="list-unstyled text-start mb-4 flex-grow-1">
-                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i> All Premium+ Features</li>
-                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Save ₹189 per year</li>
-                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Priority Support</li>
-                    </ul>
-                    <a href="/subscriptions/pricing" class="btn btn-outline-primary w-100 py-2 rounded-3 fw-bold mt-auto border-2">Get Yearly Plan</a>
-                </div>
-            </div>
+        <section class="cta-band">
+            <h2 data-aos="fade-up">Ready to ace your exams?</h2>
+            <p data-aos="fade-up" data-aos-delay="100">Join thousands of students learning the fun way. Create your free account in 30 seconds.</p>
+            <a href="/signup" class="btn-cta-white" data-aos="fade-up" data-aos-delay="200">Start learning</a>
         </section>
 
         <section id="feedback" class="features-section">
-            <div class="clean-card" style="padding: 3rem; max-width: 800px; margin: 0 auto;" data-aos="fade-up">
-                <h2 style="font-size: 2.5rem; font-weight: 800; color: var(--text-main); text-align: center; margin-bottom: 1rem;">Shape the Future</h2>
-                <p style="color: var(--text-muted); text-align: center; margin-bottom: 3rem;">Trakment is evolving rapidly. Share your feedback to help us build the ultimate learning tool.</p>
+            <div class="duo-card" style="max-width: 750px; margin: 0 auto; padding: 3rem;" data-aos="fade-up">
+                <h2 style="font-size:2.2rem; font-weight:900; text-align:center; margin-bottom:0.6rem;">Help us improve!</h2>
+                <p style="color:var(--duo-muted); text-align:center; margin-bottom:2.5rem; font-weight:600;">Tell us what you want to see next on Trakment.</p>
                 
                 <form method="post" action="/">
                     {% csrf_token %}
-                    <div class="mb-4">
-                        <label for="name" class="form-label fw-bold" style="color: var(--text-main)">Name</label>
-                        <input type="text" class="form-control" id="name" name="name" required placeholder="Enter your name">
+                    <div class="mb-3">
+                        <label class="form-label" for="name">Your Name</label>
+                        <input type="text" class="form-control" id="name" name="name" required placeholder="What should we call you?">
                     </div>
-                    <div class="mb-4">
-                        <label for="email" class="form-label fw-bold" style="color: var(--text-main)">Email (optional)</label>
-                        <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email">
+                    <div class="mb-3">
+                        <label class="form-label" for="email">Email Address</label>
+                        <input type="email" class="form-control" id="email" name="email" placeholder="So we can reply! (optional)">
                     </div>
-                    <div class="mb-4">
-                        <label for="role" class="form-label fw-bold" style="color: var(--text-main)">I am a...</label>
+                    <div class="mb-3">
+                        <label class="form-label" for="role">I am a...</label>
                         <select class="form-control" id="role" name="role" required>
-                            <option value="">Select your academic role</option>
+                            <option value="">Select your path...</option>
                             <option value="competitive">Competitive Exam Aspirant</option>
                             <option value="school">School Student</option>
                             <option value="college">University Student</option>
-                            <option value="educator">Educator</option>
+                            <option value="educator">Teacher / Educator</option>
                         </select>
                     </div>
                     <div class="mb-4">
-                        <label for="feedback" class="form-label fw-bold" style="color: var(--text-main)">Your Feedback</label>
-                        <textarea class="form-control" id="feedback" name="msg" rows="4" required placeholder="What features do you need?"></textarea>
+                        <label class="form-label" for="feedback">Your Ideas</label>
+                        <textarea class="form-control" id="feedback" name="msg" rows="4" required placeholder="I wish Trakment could..."></textarea>
                     </div>
-                    <button type="submit" class="btn-primary-solid w-100" style="padding: 0.8rem; font-size: 1.1rem;">Submit Feedback</button>
+                    <button type="submit" class="btn-duo w-100" style="width: 100%;">Send Feedback</button>
                 </form>
             </div>
         </section>
+
+        <footer class="landing-footer">
+            <div style="display:flex; justify-content:center; gap:1rem; margin-bottom:1.5rem;">
+                <a href="https://instagram.com/trakment" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                <a href="mailto:officialtrakment@gmail.com" aria-label="Email"><i class="fas fa-envelope"></i></a>
+                <a href="https://www.youtube.com/@Trakment" target="_blank" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+            </div>
+            <p style="color:var(--duo-muted); font-size:1.1rem; font-weight:700;">&copy; <span id="year"></span> Trakment.</p>
+        </footer>
     </main>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script>
-    // Initialize Animations
-    AOS.init({ duration: 800, once: true, offset: 50 });
+    // Initialize AOS Animations
+    if (typeof AOS !== 'undefined') {
+        AOS.init({ duration: 600, once: true, offset: 50 });
+    }
+    
+    // Set current year
+    const yearEl = document.getElementById('year');
+    if (yearEl) yearEl.innerText = new Date().getFullYear();
 
-    // Mobile Menu Toggle
+    // Mobile menu toggle
     const menuBtn = document.getElementById('mobile-menu-btn');
     const navMenu = document.getElementById('nav-menu');
-    
-    if(menuBtn && navMenu) {
+    if (menuBtn && navMenu) {
         menuBtn.addEventListener('click', () => {
             navMenu.classList.toggle('active');
-            
-            // Hamburger animation
             const spans = menuBtn.querySelectorAll('span');
             if(navMenu.classList.contains('active')) {
                 spans[0].style.transform = 'rotate(45deg) translate(5px, 5px)';
@@ -481,6 +445,59 @@
             }
         });
     }
-</script>
 
+    // Theme logic
+    const landingWrapper = document.querySelector('.landing-wrapper');
+    const themeToggleBtn = document.getElementById('landing-theme-toggle');
+    if (themeToggleBtn && landingWrapper) {
+        const themeIcon = themeToggleBtn.querySelector('i');
+        let currentTheme = localStorage.getItem('landing-theme');
+        if (!currentTheme) {
+            currentTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        
+        if (currentTheme === 'dark') {
+            landingWrapper.setAttribute('data-landing-theme', 'dark');
+            themeIcon.classList.replace('fa-moon', 'fa-sun');
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            if (landingWrapper.getAttribute('data-landing-theme') === 'dark') {
+                landingWrapper.removeAttribute('data-landing-theme');
+                localStorage.setItem('landing-theme', 'light');
+                themeIcon.classList.replace('fa-sun', 'fa-moon');
+            } else {
+                landingWrapper.setAttribute('data-landing-theme', 'dark');
+                localStorage.setItem('landing-theme', 'dark');
+                themeIcon.classList.replace('fa-moon', 'fa-sun');
+            }
+        });
+    }
+
+    // Button Loading Animations
+    document.querySelectorAll('.btn-duo, .btn-duo-outline, .btn-cta-white').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            // Only animate if it's a link navigating away or submitting a form
+            if (this.tagName === 'A' || this.type === 'submit') {
+                // Prevent double clicks
+                if (this.classList.contains('is-loading')) return e.preventDefault();
+                
+                this.classList.add('is-loading');
+                const originalText = this.innerHTML;
+                
+                // Keep the exact same width so the button doesn't shrink
+                this.style.width = this.offsetWidth + 'px';
+                this.innerHTML = '<i class="fas fa-spinner loading-spinner"></i>';
+                
+                // If it's an anchor, it will naturally redirect. If it's a form submit, it will submit.
+                // Reset after 3 seconds just in case the page doesn't unload (e.g. form validation failed)
+                setTimeout(() => {
+                    this.innerHTML = originalText;
+                    this.classList.remove('is-loading');
+                    this.style.width = 'auto';
+                }, 3000);
+            }
+        });
+    });
+</script>
 {% endblock content %}
